@@ -10,89 +10,148 @@
 :root{
   --bg:#0a0a12;--p1:#0f0f1e;--p2:#15152a;--p3:#1a1a2e;
   --l1:#252540;--l2:#323258;--l3:#4a4a70;
-  --gold:#d4a843;--gdim:rgba(212,168,67,.13);--gbright:rgba(212,168,67,.3);
+  --gold:#d4a843;--gdim:rgba(212,168,67,.13);
   --blue:#4a90e2;--bdim:rgba(74,144,226,.14);
-  --green:#27ae60;--gdim2:rgba(39,174,96,.13);--gbright2:rgba(39,174,96,.3);
+  --green:#27ae60;--gdim2:rgba(39,174,96,.13);
   --red:#c0392b;--rdim:rgba(192,57,43,.15);
   --orange:#d4820a;
   --tx:#c4c8e0;--tx2:#7c7ca0;--tx3:#40406a;--white:#e8eaf6;
   --mono:'Roboto Mono',monospace;
-  --side:172px; /* 右サイドパネル幅 */
-  --field:1108px; /* 左フィールド幅 = 1280-160 */
+  --L:120px;   /* 左サイド */
+  --R:200px;   /* 右サイド */
+  --C:960px;   /* 中央フィールド = 1280-120-200 */
 }
 html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;font-size:12px;}
 
-/* ================================
-   ROOT LAYOUT
-   左: フィールド(1120px) | 右: サイドパネル(160px)
-   ================================ */
+/* ==============================
+   ROOT: 3カラム
+   ============================== */
 #app{width:1280px;height:720px;display:flex;flex-direction:row;background:var(--bg);}
 
-/* ================================
-   LEFT: FIELD COLUMN
-   36+32+44+60+88+36+88+60+184+32+36+24 = 720px
-   ================================ */
-#field{
-  width:var(--field);flex-shrink:0;
+/* ==============================
+   LEFT SIDE: 120px
+   上半分=相手情報、下半分=自分情報
+   ============================== */
+#left{
+  width:var(--L);flex-shrink:0;
   display:flex;flex-direction:column;
-  border-right:2px solid var(--l2);
+  background:var(--p1);
+  border-right:1px solid var(--l2);
+}
+#left-enemy{
+  flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:10px 10px 12px;gap:6px;
+  border-bottom:2px solid var(--l2);
+}
+#left-mine{
+  flex:1;display:flex;flex-direction:column;justify-content:flex-start;
+  padding:12px 10px 10px;gap:6px;
 }
 
-/* DEMO BAR 36px */
-#dbar{height:36px;flex-shrink:0;display:flex;align-items:center;gap:6px;padding:0 12px;background:var(--p2);border-bottom:2px solid var(--l2);}
-.dlbl{font-size:9px;color:var(--tx3);font-family:var(--mono);}
-.dbtn{padding:0 9px;height:22px;border-radius:3px;font-size:9px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
-.dbtn:hover{border-color:var(--gold);color:var(--gold);}
-
-/* PLAYER HEADER 32px */
-.phdr{height:32px;flex-shrink:0;display:flex;align-items:center;gap:9px;padding:0 12px;border-bottom:1px solid var(--l1);}
-.phdr.enemy{background:rgba(74,144,226,.04);}
-.phdr.mine{background:rgba(39,174,96,.03);border-top:1px solid var(--l1);border-bottom:none;}
-.pav{width:20px;height:20px;border-radius:50%;background:var(--p3);border:1.5px solid var(--l2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pavi{width:9px;height:9px;border-radius:2px;background:var(--l2);}
-.pnm{font-size:12px;font-weight:700;color:var(--white);}
-.pen{display:flex;align-items:center;gap:3px;padding:1px 6px;background:var(--gdim);border:1px solid rgba(212,168,67,.22);border-radius:3px;}
+/* プレイヤー名+EN */
+.side-player{display:flex;flex-direction:column;gap:4px;}
+.side-nm{font-size:11px;font-weight:700;color:var(--white);}
+.pen{display:flex;align-items:center;gap:3px;padding:2px 6px;background:var(--gdim);border:1px solid rgba(212,168,67,.22);border-radius:3px;align-self:flex-start;}
 .penlbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
 .enpips{display:flex;gap:2px;align-items:center;}
 .ep{width:7px;height:7px;border-radius:50%;}
 .ep.on{background:var(--gold);}
 .ep.off{background:transparent;border:1.5px solid rgba(212,168,67,.22);}
 .penval{font-size:10px;font-weight:700;color:var(--gold);font-family:var(--mono);}
-/* headerのspacer */
-.ph-sp{flex:1;}
 
-/* ZONE ROW 共通スタイル */
-.zrow{flex-shrink:0;display:flex;align-items:center;padding:0 12px;gap:0;border-bottom:1px solid var(--l1);}
-.zrow-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);width:20px;flex-shrink:0;text-align:center;line-height:1.2;}
+/* デッキ・墓地ブロック */
+.side-blk{display:flex;flex-direction:column;gap:4px;}
+.deck-row{display:flex;align-items:center;justify-content:space-between;padding:3px 7px;background:var(--p3);border:1px solid var(--l1);border-radius:4px;}
+.deck-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.deck-val{font-size:14px;font-weight:900;color:var(--white);font-family:var(--mono);}
+.deck-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.grave-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 7px;background:var(--p3);border:1px solid var(--l1);border-radius:4px;
+  cursor:pointer;font-family:inherit;width:100%;
+}
+.grave-btn:hover{border-color:var(--gold);}
+.grave-lbl{font-size:8px;color:var(--tx2);font-family:var(--mono);}
+.grave-val{display:flex;align-items:baseline;gap:2px;}
+.grave-cnt{font-size:14px;font-weight:900;color:var(--white);font-family:var(--mono);}
+.grave-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
 
-/* ENEMY HAND 44px */
-#e-hand{height:44px;background:rgba(255,255,255,.006);}
-/* 裏向きカード 22×32px */
+/* ==============================
+   CENTER FIELD: 960px
+   行構成 (合計720px):
+   dbar    36px
+   e-hdr   28px
+   e-hand  38px
+   e-sh    54px
+   e-mon   78px
+   cbar    36px
+   m-mon   78px
+   m-sh    54px
+   m-hand  180px  (overflow:visible)
+   m-hdr   28px
+   abar    34px
+   log     24px
+   合計: 36+28+38+54+78+36+78+54+180+28+34+24 = 668 → 残52px
+   m-handに追加: 180+52=232 → 大きすぎ
+   各行に分散: e-hand 44, e-sh 58, e-mon 84, m-mon 84, m-sh 58, m-hand 192
+   合計: 36+28+44+58+84+36+84+58+192+28+34+24 = 710 → 残10px → m-hand 202
+   合計: 720 ✓
+   ============================== */
+#center{
+  width:var(--C);flex-shrink:0;
+  display:flex;flex-direction:column;
+  border-right:1px solid var(--l2);
+}
+
+/* DEMO BAR 36px */
+#dbar{height:36px;flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 12px;background:var(--p2);border-bottom:2px solid var(--l2);}
+.dlbl{font-size:9px;color:var(--tx3);font-family:var(--mono);}
+.dbtn{padding:0 8px;height:22px;border-radius:3px;font-size:9px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
+.dbtn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* PLAYER HEADER 28px */
+.phdr{height:28px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--l1);}
+.phdr.enemy{background:rgba(74,144,226,.04);}
+.phdr.mine{background:rgba(39,174,96,.03);border-top:1px solid var(--l1);border-bottom:none;}
+.pav{width:18px;height:18px;border-radius:50%;background:var(--p3);border:1.5px solid var(--l2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pavi{width:8px;height:8px;border-radius:2px;background:var(--l2);}
+.pnm{font-size:11px;font-weight:700;color:var(--white);}
+
+/* ZONE ROW 共通 */
+.zrow{flex-shrink:0;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--l1);}
+.zlbl{font-size:8px;color:var(--tx3);font-family:var(--mono);width:18px;flex-shrink:0;text-align:center;line-height:1.2;}
+
+/* ENEMY HAND 44px — 裏向き */
+#e-hand-row{height:44px;background:rgba(255,255,255,.006);}
 .hbc{width:22px;height:32px;border-radius:3px;border:1px solid var(--l2);background:var(--p3);flex-shrink:0;position:relative;overflow:hidden;}
 .hbc::after{content:'';position:absolute;inset:2px;border:1px solid var(--l1);border-radius:1px;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.02) 3px,rgba(255,255,255,.02) 6px);}
 #ehbcards{display:flex;gap:3px;align-items:center;}
-.hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:7px;}
+.hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:6px;}
 
-/* SHIELD ROW 60px */
-.sh-row{height:60px;}
+/* SHIELD ROW 58px */
+.sh-row{height:58px;}
 .sh-row.enemy{background:rgba(74,144,226,.04);}
 .sh-row.mine{background:rgba(74,144,226,.04);}
-/* Shieldカード 78×46px 横長 */
-.shc{width:78px;height:46px;flex-shrink:0;border-radius:5px;border:2px solid var(--blue);background:var(--bdim);display:flex;align-items:center;justify-content:center;gap:6px;cursor:default;}
-.shc-icon{width:22px;height:22px;border-radius:3px;border:1.5px solid rgba(74,144,226,.4);background:rgba(74,144,226,.2);}
+/* Shield: 横長カード — 幅は5枚でMonsterと揃える */
+/* フィールド有効幅: 960-12-12-18-6(gap) = 912px
+   5枚+4gap(6px) = 5w+24 = 912 → w = (912-24)/5 ≈ 177px → 大きすぎ
+   実際はShieldはコンパクトに: w=72px × 5 = 360px + gap = 384px
+   Monsterも同じ幅に: w=72px */
+.shc{width:72px;height:44px;flex-shrink:0;border-radius:5px;border:2px solid var(--blue);background:var(--bdim);display:flex;align-items:center;justify-content:center;gap:6px;cursor:default;}
+.shc-icon{width:20px;height:20px;border-radius:3px;border:1.5px solid rgba(74,144,226,.4);background:rgba(74,144,226,.2);}
 .shc-n{font-size:9px;color:rgba(74,144,226,.85);font-family:var(--mono);font-weight:700;}
-.shc.broken{border-color:var(--l1);background:transparent;opacity:.16;}
+.shc.broken{border-color:var(--l1);background:transparent;opacity:.15;}
 .shc.broken .shc-icon,.shc.broken .shc-n{opacity:0;}
 .shc.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;}
 #eshcards,#mshcards{display:flex;gap:6px;align-items:center;}
 .shcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:8px;}
 
-/* MONSTER ROW 88px */
-.mn-row{height:88px;}
+/* MONSTER ROW 84px */
+.mn-row{height:84px;}
 .mn-row.enemy{background:rgba(255,255,255,.005);}
 .mn-row.mine{background:rgba(255,255,255,.005);}
-/* Monsterスロット 112×72px */
-.mslot{width:78px;height:68px;flex-shrink:0;border-radius:5px;border:1.5px dashed var(--l1);background:rgba(255,255,255,.004);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--tx3);cursor:default;font-size:8px;font-family:var(--mono);position:relative;overflow:visible;padding:3px;}
+/* Monster: 同じ72px幅 */
+.mslot{width:72px;height:68px;flex-shrink:0;border-radius:5px;border:1.5px dashed var(--l1);background:rgba(255,255,255,.004);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--tx3);cursor:default;font-size:8px;font-family:var(--mono);position:relative;overflow:visible;padding:3px;}
 .mslot.filled{border:2px solid var(--l2);background:var(--p3);cursor:pointer;}
 .mslot.filled:hover{border-color:var(--blue);}
 .mslot.summon-tgt{border-color:var(--green);background:var(--gdim2);cursor:pointer;}
@@ -101,9 +160,9 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .mslot.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;}
 .mslot.front-guard{border-color:var(--green);}
 .mslot.used{opacity:.38;border-color:var(--l1);}
-.mart{width:36px;height:36px;border-radius:3px;background:var(--p2);border:1px solid var(--l2);}
+.mart{width:32px;height:32px;border-radius:3px;background:var(--p2);border:1px solid var(--l2);}
 .mnm{font-size:7px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
-.mst{display:flex;gap:2px;font-size:9px;font-weight:700;font-family:var(--mono);}
+.mst{display:flex;gap:2px;font-size:8px;font-weight:700;font-family:var(--mono);}
 .ma{color:#f09060;}.msl{color:var(--tx3);}.mh{color:#60c870;}
 .kwrow{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;}
 .kw{font-size:6px;padding:1px 3px;border-radius:2px;font-weight:700;font-family:var(--mono);}
@@ -113,7 +172,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .lbf{height:100%;border-radius:2px;}
 .lbf.full{background:var(--green);}.lbf.half{background:var(--orange);}.lbf.low{background:var(--red);}
 .ubadge{position:absolute;top:2px;left:2px;font-size:6px;color:var(--tx3);background:rgba(0,0,0,.6);padding:1px 3px;border-radius:2px;font-family:var(--mono);}
-#emslots,#mmslots{display:flex;gap:5px;align-items:center;}
+#emslots,#mmslots{display:flex;gap:6px;align-items:center;}
 
 /* CENTER BAR 36px */
 #cbar{height:36px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(0,0,0,.7);border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);}
@@ -130,14 +189,14 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .cen-sep,.cen-mx{font-size:11px;color:var(--tx3);font-family:var(--mono);}
 .cen-lbl{font-size:9px;color:var(--tx3);font-family:var(--mono);}
 
-/* MY HAND 184px — overflow:visible */
-#m-hand{height:184px;flex-shrink:0;display:flex;align-items:flex-end;padding:0 12px 10px;gap:8px;background:rgba(255,255,255,.005);border-bottom:1px solid var(--l1);overflow:visible;position:relative;z-index:20;}
+/* MY HAND 202px — overflow:visible */
+#m-hand{height:202px;flex-shrink:0;display:flex;align-items:flex-end;padding:0 12px 12px;gap:8px;background:rgba(255,255,255,.005);border-bottom:1px solid var(--l1);overflow:visible;position:relative;z-index:20;}
 .hand-lbl{font-size:9px;color:var(--tx3);font-family:var(--mono);flex-shrink:0;padding-bottom:4px;}
-#hrow{display:flex;gap:5px;align-items:flex-end;flex:1;overflow-x:auto;padding-top:24px;}
-/* Hand card 88×120px */
-.hcard{width:88px;height:120px;flex-shrink:0;border-radius:7px;border:2px solid var(--l2);background:var(--p2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;position:relative;overflow:visible;}
+#hrow{display:flex;gap:6px;align-items:flex-end;flex:1;overflow-x:auto;padding-top:26px;}
+/* Hand card 88×128px */
+.hcard{width:88px;height:128px;flex-shrink:0;border-radius:7px;border:2px solid var(--l2);background:var(--p2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;position:relative;overflow:visible;}
 .hcard.playable{border-color:var(--green);box-shadow:0 0 8px rgba(39,174,96,.3);}
-.hcard.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,67,.4);transform:translateY(-18px);}
+.hcard.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,67,.4);transform:translateY(-20px);}
 .hcard:not(.selected):hover{border-color:var(--blue);transform:translateY(-8px);}
 .hcard.no-en{opacity:.35;filter:grayscale(.5);}
 .hcard.no-en:hover{transform:translateY(-3px);}
@@ -146,14 +205,14 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .hcard.has-trig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
 .ccost{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);}
 .ccost.cant{background:var(--l2);color:var(--tx3);}
-.cart{width:48px;height:48px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);margin-top:4px;flex-shrink:0;}
+.cart{width:50px;height:50px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);margin-top:4px;flex-shrink:0;}
 .ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 .cnm{font-size:7px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
 .csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 
-/* ACTION BAR 36px */
-#abar{height:36px;flex-shrink:0;display:flex;gap:7px;align-items:center;padding:0 12px;background:rgba(0,0,0,.6);border-top:1px solid var(--l1);}
-.btn{padding:0 14px;height:25px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:flex;align-items:center;}
+/* ACTION BAR 34px */
+#abar{height:34px;flex-shrink:0;display:flex;gap:7px;align-items:center;padding:0 12px;background:rgba(0,0,0,.6);border-top:1px solid var(--l1);}
+.btn{padding:0 14px;height:24px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:flex;align-items:center;}
 .btn-b{background:var(--red);color:#fff;}
 .btn-b:hover{filter:brightness(1.15);}
 .btn-e{background:var(--gold);color:#000;}
@@ -169,81 +228,54 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .le.atk .lt{color:var(--orange);}.le.trig .lt{color:var(--gold);font-weight:700;}
 .le.ptn .lt{color:#aa88ff;font-weight:700;}.le.dmg .lt{color:var(--red);}
 
-/* ================================
-   RIGHT: SIDE PANEL (160px)
-   上半分: 相手情報
-   中央ライン
-   下半分: 自分情報
-   ================================ */
-#side{
-  width:var(--side);flex-shrink:0;
+/* ==============================
+   RIGHT SIDE: 200px
+   上半分=相手パートナー、下半分=自分パートナー
+   ============================== */
+#right{
+  width:var(--R);flex-shrink:0;
   display:flex;flex-direction:column;
   background:var(--p1);
 }
-
-/* サイドパネルを上下に分割 */
-#side-enemy{
-  flex:1;display:flex;flex-direction:column;
-  border-bottom:2px solid var(--l2);padding:10px 10px 8px;gap:8px;
+#right-enemy{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:12px;gap:8px;
+  border-bottom:2px solid var(--l2);
 }
-#side-mine{
-  flex:1;display:flex;flex-direction:column;
-  padding:8px 10px 10px;gap:8px;
+#right-mine{
+  flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:12px;gap:8px;
 }
 
-/* 情報ブロック */
-.sblk{display:flex;flex-direction:column;gap:3px;}
-.sblk-ttl{font-size:8px;color:var(--tx3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;}
-.sblk-val{font-size:18px;font-weight:900;color:var(--white);font-family:var(--mono);line-height:1;}
-.sblk-sub{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-
-/* 墓地ボタン */
-.grave-btn{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:4px 6px;border-radius:4px;
-  background:var(--p3);border:1px solid var(--l1);
-  cursor:pointer;font-family:inherit;transition:all .15s;
-}
-.grave-btn:hover{border-color:var(--gold);}
-.grave-btn-lbl{font-size:9px;color:var(--tx2);font-family:var(--mono);}
-.grave-btn-cnt{font-size:13px;font-weight:700;color:var(--white);font-family:var(--mono);}
-.grave-btn-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-
-/* パートナーカード (サイドパネル内) */
+/* パートナーカード */
+.pt-wrap{display:flex;flex-direction:column;gap:6px;}
+.pt-ttl{font-size:8px;color:var(--tx3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;}
 .pt-card{
-  border-radius:7px;border:2px solid var(--gold);background:var(--gdim);
+  border-radius:8px;border:2px solid var(--gold);background:var(--gdim);
   display:flex;flex-direction:column;align-items:center;
-  padding:8px 6px;gap:5px;cursor:pointer;position:relative;overflow:visible;
+  padding:10px 8px;gap:5px;cursor:pointer;position:relative;overflow:visible;
 }
-.pt-card:hover{box-shadow:0 3px 12px rgba(212,168,67,.3);}
-.pt-card.unmet{border-color:var(--gold);}
-.pt-card.ready{border-color:var(--gold);background:var(--gdim);box-shadow:0 0 10px rgba(212,168,67,.2);}
-.pt-card.guardian{border-color:var(--red);background:var(--rdim);box-shadow:0 0 10px rgba(192,57,43,.3);}
-.pt-card.summoned{border-color:var(--l2);background:rgba(255,255,255,.02);opacity:.5;}
-.pt-art{width:52px;height:52px;border-radius:5px;background:var(--l2);border:1.5px solid rgba(212,168,67,.35);}
-.pt-name{font-size:10px;font-weight:700;color:var(--gold);text-align:center;line-height:1.3;}
+.pt-card:hover{box-shadow:0 3px 14px rgba(212,168,67,.25);}
+.pt-card.ready{box-shadow:0 0 12px rgba(212,168,67,.2);}
+.pt-card.guardian{border-color:var(--red);background:var(--rdim);box-shadow:0 0 12px rgba(192,57,43,.3);}
+.pt-card.summoned{border-color:var(--l2);opacity:.45;}
+.pt-art{width:60px;height:60px;border-radius:6px;background:var(--l2);border:1.5px solid rgba(212,168,67,.35);}
+.pt-name{font-size:11px;font-weight:700;color:var(--gold);text-align:center;}
 .pt-stat{font-size:9px;color:var(--tx3);font-family:var(--mono);text-align:center;}
-.pt-skill{font-size:8px;color:var(--tx2);text-align:center;line-height:1.4;padding:3px 2px;border-top:1px solid var(--l1);width:100%;}
-.pt-cond{font-size:8px;padding:2px 6px;border-radius:3px;font-family:var(--mono);text-align:center;margin-top:2px;}
+.pt-skill{font-size:8px;color:var(--tx2);text-align:center;line-height:1.4;padding:4px 2px 2px;border-top:1px solid var(--l1);width:100%;}
+.pt-cond{font-size:8px;padding:2px 6px;border-radius:3px;font-family:var(--mono);text-align:center;}
 .pt-cond.unmet{background:rgba(64,64,96,.2);color:var(--tx3);border:1px solid var(--l1);}
-.pt-cond.met{background:var(--gdim2);color:var(--green);border:1px solid var(--gbright2);}
-.pt-guard-badge{display:none;font-size:8px;font-weight:700;color:var(--red);font-family:var(--mono);text-align:center;padding:2px 0;}
-.pt-card.guardian .pt-guard-badge{display:block;}
-.pt-summon-btn{width:100%;padding:4px 0;background:var(--gold);color:#000;border:none;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:2px;}
-.pt-summon-btn:disabled{background:var(--p3);color:var(--tx3);cursor:not-allowed;}
-
-/* Deck表示 */
-.deck-blk{display:flex;align-items:center;justify-content:space-between;padding:3px 6px;background:var(--p3);border:1px solid var(--l1);border-radius:4px;}
-.deck-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.deck-val{font-size:13px;font-weight:700;color:var(--white);font-family:var(--mono);}
-.deck-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.pt-cond.met{background:var(--gdim2);color:var(--green);border:1px solid rgba(39,174,96,.3);}
+.pt-guard{display:none;font-size:8px;font-weight:700;color:var(--red);font-family:var(--mono);text-align:center;}
+.pt-card.guardian .pt-guard{display:block;}
+.pt-summon{width:100%;padding:5px 0;background:var(--gold);color:#000;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:2px;}
+.pt-summon:disabled{background:var(--p3);color:var(--tx3);cursor:not-allowed;}
 
 /* TOOLTIP */
-.tt{display:none;position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:rgba(4,4,16,.98);border:1px solid var(--gold);border-radius:7px;padding:10px;width:190px;z-index:500;pointer-events:none;}
-.pt-card:hover .tt,.mslot:hover .tt,.hcard:hover .tt{display:block;}
-/* monsterのtooltipは上に */
+.tt{display:none;position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:rgba(4,4,16,.98);border:1px solid var(--gold);border-radius:7px;padding:10px;width:185px;z-index:500;pointer-events:none;}
 .mslot .tt{right:auto;left:50%;transform:translateX(-50%);top:auto;bottom:calc(100% + 8px);}
 .hcard .tt{right:auto;left:50%;transform:translateX(-50%);top:auto;bottom:calc(100% + 8px);}
+.pt-card:hover .tt,.mslot:hover .tt,.hcard:hover .tt{display:block;}
 .ttn{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:3px;}
 .ttt{font-size:8px;color:var(--tx3);margin-bottom:4px;font-family:var(--mono);}
 .tts{font-size:11px;margin-bottom:4px;}.ttd{border:none;border-top:1px solid var(--l1);margin:4px 0;}
@@ -300,22 +332,39 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   <div class="tov-hint">click to dismiss</div>
 </div>
 <div id="notif"></div>
-<div class="ov modal-bg" id="modal-eg">
-  <div class="mbox"><div class="mhdr"><span class="mttl">相手の墓地<span id="egc"></span></span><button class="mx" onclick="cm('modal-eg')">✕</button></div><div id="egl"></div></div>
-</div>
-<div class="ov modal-bg" id="modal-mg">
-  <div class="mbox"><div class="mhdr"><span class="mttl">自分の墓地<span id="mgc"></span></span><button class="mx" onclick="cm('modal-mg')">✕</button></div><div id="mgl"></div></div>
-</div>
-<div class="ov" id="cfmov">
-  <div class="cfmbox"><div class="cfmmsg" id="cfmsg"></div><div class="cfmbtns"><button class="cfy" onclick="cfmY()">発動</button><button class="cfn" onclick="cfmN()">キャンセル</button></div></div>
-</div>
+<div class="ov modal-bg" id="modal-eg"><div class="mbox"><div class="mhdr"><span class="mttl">相手の墓地<span id="egc"></span></span><button class="mx" onclick="cm('modal-eg')">✕</button></div><div id="egl"></div></div></div>
+<div class="ov modal-bg" id="modal-mg"><div class="mbox"><div class="mhdr"><span class="mttl">自分の墓地<span id="mgc"></span></span><button class="mx" onclick="cm('modal-mg')">✕</button></div><div id="mgl"></div></div></div>
+<div class="ov" id="cfmov"><div class="cfmbox"><div class="cfmmsg" id="cfmsg"></div><div class="cfmbtns"><button class="cfy" onclick="cfmY()">発動</button><button class="cfn" onclick="cfmN()">キャンセル</button></div></div></div>
 
 <div id="app">
 
-  <!-- ===== LEFT FIELD ===== -->
-  <div id="field">
+  <!-- ===== LEFT ===== -->
+  <div id="left">
+    <div id="left-enemy">
+      <div class="side-player">
+        <div class="side-nm">相手</div>
+        <div class="pen"><span class="penlbl">EN</span><div class="enpips" id="eenpips"></div><span class="penval" id="eenval"></span></div>
+      </div>
+      <div class="side-blk">
+        <div class="deck-row"><span class="deck-lbl">デッキ</span><span class="deck-val" id="edeckval"></span><span class="deck-unit">枚</span></div>
+        <button class="grave-btn" onclick="og('e')"><span class="grave-lbl">墓地</span><div class="grave-val"><span class="grave-cnt" id="egbcnt">0</span><span class="grave-unit">枚</span></div></button>
+      </div>
+    </div>
+    <div id="left-mine">
+      <div class="side-blk">
+        <div class="deck-row"><span class="deck-lbl">デッキ</span><span class="deck-val" id="mdeckval"></span><span class="deck-unit">枚</span></div>
+        <button class="grave-btn" onclick="og('m')"><span class="grave-lbl">墓地</span><div class="grave-val"><span class="grave-cnt" id="mgbcnt">0</span><span class="grave-unit">枚</span></div></button>
+      </div>
+      <div class="side-player">
+        <div class="pen"><span class="penlbl">EN</span><div class="enpips" id="menpips"></div><span class="penval" id="menval"></span></div>
+        <div class="side-nm">自分</div>
+      </div>
+    </div>
+  </div>
 
-    <!-- DEMO BAR -->
+  <!-- ===== CENTER ===== -->
+  <div id="center">
+
     <div id="dbar">
       <span class="dlbl">DEMO //</span>
       <button class="dbtn" onclick="dBreak()">Shield破壊</button>
@@ -326,35 +375,28 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       <button class="dbtn" onclick="location.reload()">Reset</button>
     </div>
 
-    <!-- 相手ヘッダー -->
     <div class="phdr enemy">
       <div class="pav"><div class="pavi"></div></div>
       <div class="pnm">相手プレイヤー</div>
-      <div class="pen"><span class="penlbl">EN</span><div class="enpips" id="eenpips"></div><span class="penval" id="eenval"></span></div>
-      <div class="ph-sp"></div>
     </div>
 
-    <!-- 相手手札 -->
-    <div class="zrow" id="e-hand">
-      <span class="zrow-lbl">手札</span>
+    <div class="zrow" id="e-hand-row">
+      <span class="zlbl">手札</span>
       <div id="ehbcards"></div>
       <span class="hcnt" id="ehbcnt"></span>
     </div>
 
-    <!-- 相手Shield -->
     <div class="zrow sh-row enemy">
-      <span class="zrow-lbl">SH</span>
+      <span class="zlbl">SH</span>
       <div id="eshcards"></div>
       <span class="shcnt" id="eshcnt"></span>
     </div>
 
-    <!-- 相手MonsterZone -->
     <div class="zrow mn-row enemy">
-      <span class="zrow-lbl">MON</span>
+      <span class="zlbl">MON</span>
       <div id="emslots"></div>
     </div>
 
-    <!-- CENTER BAR -->
     <div id="cbar">
       <div class="tdot"></div>
       <div class="ttxt" id="ttxt"></div>
@@ -373,121 +415,71 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       </div>
     </div>
 
-    <!-- 自分MonsterZone -->
     <div class="zrow mn-row mine">
-      <span class="zrow-lbl">MON</span>
+      <span class="zlbl">MON</span>
       <div id="mmslots"></div>
     </div>
 
-    <!-- 自分Shield -->
     <div class="zrow sh-row mine">
-      <span class="zrow-lbl">SH</span>
+      <span class="zlbl">SH</span>
       <div id="mshcards"></div>
       <span class="shcnt" id="mshcnt"></span>
     </div>
 
-    <!-- 自分手札 -->
     <div id="m-hand">
       <span class="hand-lbl">手札</span>
       <div id="hrow"></div>
     </div>
 
-    <!-- 自分ヘッダー -->
     <div class="phdr mine">
       <div class="pav"><div class="pavi"></div></div>
       <div class="pnm">自分</div>
-      <div class="pen"><span class="penlbl">EN</span><div class="enpips" id="menpips"></div><span class="penval" id="menval"></span></div>
-      <div class="ph-sp"></div>
     </div>
 
-    <!-- ACTION BAR -->
     <div id="abar">
       <button class="btn btn-b" id="btnB" onclick="goBattle()">⚔ Battle Phase</button>
       <button class="btn btn-e" id="btnE" onclick="endTurn()">✓ End Turn</button>
     </div>
 
-    <!-- LOG -->
     <div id="logbar">
       <span class="log-hdr">LOG //</span>
       <div id="logscroll"><span id="loginner"></span></div>
     </div>
 
-  </div><!-- /field -->
+  </div><!-- /center -->
 
-  <!-- ===== RIGHT SIDE PANEL ===== -->
-  <div id="side">
-
-    <!-- 相手サイド -->
-    <div id="side-enemy">
-      <div class="sblk-ttl">相手</div>
-
-      <!-- 相手デッキ -->
-      <div class="deck-blk">
-        <span class="deck-lbl">デッキ</span>
-        <span class="deck-val" id="edeckval"></span>
-        <span class="deck-unit">枚</span>
-      </div>
-
-      <!-- 相手墓地 -->
-      <button class="grave-btn" onclick="og('e')">
-        <span class="grave-btn-lbl">墓地</span>
-        <div style="display:flex;align-items:baseline;gap:2px;">
-          <span class="grave-btn-cnt" id="egbcnt">0</span>
-          <span class="grave-btn-unit">枚</span>
-        </div>
-      </button>
-
-      <!-- 相手パートナー -->
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-        <div class="pt-card unmet" id="epc">
+  <!-- ===== RIGHT ===== -->
+  <div id="right">
+    <div id="right-enemy">
+      <div class="pt-wrap">
+        <div class="pt-ttl">Partner — 相手</div>
+        <div class="pt-card" id="epc">
           <div class="pt-art"></div>
           <div class="pt-name" id="epname"></div>
           <div class="pt-stat" id="epstat"></div>
           <div class="pt-skill" id="epskill"></div>
           <div class="pt-cond unmet" id="epcd"></div>
-          <div class="pt-guard-badge">🛡 GUARDIAN</div>
+          <div class="pt-guard">🛡 GUARDIAN</div>
           <div class="tt" id="eptt"></div>
         </div>
       </div>
     </div>
-
-    <!-- 自分サイド -->
-    <div id="side-mine">
-
-      <!-- 自分パートナー -->
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-        <div class="pt-card unmet" id="mpc">
+    <div id="right-mine">
+      <div class="pt-wrap">
+        <div class="pt-ttl">Partner — 自分</div>
+        <div class="pt-card" id="mpc">
           <div class="pt-art"></div>
           <div class="pt-name" id="mpname"></div>
           <div class="pt-stat" id="mpstat"></div>
           <div class="pt-skill" id="mpskill"></div>
           <div class="pt-cond unmet" id="mpcd"></div>
-          <div class="pt-guard-badge">🛡 GUARDIAN</div>
-          <button class="pt-summon-btn" id="mpbtn" onclick="sumP()" disabled>召喚不可</button>
+          <div class="pt-guard">🛡 GUARDIAN</div>
+          <button class="pt-summon" id="mpbtn" onclick="sumP()" disabled>召喚不可</button>
           <div class="tt" id="mptt"></div>
         </div>
       </div>
-
-      <!-- 自分墓地 -->
-      <button class="grave-btn" onclick="og('m')">
-        <span class="grave-btn-lbl">墓地</span>
-        <div style="display:flex;align-items:baseline;gap:2px;">
-          <span class="grave-btn-cnt" id="mgbcnt">0</span>
-          <span class="grave-btn-unit">枚</span>
-        </div>
-      </button>
-
-      <!-- 自分デッキ -->
-      <div class="deck-blk">
-        <span class="deck-lbl">デッキ</span>
-        <span class="deck-val" id="mdeckval"></span>
-        <span class="deck-unit">枚</span>
-      </div>
-
-      <div class="sblk-ttl">自分</div>
     </div>
-
-  </div><!-- /side -->
+  </div><!-- /right -->
 
 </div><!-- /app -->
 
@@ -568,8 +560,7 @@ function rSh(who){
   c.innerHTML='';let alive=0;
   gd.shields.forEach((s,i)=>{
     if(s)alive++;
-    const el=document.createElement('div');
-    el.className='shc'+(s?'':' broken');
+    const el=document.createElement('div');el.className='shc'+(s?'':' broken');
     el.id=(who==='e'?'esh-':'msh-')+i;
     el.innerHTML='<div class="shc-icon"></div><div class="shc-n">'+(i+1)+'</div>';
     c.appendChild(el);
@@ -589,9 +580,8 @@ function rPt(who){
   const allBroken=(who==='e'?G.enemy:G.my).shields.every(s=>!s);
   card.className='pt-card';
   if(gp.summoned&&allBroken)card.classList.add('guardian');
-  else if(gp.condMet&&!gp.summoned)card.classList.add('ready');
   else if(gp.summoned)card.classList.add('summoned');
-  else card.classList.add('unmet');
+  else if(gp.condMet)card.classList.add('ready');
   if(who==='m'){
     const btn=$('mpbtn');
     if(gp.summoned){btn.textContent='召喚済';btn.disabled=true;}
@@ -618,10 +608,7 @@ function rMon(who){
         `<div class="tte">${m.eff||''}</div></div>`;
       if(who==='m'&&G.phase==='battle'&&m.canAttack&&!m.used){slot.classList.add('atk-ready');slot.onclick=()=>selAtk(i);}
       else if(who==='m'&&G.phase==='main'){slot.onclick=()=>tryPlace(i);}
-    }else{
-      slot.className='mslot';slot.textContent='EMPTY';
-      if(who==='m')slot.onclick=()=>tryPlace(i);
-    }
+    }else{slot.className='mslot';slot.textContent='EMPTY';if(who==='m')slot.onclick=()=>tryPlace(i);}
     row.appendChild(slot);
   });
 }
@@ -681,23 +668,15 @@ function clrHL(){
 }
 function hlMySlots(){G.my.monsters.forEach((m,i)=>{if(!m){const s=$('mm-'+i);if(s)s.classList.add('summon-tgt');}});}
 function hlEnemyTgt(){G.enemy.monsters.forEach((m,i)=>{if(m){const s=$('em-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>castSpellOn(G.selCard,i);}}});}
-function tryPlace(si){
-  if(G.selCard===null)return;
-  const c=G.my.hand[G.selCard];
-  if(!c||c.type!=='monster'||G.my.monsters[si]!==null)return;
-  placeM(G.selCard,si);
-}
+function tryPlace(si){if(G.selCard===null)return;const c=G.my.hand[G.selCard];if(!c||c.type!=='monster'||G.my.monsters[si]!==null)return;placeM(G.selCard,si);}
 function placeM(hi,si){
   const c=G.my.hand[hi];if(c.cost>G.my.en){showNotif('EN不足');return;}
-  G.my.en-=c.cost;
-  G.my.monsters[si]={name:c.name,type:c.type,cost:c.cost,atk:c.atk,hp:c.hp,maxHp:c.hp,kw:c.kw||[],eff:c.eff||'',canAttack:(c.kw||[]).includes('突撃'),used:false};
-  G.my.hand.splice(hi,1);G.selCard=null;clrHL();
-  addLog('+',c.name+' 召喚(EN'+c.cost+')','');ra();
+  G.my.en-=c.cost;G.my.monsters[si]={name:c.name,type:c.type,cost:c.cost,atk:c.atk,hp:c.hp,maxHp:c.hp,kw:c.kw||[],eff:c.eff||'',canAttack:(c.kw||[]).includes('突撃'),used:false};
+  G.my.hand.splice(hi,1);G.selCard=null;clrHL();addLog('+',c.name+' 召喚(EN'+c.cost+')','');ra();
 }
 function castSpell(hi){
   const c=G.my.hand[hi];if(!c||c.cost>G.my.en)return;
-  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
-  addLog('*',c.name+' 発動','');ra();
+  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();addLog('*',c.name+' 発動','');ra();
 }
 function castSpellOn(hi,ti){
   const c=G.my.hand[hi],t=G.enemy.monsters[ti];if(!c||!t||c.cost>G.my.en)return;
@@ -706,10 +685,7 @@ function castSpellOn(hi,ti){
   t.hp-=dmg;addLog('!',c.name+'→'+t.name+' -'+dmg,'atk');
   if(t.hp<=0){addLog('x',t.name+' 破壊','dmg');destroyM('e',ti);}ra();
 }
-function goBattle(){
-  if(!G.myTurn||G.phase!=='main')return;
-  G.phase='battle';G.selCard=null;clrHL();addLog('>','Battle Phase','atk');ra();
-}
+function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();addLog('>','Battle Phase','atk');ra();}
 function selAtk(si){
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
@@ -718,18 +694,11 @@ function selAtk(si){
   document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
   const sel=$('mm-'+si);if(sel)sel.classList.add('atk-sel');
   const hasFront=G.enemy.monsters.some(m=>m&&m.kw&&m.kw.includes('前衛'));
-  G.enemy.monsters.forEach((em,i)=>{
-    if(!em)return;if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;
-    const s=$('em-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>doAtk(si,i);}
-  });
+  G.enemy.monsters.forEach((em,i)=>{if(!em)return;if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;const s=$('em-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>doAtk(si,i);}});
   if(!hasFront){G.enemy.shields.forEach((alive,i)=>{if(alive){const s=$('esh-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>doDirect(si,i);}}});}
   addLog('>',m.name+' 攻撃宣言','atk');
 }
-function clrAtk(){
-  G.selAtk=null;
-  document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
-  rSh('e');
-}
+function clrAtk(){G.selAtk=null;document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});rSh('e');}
 function doAtk(asi,dsi){
   const a=G.my.monsters[asi],d=G.enemy.monsters[dsi];if(!a||!d)return;
   clrAtk();a.used=true;d.hp-=a.atk;a.hp-=d.atk;
@@ -740,47 +709,36 @@ function doAtk(asi,dsi){
   ra();
 }
 function doDirect(asi,shi){
-  const a=G.my.monsters[asi];if(!a)return;
-  clrAtk();a.used=true;
+  const a=G.my.monsters[asi];if(!a)return;clrAtk();a.used=true;
   addLog('>',a.name+' 直接攻撃 Shield'+(shi+1),'atk');
   G.my.partner.prog=(G.my.partner.prog||0)+1;
-  if(G.my.partner.prog>=2&&!G.my.partner.condMet){
-    G.my.partner.condMet=true;G.my.partner.condText='達成済み';
-    addLog('!',G.my.partner.name+' 条件達成！','ptn');showNotif('⚡ '+G.my.partner.name+' 召喚条件達成！');
-  }else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚Shield破壊('+G.my.partner.prog+'/2)';
+  if(G.my.partner.prog>=2&&!G.my.partner.condMet){G.my.partner.condMet=true;G.my.partner.condText='達成済み';addLog('!',G.my.partner.name+' 条件達成！','ptn');showNotif('⚡ '+G.my.partner.name+' 召喚条件達成！');}
+  else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚Shield破壊('+G.my.partner.prog+'/2)';
   brkSh('e',shi);ra();
 }
 function findAlive(who){const sh=who==='e'?G.enemy.shields:G.my.shields;for(let i=sh.length-1;i>=0;i--)if(sh[i])return i;return -1;}
 function brkSh(who,idx){
-  if(idx<0)return;
-  const gd=who==='e'?G.enemy:G.my;
-  gd.shields[idx]=false;
+  if(idx<0)return;const gd=who==='e'?G.enemy:G.my;gd.shields[idx]=false;
   const el=$((who==='e'?'esh-':'msh-')+idx);if(el)el.className='shc broken';
   const card=gd.shCards[idx];
-  if(card){
-    gd.grave.push({...card});
-    if(card.trigger){showTrig(card,who);return;}
+  if(card){gd.grave.push({...card});if(card.trigger){showTrig(card,who);return;}
     if(who==='m'){G.my.hand.push({...card});addLog('+','Shield破壊→'+card.name+' 手札へ','');}
     else{G.enemy.handCount--;addLog('>','相手Shield破壊(残'+gd.shields.filter(s=>s).length+')','');}
-  }else addLog('>','Shield破壊','');
-  ra();
+  }else addLog('>','Shield破壊','');ra();
 }
 function showTrig(card,who){
-  $('tn').textContent=card.name;$('te').textContent=card.eff||'';
-  $('tov').classList.add('show');
+  $('tn').textContent=card.name;$('te').textContent=card.eff||'';$('tov').classList.add('show');
   addLog('!!','TRIGGER: '+card.name+' → '+card.eff,'trig');
   if(who==='m')G.my.hand.push({...card,trigger:false});
 }
 function hideTrig(){$('tov').classList.remove('show');ra();}
 function destroyM(who,si){
-  const mons=who==='e'?G.enemy.monsters:G.my.monsters;
-  const m=mons[si];if(!m)return;
+  const mons=who==='e'?G.enemy.monsters:G.my.monsters;const m=mons[si];if(!m)return;
   if(m.eff&&m.eff.includes('破壊時'))addLog('>',m.name+' 破壊時効果','ptn');
   (who==='e'?G.enemy:G.my).grave.push({...m});mons[si]=null;
 }
 function endTurn(){
-  if(!G.myTurn)return;
-  G.phase='enemy';G.myTurn=false;G.selCard=null;G.selAtk=null;clrHL();
+  if(!G.myTurn)return;G.phase='enemy';G.myTurn=false;G.selCard=null;G.selAtk=null;clrHL();
   document.querySelectorAll('#hrow .hcard').forEach(c=>{c.style.opacity='.3';c.style.pointerEvents='none';});
   addLog('>','End Turn → Enemy Turn','');rPhase();updBtn();
   setTimeout(()=>{
@@ -800,8 +758,7 @@ function endTurn(){
   },1200);
 }
 function sumP(){
-  const p=G.my.partner;if(p.summoned||!p.condMet)return;
-  p.summoned=true;
+  const p=G.my.partner;if(p.summoned||!p.condMet)return;p.summoned=true;
   const ei=G.my.monsters.findIndex(m=>m===null);
   if(ei>=0)G.my.monsters[ei]={name:p.name,type:'monster',cost:p.cost,atk:p.atk,hp:p.hp,maxHp:p.maxHp,kw:[],eff:p.skill,canAttack:true,used:false,isPartner:true};
   const allBroken=G.my.shields.every(s=>!s);
@@ -822,11 +779,7 @@ function dTrig(){
 function dReady(){G.my.partner.condMet=true;G.my.partner.condText='達成済み';addLog('!',G.my.partner.name+' 条件達成！','ptn');showNotif('⚡ '+G.my.partner.name+' 召喚条件達成！');ra();}
 function dGuard(){
   G.my.shields=[false,false,false,false,false];G.my.partner.condMet=true;G.my.partner.condText='達成済み';
-  if(!G.my.partner.summoned){
-    G.my.partner.summoned=true;
-    const ei=G.my.monsters.findIndex(m=>m===null);
-    if(ei>=0)G.my.monsters[ei]={name:G.my.partner.name,type:'monster',cost:G.my.partner.cost,atk:G.my.partner.atk,hp:G.my.partner.hp,maxHp:G.my.partner.maxHp,kw:[],eff:G.my.partner.skill,canAttack:true,used:false};
-  }
+  if(!G.my.partner.summoned){G.my.partner.summoned=true;const ei=G.my.monsters.findIndex(m=>m===null);if(ei>=0)G.my.monsters[ei]={name:G.my.partner.name,type:'monster',cost:G.my.partner.cost,atk:G.my.partner.atk,hp:G.my.partner.hp,maxHp:G.my.partner.maxHp,kw:[],eff:G.my.partner.skill,canAttack:true,used:false};}
   addLog('!','守護状態に移行','ptn');showNotif('🛡 守護状態！');ra();
 }
 function dMons(){
