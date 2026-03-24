@@ -118,18 +118,18 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 }
 
 /* 相手手札 80px — 扇状裏向き */
-#e-hand-row{height:80px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;overflow:visible;position:relative;z-index:25;}
+#e-hand-row{height:70px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;overflow:visible;position:relative;z-index:25;}
 /* 相手手札裏向きカード */
-.hbc{width:52px;height:72px;border-radius:6px;border:2px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -4px;}
+.hbc{width:44px;height:60px;border-radius:6px;border:2px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -4px;}
 .hbc::after{content:'';position:absolute;inset:4px;border:1px solid var(--l1);border-radius:2px;background:repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,.025) 4px,rgba(255,255,255,.025) 8px);}
 .e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);position:absolute;right:8px;top:50%;transform:translateY(-50%);}
 
 /* 相手Shield 94px */
-#e-sh-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
+#e-sh-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
 
 /* Shield: 110×80px — モンスターと幅統一 */
 .shc{
-  width:110px;height:130px;flex-shrink:0;
+  width:110px;height:110px;flex-shrink:0;
   border-radius:8px;border:2px solid var(--blue);background:var(--bdim);
   display:flex;align-items:center;justify-content:center;
   cursor:default;position:relative;overflow:hidden;
@@ -144,11 +144,11 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 #eshcards,#mshcards{display:flex;gap:12px;justify-content:center;}
 
 /* 相手Monster 144px */
-#e-mon-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
+#e-mon-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
 
 /* Monster: 縦長 110×130px */
 .mslot{
-  width:110px;height:130px;flex-shrink:0;
+  width:110px;height:110px;flex-shrink:0;
   border-radius:7px;border:1.5px dashed var(--l1);
   background:rgba(255,255,255,.003);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -184,7 +184,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 /* CENTER BAR 44px */
 #cbar{
-  height:50px;flex-shrink:0;
+  height:42px;flex-shrink:0;
   display:flex;align-items:center;
   padding:0 16px;
   border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);
@@ -216,10 +216,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .btn:disabled{opacity:.35;cursor:not-allowed;filter:none !important;}
 
 /* 自分Monster 144px */
-#m-mon-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
+#m-mon-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
 
 /* 自分Shield 94px */
-#m-sh-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
+#m-sh-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
 
 /* 手札 86px */
 #m-hand-row{
