@@ -100,7 +100,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .gs-card:nth-child(3){width:42px;height:58px;bottom:4px;left:4px;}
 .gs-top{width:44px;height:62px;bottom:6px;left:6px;border-color:var(--l3);background:var(--p3);display:flex;align-items:center;justify-content:center;}
 .gs-top-inner{width:22px;height:22px;border-radius:3px;background:var(--l2);border:1px solid var(--l3);}
-.gs-empty .gs-top{border-style:dashed;border-color:var(--l1);background:transparent;}
+.gs-empty .gs-top{border-style:dashed;border-color:var(--tx3);background:rgba(0,0,0,.3);opacity:.4;}
 .gs-info{display:flex;flex-direction:column;gap:2px;}
 .gs-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
 .gs-cnt{font-size:20px;font-weight:900;color:var(--white);font-family:var(--mono);line-height:1;}
@@ -117,21 +117,23 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   overflow:hidden;
 }
 
-/* 相手手札 36px */
-#e-hand-row{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:3px;padding:0 12px;}
-.hbc{width:20px;height:28px;border-radius:3px;border:1px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;}
-.hbc::after{content:'';position:absolute;inset:2px;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.02) 3px,rgba(255,255,255,.02) 6px);}
-.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:6px;}
+/* 相手手札 80px — 扇状裏向き */
+#e-hand-row{height:80px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;overflow:visible;position:relative;z-index:25;}
+/* 相手手札裏向きカード */
+.hbc{width:52px;height:72px;border-radius:6px;border:2px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -4px;}
+.hbc::after{content:'';position:absolute;inset:4px;border:1px solid var(--l1);border-radius:2px;background:repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,.025) 4px,rgba(255,255,255,.025) 8px);}
+.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);position:absolute;right:8px;top:50%;transform:translateY(-50%);}
 
-/* 相手Shield 96px — 横長カード */
-#e-sh-row{height:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
+/* 相手Shield 94px */
+#e-sh-row{height:94px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
 
-/* Shield: 横長 156×70px */
+/* Shield: 110×80px — モンスターと幅統一 */
 .shc{
-  width:156px;height:70px;flex-shrink:0;
+  width:110px;height:80px;flex-shrink:0;
   border-radius:6px;border:2px solid var(--blue);background:var(--bdim);
   display:flex;align-items:center;justify-content:center;
   cursor:default;position:relative;overflow:hidden;
+  box-shadow:inset 0 0 10px rgba(74,144,226,.18),0 3px 6px rgba(0,0,0,.3);
 }
 /* 裏向き模様 */
 .shc::after{content:'';position:absolute;inset:4px;border:1px solid rgba(74,144,226,.25);border-radius:3px;background:repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(74,144,226,.04) 5px,rgba(74,144,226,.04) 10px);}
@@ -139,45 +141,50 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .shc.broken::after{display:none;}
 .shc.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;}
 .shc.atk-tgt::after{display:none;}
-#eshcards,#mshcards{display:flex;gap:5px;}
+#eshcards,#mshcards{display:flex;gap:12px;justify-content:center;}
 
-/* 相手Monster 136px — 縦長カード */
-#e-mon-row{height:136px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(255,255,255,.003);}
+/* 相手Monster 144px */
+#e-mon-row{height:144px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
 
-/* Monster: 縦長 111×122px */
+/* Monster: 縦長 110×130px */
 .mslot{
-  width:111px;height:122px;flex-shrink:0;
+  width:110px;height:130px;flex-shrink:0;
   border-radius:7px;border:1.5px dashed var(--l1);
   background:rgba(255,255,255,.003);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;cursor:default;position:relative;overflow:visible;padding:5px;
 }
 .mslot.filled{border:2px solid var(--l2);background:var(--p3);cursor:pointer;}
+.mslot.filled.enemy{border-color:#5a3a6a;background:#1a1228;box-shadow:0 0 8px rgba(120,60,160,.15);}
 .mslot.filled:hover{border-color:var(--blue);}
+.mslot.filled.enemy:hover{border-color:#a060d0;}
 .mslot.summon-tgt{border-color:var(--green);background:var(--gdim2);cursor:pointer;}
 .mslot.atk-ready{border-color:var(--red);background:var(--rdim);cursor:pointer;}
 .mslot.atk-sel{border-color:var(--gold);background:var(--gdim);}
 .mslot.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;}
 .mslot.front-guard{border-color:var(--green);}
 .mslot.used{opacity:.38;border-color:var(--l1);}
-.mart{width:54px;height:54px;border-radius:5px;background:var(--p2);border:1px solid var(--l2);flex-shrink:0;}
-.mnm{font-size:9px;font-weight:700;color:var(--white);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mst{display:flex;gap:2px;font-size:9px;font-weight:700;font-family:var(--mono);justify-content:center;}
-.ma{color:#f09060;}.msl{color:var(--tx3);}.mh{color:#60c870;}
-.kwrow{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;}
-.kw{font-size:6px;padding:1px 3px;border-radius:2px;font-weight:700;font-family:var(--mono);}
-.kw-突撃{background:rgba(220,120,30,.22);color:#f09060;border:1px solid rgba(220,120,30,.4);}
-.kw-前衛{background:var(--gdim2);color:#60c870;border:1px solid rgba(39,174,96,.3);}
-.lbar{width:85%;height:3px;background:var(--l1);border-radius:2px;overflow:hidden;}
-.lbf{height:100%;border-radius:2px;}
-.lbf.full{background:var(--green);}.lbf.half{background:var(--orange);}.lbf.low{background:var(--red);}
+.mslot.enemy-slot{border-color:rgba(180,60,200,.3);}
+.mslot.enemy-slot.filled{border-color:rgba(180,60,200,.6);background:rgba(60,10,60,.3);}
+.mslot.enemy-slot.filled:hover{border-color:rgba(200,80,220,.8);}
+.mart{width:66px;height:66px;border-radius:5px;background:var(--p2);border:1px solid var(--l2);flex-shrink:0;}
+.mnm{font-size:8px;color:var(--tx2);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+.mst{display:flex;gap:4px;font-size:14px;font-weight:900;font-family:var(--mono);justify-content:center;margin-top:1px;}
+.ma{color:#ff7040;}.msl{color:var(--tx3);font-size:11px;}.mh{color:#40e060;}
+.kwrow{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
+.kw{font-size:9px;width:18px;height:18px;border-radius:4px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.kw-突撃{background:rgba(220,80,20,.3);color:#ff8040;border:1px solid rgba(220,80,20,.5);}/* ⚔ */
+.kw-前衛{background:rgba(30,120,60,.3);color:#40e060;border:1px solid rgba(39,174,96,.4);}/* 🛡 */
+.lbar{width:90%;height:5px;background:var(--l2);border-radius:3px;overflow:hidden;margin-top:2px;}
+.lbf{height:100%;border-radius:3px;}
+.lbf.full{background:#2ecc71;box-shadow:0 0 4px rgba(46,204,113,.4);}.lbf.half{background:#e67e22;box-shadow:0 0 4px rgba(230,126,34,.4);}.lbf.low{background:#e74c3c;box-shadow:0 0 4px rgba(231,76,60,.5);}
 .ubadge{position:absolute;top:3px;right:3px;font-size:6px;color:var(--tx3);background:rgba(0,0,0,.7);padding:1px 3px;border-radius:2px;font-family:var(--mono);}
 .empty-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-#emslots,#mmslots{display:flex;gap:5px;}
+#emslots,#mmslots{display:flex;gap:12px;justify-content:center;}
 
 /* CENTER BAR 44px */
 #cbar{
-  height:44px;flex-shrink:0;
+  height:50px;flex-shrink:0;
   display:flex;align-items:center;
   padding:0 16px;
   border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);
@@ -201,22 +208,22 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .pp.off{color:var(--tx3);border-color:var(--l1);}
 #turn-txt{font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);margin:0 auto;}
 .cbar-btns{display:flex;gap:6px;flex-shrink:0;}
-.btn{padding:0 12px;height:26px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;display:flex;align-items:center;}
-.btn-b{background:var(--red);color:#fff;}
+.btn{padding:0 18px;height:30px;border-radius:5px;font-size:12px;font-weight:900;letter-spacing:.03em;font-weight:700;cursor:pointer;border:none;font-family:inherit;display:flex;align-items:center;}
+.btn-b{background:#c0392b;color:#fff;box-shadow:0 2px 8px rgba(192,57,43,.4);}
 .btn-b:hover{filter:brightness(1.15);}
-.btn-e{background:var(--gold);color:#000;}
+.btn-e{background:var(--gold);color:#000;box-shadow:0 2px 8px rgba(212,168,67,.4);}
 .btn-e:hover{filter:brightness(1.1);}
 .btn:disabled{opacity:.35;cursor:not-allowed;filter:none !important;}
 
-/* 自分Monster 136px */
-#m-mon-row{height:136px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(255,255,255,.003);}
+/* 自分Monster 144px */
+#m-mon-row{height:144px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
 
-/* 自分Shield 96px */
-#m-sh-row{height:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
+/* 自分Shield 94px */
+#m-sh-row{height:94px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
 
-/* 手札 142px — overflow:visible で扇が上に出る */
+/* 手札 86px */
 #m-hand-row{
-  height:142px;flex-shrink:0;
+  height:86px;flex-shrink:0;
   display:flex;align-items:flex-end;justify-content:center;
   padding:0 0 8px;
   overflow:visible;
@@ -230,7 +237,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 }
 /* 手札カード: 76×112px 縦長 */
 .hcard{
-  width:76px;height:112px;flex-shrink:0;
+  width:72px;height:96px;flex-shrink:0;
   border-radius:7px;border:2px solid var(--l2);background:var(--p2);
   cursor:pointer;display:flex;flex-direction:column;align-items:center;
   padding:5px 4px;gap:2px;position:relative;overflow:visible;
@@ -247,7 +254,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .hcard.has-trig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
 .ccost{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);z-index:1;}
 .ccost.cant{background:var(--l2);color:var(--tx3);}
-.cart-h{width:100%;height:56px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
+.cart-h{width:100%;height:44px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
 .ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 .cnm{font-size:8px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
 .csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
@@ -368,7 +375,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <div class="info-nm">相手プレイヤー</div>
     <div class="deck-row"><span class="deck-lbl">デッキ</span><span class="deck-val" id="edeckval"></span><span class="deck-unit">枚</span></div>
     <!-- 墓地スタック -->
-    <div class="grave-stack-wrap" id="egrave-stack" onclick="og('e')">
+    <div class="grave-stack-wrap" id="egrave-stack" onclick="og('e')" onmouseenter="pvGraveStack('e',this)" onmouseleave="pvClear()">
       <div class="gs-stack" id="egs-stack">
         <div class="gs-card"></div><div class="gs-card"></div><div class="gs-card"></div>
         <div class="gs-card gs-top"><div class="gs-top-inner"></div></div>
@@ -384,7 +391,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
   <!-- 左下: 自分デッキ・墓地 -->
   <div id="info-mine">
-    <div class="grave-stack-wrap" id="mgrave-stack" onclick="og('m')">
+    <div class="grave-stack-wrap" id="mgrave-stack" onclick="og('m')" onmouseenter="pvGraveStack('m',this)" onmouseleave="pvClear()">
       <div class="gs-stack" id="mgs-stack">
         <div class="gs-card"></div><div class="gs-card"></div><div class="gs-card"></div>
         <div class="gs-card gs-top"><div class="gs-top-inner"></div></div>
@@ -440,7 +447,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   <!-- 中央フィールド -->
   <div id="field">
     <div id="e-hand-row">
-      <div id="ehbcards"></div>
+      <div id="ehbcards" style="display:flex;align-items:flex-end;overflow:visible;"></div>
       <span class="e-hcnt" id="ehbcnt"></span>
     </div>
     <div id="e-sh-row"><div id="eshcards"></div></div>
@@ -542,6 +549,12 @@ function pvShow(card,el){
   fp.style.left=x+'px';fp.style.top=y+'px';
 }
 function pvClear(){pvT=setTimeout(()=>{$('fp').style.display='none';},80);}
+function pvGraveStack(who,el){
+  const grave=who==='e'?G.enemy.grave:G.my.grave;
+  if(!grave.length)return;
+  const card=grave[grave.length-1];
+  pvShow(card,el);
+}
 function pvPt(who,el){
   const gp=who==='e'?G.enemy.partner:G.my.partner;
   pvShow({name:gp.name,type:'monster',cost:gp.cost,atk:gp.atk,hp:gp.hp,kw:[],eff:'【常在】'+gp.skill+'\n【召喚条件】'+gp.condText},el);
@@ -561,7 +574,21 @@ function applyFan(cards){
 }
 
 /* ===== NC ===== */
-let ncT=null;
+let ncT=null,ncBigT=null;
+function ncBig(msg,col){
+  clearTimeout(ncBigT);
+  const el=$('nc-msg');
+  el.textContent=msg;
+  el.style.color=col||'var(--white)';
+  el.style.fontSize='32px';
+  el.style.letterSpacing='.15em';
+  $('nc').classList.add('show');
+  ncBigT=setTimeout(()=>{
+    $('nc').classList.remove('show');
+    el.style.fontSize='18px';
+    el.style.letterSpacing='normal';
+  },1200);
+}
 function nc(msg,col){
   clearTimeout(ncT);
   const el=$('nc-msg');el.textContent=msg;
@@ -599,8 +626,10 @@ function rEN(who){
 }
 function rHB(){
   const c=$('ehbcards'),cnt=$('ehbcnt');c.innerHTML='';
-  for(let i=0;i<Math.min(G.enemy.handCount,14);i++){const d=document.createElement('div');d.className='hbc';c.appendChild(d);}
+  const n=Math.min(G.enemy.handCount,10);
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='hbc';c.appendChild(d);}
   cnt.textContent=G.enemy.handCount+'枚';
+  applyFan(Array.from(c.children));
 }
 function rSh(who){
   const gd=who==='e'?G.enemy:G.my;
@@ -641,8 +670,10 @@ function rMon(who){
     const slot=document.createElement('div');slot.id=(who==='e'?'em-':'mm-')+i;
     if(m){
       const hp=m.hp/m.maxHp*100,hpc=hp>50?'full':hp>25?'half':'low';
-      const kwh=(m.kw||[]).map(k=>`<span class="kw kw-${k}">${k}</span>`).join('');
-      slot.className='mslot filled'+(m.kw&&m.kw.includes('前衛')?' front-guard':'')+(m.used?' used':'');
+      const KW_ICON={'突撃':'⚔','前衛':'🛡'};
+      const kwh=(m.kw||[]).map(k=>`<span class="kw kw-${k}" title="${k}">${KW_ICON[k]||k}</span>`).join('');
+      const eClass=who==='e'?' enemy-slot':'';
+      slot.className='mslot filled'+eClass+(m.kw&&m.kw.includes('前衛')?' front-guard':'')+(m.used?' used':'');
       slot.innerHTML=(m.used?'<div class="ubadge">攻撃済</div>':'')+
         `<div class="mart"></div>`+
         `<div class="mnm">${m.name}</div>`+
@@ -654,7 +685,7 @@ function rMon(who){
       if(who==='m'&&G.phase==='battle'&&m.canAttack&&!m.used){slot.classList.add('atk-ready');slot.onclick=()=>selAtk(i);}
       else if(who==='m'&&G.phase==='main'){slot.onclick=()=>tryPlace(i);}
     }else{
-      slot.className='mslot';slot.innerHTML='<span class="empty-lbl">EMPTY</span>';
+      slot.className='mslot'+(who==='e'?' enemy-slot':'');slot.innerHTML='<span class="empty-lbl">EMPTY</span>';
       if(who==='m')slot.onclick=()=>tryPlace(i);
     }
     row.appendChild(slot);
@@ -740,7 +771,7 @@ function castSpellOn(hi,ti){
   if(t.hp<=0){nc(t.name+' 破壊！','var(--orange)');destroyM('e',ti);}else nc(c.name+' — -'+dmg);
   ra();
 }
-function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');ra();}
+function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();ncBig('⚔ BATTLE PHASE','var(--red)');ra();}
 function selAtk(si){
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
@@ -808,7 +839,7 @@ function endTurn(){
     G.my.hand.push({name:'灼熱突撃兵',type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃'});
     G.my.deck=Math.max(0,G.my.deck-1);
     document.querySelectorAll('#hrow .hcard').forEach(c=>{c.style.opacity='';c.style.pointerEvents='';});
-    nc('T'+G.turn+' My Turn','var(--gold)');ra();
+    ncBig('T'+G.turn+' MY TURN','var(--gold)');ra();
   },1500);
 }
 function sumP(){
