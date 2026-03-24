@@ -125,15 +125,15 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);position:absolute;right:8px;top:50%;transform:translateY(-50%);}
 
 /* 相手Shield 94px */
-#e-sh-row{height:94px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
+#e-sh-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
 
 /* Shield: 110×80px — モンスターと幅統一 */
 .shc{
-  width:110px;height:80px;flex-shrink:0;
-  border-radius:6px;border:2px solid var(--blue);background:var(--bdim);
+  width:110px;height:130px;flex-shrink:0;
+  border-radius:8px;border:2px solid var(--blue);background:var(--bdim);
   display:flex;align-items:center;justify-content:center;
   cursor:default;position:relative;overflow:hidden;
-  box-shadow:inset 0 0 10px rgba(74,144,226,.18),0 3px 6px rgba(0,0,0,.3);
+  box-shadow:inset 0 0 14px rgba(74,144,226,.18),0 4px 10px rgba(0,0,0,.4);
 }
 /* 裏向き模様 */
 .shc::after{content:'';position:absolute;inset:4px;border:1px solid rgba(74,144,226,.25);border-radius:3px;background:repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(74,144,226,.04) 5px,rgba(74,144,226,.04) 10px);}
@@ -144,7 +144,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 #eshcards,#mshcards{display:flex;gap:12px;justify-content:center;}
 
 /* 相手Monster 144px */
-#e-mon-row{height:144px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
+#e-mon-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
 
 /* Monster: 縦長 110×130px */
 .mslot{
@@ -216,10 +216,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .btn:disabled{opacity:.35;cursor:not-allowed;filter:none !important;}
 
 /* 自分Monster 144px */
-#m-mon-row{height:144px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
+#m-mon-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
 
 /* 自分Shield 94px */
-#m-sh-row{height:94px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
+#m-sh-row{height:142px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
 
 /* 手札 86px */
 #m-hand-row{
@@ -261,7 +261,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 /* ==============================  フローティングプレビュー  */
 #fp{
-  display:none;position:fixed;z-index:900;pointer-events:none;
+  display:none;position:fixed;z-index:9500;pointer-events:none;
   width:172px;
   background:rgba(8,8,18,.95);
   border:1px solid rgba(212,168,67,.4);
@@ -375,7 +375,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <div class="info-nm">相手プレイヤー</div>
     <div class="deck-row"><span class="deck-lbl">デッキ</span><span class="deck-val" id="edeckval"></span><span class="deck-unit">枚</span></div>
     <!-- 墓地スタック -->
-    <div class="grave-stack-wrap" id="egrave-stack" onclick="og('e')" onmouseenter="pvGraveStack('e',this)" onmouseleave="pvClear()">
+    <div class="grave-stack-wrap" id="egrave-stack" onclick="og('e')">
       <div class="gs-stack" id="egs-stack">
         <div class="gs-card"></div><div class="gs-card"></div><div class="gs-card"></div>
         <div class="gs-card gs-top"><div class="gs-top-inner"></div></div>
@@ -391,7 +391,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
   <!-- 左下: 自分デッキ・墓地 -->
   <div id="info-mine">
-    <div class="grave-stack-wrap" id="mgrave-stack" onclick="og('m')" onmouseenter="pvGraveStack('m',this)" onmouseleave="pvClear()">
+    <div class="grave-stack-wrap" id="mgrave-stack" onclick="og('m')">
       <div class="gs-stack" id="mgs-stack">
         <div class="gs-card"></div><div class="gs-card"></div><div class="gs-card"></div>
         <div class="gs-card gs-top"><div class="gs-top-inner"></div></div>
@@ -775,16 +775,37 @@ function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.sel
 function selAtk(si){
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
-  if(G.selAtk===si){clrAtk();return;}
+  // 同じスロット再クリックで解除
+  if(G.selAtk===si){
+    document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
+    G.selAtk=null;return;
+  }
   G.selAtk=si;
+  // 前の選択をクリア
   document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
+  // 選択中スロットをハイライト
   const sel=$('mm-'+si);if(sel)sel.classList.add('atk-sel');
-  const hasFront=G.enemy.monsters.some(m=>m&&m.kw&&m.kw.includes('前衛'));
-  G.enemy.monsters.forEach((em,i)=>{if(!em)return;if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;const s=$('em-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>doAtk(si,i);}});
-  if(!hasFront){G.enemy.shields.forEach((alive,i)=>{if(alive){const s=$('esh-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>doDirect(si,i);}}});}
+  // 前衛チェック
+  const hasFront=G.enemy.monsters.some(em=>em&&em.kw&&em.kw.includes('前衛'));
+  // 相手Monsterに atk-tgt
+  G.enemy.monsters.forEach((em,i)=>{
+    if(!em)return;
+    if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;
+    const s=$('em-'+i);
+    if(s){s.classList.add('atk-tgt');s.onclick=()=>doAtk(si,i);}
+  });
+  // 前衛がいない場合のみShieldを対象に
+  if(!hasFront){
+    G.enemy.shields.forEach((alive,i)=>{
+      if(!alive)return;
+      // ShieldのDOM要素に直接onclick設定（rShで再描画しない）
+      let sh=document.getElementById('esh-'+i);
+      if(sh){sh.classList.add('atk-tgt');sh.onclick=(e)=>{e.stopPropagation();doDirect(si,i);};}
+    });
+  }
   nc(m.name+' 攻撃宣言');
 }
-function clrAtk(){G.selAtk=null;document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});rSh('e');}
+function clrAtk(doRsh=true){G.selAtk=null;document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});if(doRsh)rSh('e');}
 function doAtk(asi,dsi){
   const a=G.my.monsters[asi],d=G.enemy.monsters[dsi];if(!a||!d)return;
   clrAtk();a.used=true;d.hp-=a.atk;a.hp-=d.atk;
@@ -892,8 +913,17 @@ function og(who){
   const isE=(who==='e'),grave=isE?G.enemy.grave:G.my.grave;
   $(isE?'egc':'mgc').textContent='（'+grave.length+'枚）';
   const list=$(isE?'egl':'mgl');
-  if(!grave.length)list.innerHTML='<div class="empty-grave">墓地にカードはありません</div>';
-  else list.innerHTML=grave.map(c=>`<div class="grow"><div class="gth ${c.type}"><div class="gti"></div><div class="gtl">${c.type==='spell'?'SPELL':'MON'}</div></div><div><div class="gn">${c.name}</div><div class="gs">${c.type==='monster'?'EN'+c.cost+' ATK'+c.atk+' LIFE'+(c.maxHp||c.hp):'EN'+c.cost}</div><div class="ge">${c.eff||''}</div></div></div>`).join('');
+  if(!grave.length){list.innerHTML='<div class="empty-grave">墓地にカードはありません</div>';}
+  else{
+    list.innerHTML='';
+    grave.forEach(card=>{
+      const row=document.createElement('div');row.className='grow';
+      row.innerHTML=`<div class="gth ${card.type}"><div class="gti"></div><div class="gtl">${card.type==='spell'?'SPELL':'MON'}</div></div><div><div class="gn">${card.name}</div><div class="gs">${card.type==='monster'?'EN'+card.cost+' ATK'+card.atk+' LIFE'+(card.maxHp||card.hp):'EN'+card.cost}</div><div class="ge">${card.eff||''}</div></div>`;
+      row.addEventListener('mouseenter',()=>pvShow(card,row));
+      row.addEventListener('mouseleave',pvClear);
+      list.appendChild(row);
+    });
+  }
   $(isE?'modal-eg':'modal-mg').classList.add('show');
 }
 function cm(id){$(id).classList.remove('show');}
