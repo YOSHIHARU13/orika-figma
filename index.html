@@ -96,6 +96,11 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 }
 /* 相手プレイヤー情報 (右上) */
 #r-einfo{padding:10px;border-bottom:1px solid var(--l2);}
+#r-dkgv{
+  display:flex;gap:8px;padding:8px;
+  border-bottom:1px solid var(--l2);
+  background:rgba(0,0,0,.2);
+}
 /* フェイズ/ボタン (右中央 = 1fr → justify-content:centerで縦中央) */
 #r-sys{
   display:flex;flex-direction:column;align-items:stretch;
@@ -217,16 +222,16 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .zone-mmn{background:rgba(255,255,255,.004);}
 .zone-msh{background:rgba(74,144,226,.022);z-index:100;}
 
+/* デッキ/墓地バー */
+
+
+
+
+.dk-item:hover .dkface{border-color:var(--gold);}
 /* デッキ/墓地パネル */
-.dkpanel{
-  position:absolute;top:0;bottom:0;
-  width:110px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;padding:4px 6px;
-}
-.dkpanel.left{left:0;border-right:1px solid var(--l1);}
-.dkpanel.right{right:0;border-left:1px solid var(--l1);}
+
 .dkcard{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+.dg-side{display:flex;gap:6px;justify-content:center;padding:4px 0;}
 .dkcard:hover .dkface{border-color:var(--gold);}
 .dkface{
   width:44px;height:60px;border-radius:5px;
@@ -243,7 +248,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .dklbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
 
 /* カードゾーン本体 */
-.czwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:0 4px;margin:0 110px;}
+.czwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:0 4px;}
 /* Shield: flex + fan */
 .sh-row{display:flex;align-items:center;justify-content:center;width:100%;}
 /* Monster: grid 5列固定 */
@@ -325,7 +330,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 /* 自分手札 absolute */
 #hand-area{
-  position:absolute;bottom:32px;left:0;right:0;height:130px;
+  position:absolute;bottom:112px;left:0;right:0;height:130px;
   z-index:40;display:flex;align-items:flex-end;justify-content:center;
   padding:0 0 6px;pointer-events:none;overflow:hidden;
 }
@@ -340,7 +345,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .hcard.playable{border-color:var(--green);box-shadow:0 0 7px rgba(39,174,96,.3);}
 .hcard.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,67,.5);z-index:200!important;}
 .hcard:not(.selected):hover{z-index:100!important;box-shadow:0 4px 16px rgba(0,0,0,.7);}
-.hcard.no-en{opacity:.28;filter:grayscale(.6);}
+.hcard.no-en{opacity:.55;filter:grayscale(.4);}
 .hcard.spell{border-color:rgba(212,130,10,.35);}
 .hcard.spell.playable{border-color:var(--green);}
 .hcard.hastrig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
@@ -428,7 +433,9 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 <div id="dbar">
     <button class="dbtn" onclick="dBreak()">SH破壊</button>
-    <button class="dbtn" onclick="dAddSh()">SH追加</button>
+    <button class="dbtn" onclick="dAddSh()">相手SH追加</button>
+    <button class="dbtn" onclick="dAddMySh()">自分SH追加</button>
+    <button class="dbtn" onclick="dBreakMySh()">自分SH破壊</button>
     <button class="dbtn" onclick="dTrig()">鼓動</button>
     <button class="dbtn" id="dbrdy" onclick="dReady()">条件達成</button>
     <button class="dbtn" id="dbgrd" onclick="dGuard()">守護</button>
@@ -501,18 +508,8 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <span class="e-hcnt" id="ehbcnt"></span>
   </div>
 
-  <!-- 相手 Shield 96px: 左にデッキ/墓地 -->
+  <!-- 相手 Shield -->
   <div class="zone-row zone-sh zone-esh">
-    <div class="dkpanel left">
-      <div class="dkcard">
-        <div class="dkface deck"><div class="dknum w" id="edeckval">30</div></div>
-        <div class="dklbl">デッキ</div>
-      </div>
-      <div class="dkcard" onclick="og('e')">
-        <div class="dkface grave"><div class="dknum g" id="egbcnt">0</div></div>
-        <div class="dklbl">墓地</div>
-      </div>
-    </div>
     <div class="czwrap"><div class="sh-row" id="eshcards"></div></div>
   </div>
 
@@ -545,25 +542,39 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     </div>
   </div>
 
-  <!-- 自分 Shield 96px: 右にデッキ/墓地 (対照) -->
+  <!-- 自分 Shield -->
   <div class="zone-row zone-sh zone-msh">
     <div class="czwrap"><div class="sh-row" id="mshcards"></div></div>
-    <div class="dkpanel right">
-      <div class="dkcard" onclick="og('m')">
-        <div class="dkface grave"><div class="dknum g" id="mgbcnt">0</div></div>
-        <div class="dklbl">墓地</div>
-      </div>
-      <div class="dkcard">
-        <div class="dkface deck"><div class="dknum w" id="mdeckval">30</div></div>
-        <div class="dklbl">デッキ</div>
-      </div>
-    </div>
   </div>
 
   <!-- 自分プレート 32px -->
   <div class="fplate fmn">
     <span class="fp-name">自分</span>
     <span class="fp-turn" id="fturn-m"></span>
+  </div>
+        <div class="dklbl">相手デッキ</div>
+      </div>
+      <div class="dk-item" onclick="og('e')">
+        <div class="dkface grave" style="width:44px;height:60px;border-radius:5px;border:1.5px solid var(--l3);background:var(--p3);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div class="dknum g" id="egbcnt">0</div>
+        </div>
+        <div class="dklbl">相手墓地</div>
+      </div>
+    </div>
+    <div id="dk-mine">
+      <div class="dk-item" onclick="og('m')">
+        <div class="dkface grave" style="width:44px;height:60px;border-radius:5px;border:1.5px solid var(--l3);background:var(--p3);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div class="dknum g" id="mgbcnt">0</div>
+        </div>
+        <div class="dklbl">自分墓地</div>
+      </div>
+      <div class="dk-item">
+        <div class="dkface deck" style="width:44px;height:60px;border-radius:5px;border:1.5px solid var(--l2);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div class="dknum w" id="mdeckval">30</div>
+        </div>
+        <div class="dklbl">自分デッキ</div>
+      </div>
+    </div>
   </div>
 
   <!-- 自分手札 + abar (absolute) -->
@@ -590,6 +601,18 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     </div>
   </div>
 
+  <!-- デッキ・墓地 -->
+  <div id="r-dkgv">
+    <div style="flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;">
+      <div class="dkcard"><div class="dkface deck"><div class="dknum w" id="edeckval">30</div></div><div class="dklbl">相手デッキ</div></div>
+      <div class="dkcard" onclick="og('e')"><div class="dkface grave"><div class="dknum g" id="egbcnt">0</div></div><div class="dklbl">相手墓地</div></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;">
+      <div class="dkcard"><div class="dkface deck"><div class="dknum w" id="mdeckval">30</div></div><div class="dklbl">自分デッキ</div></div>
+      <div class="dkcard" onclick="og('m')"><div class="dkface grave"><div class="dknum g" id="mgbcnt">0</div></div><div class="dklbl">自分墓地</div></div>
+    </div>
+  </div>
+
   <!-- フェイズ/ボタン (右中央 = 1fr + justify-content:center) -->
   <div id="r-sys">
     <div class="pp-row">
@@ -613,6 +636,16 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       <div class="ptc-cond unmet" id="mpcd"></div>
       <div class="ptc-guard">🛡 GUARDIAN</div>
       <button class="pt-sbtn" id="mpbtn" onclick="sumP()" disabled>召喚不可</button>
+    </div>
+    <div class="dg-side" style="margin-top:6px;">
+      <div class="dkcard">
+        <div class="dkface deck"><div class="dknum w" id="mdeckval">30</div></div>
+        <div class="dklbl">デッキ</div>
+      </div>
+      <div class="dkcard" onclick="og('m')">
+        <div class="dkface grave"><div class="dknum g" id="mgbcnt">0</div></div>
+        <div class="dklbl">墓地</div>
+      </div>
     </div>
     <div class="pt-lbl" style="margin-top:5px;">Partner — 自分</div>
   </div>
@@ -684,14 +717,15 @@ function pvPt(who){const p=who==='e'?G.enemy.partner:G.my.partner;pvShow({name:p
 function applyFan(cards){
   const n=cards.length;if(!n)return;
   const W=112,maxG=6;
-  const ha=$('hand-area');
-  const cw=ha?ha.offsetWidth-8:640;
+  // fieldの幅を基準に
+  const field=$('field');
+  const cw=field?Math.min(field.offsetWidth-24, 880):880;
   const nat=W*n+maxG*(n-1);
   const totalW=Math.min(nat,cw);
   const step=n>1?(totalW-W)/(n-1):0;
   const gap=step-W;
   const hrow=$('hrow');
-  if(hrow){hrow.style.width=totalW+'px';hrow.style.flexShrink='0';}
+  if(hrow){hrow.style.width=totalW+'px';hrow.style.flexShrink='0';hrow.style.maxWidth=cw+'px';}
   cards.forEach((c,i)=>{
     c.style.marginLeft=i===0?'0':gap+'px';
     c.style.zIndex=String(i+1);
@@ -702,8 +736,8 @@ function applyFan(cards){
 function applyEFan(cards){
   const n=cards.length;if(!n)return;
   const W=112,maxG=6;
-  const ehand=document.getElementById('e-hand');
-  const cw=ehand?ehand.offsetWidth-8:640;
+  const field=document.getElementById('field');
+  const cw=field?field.offsetWidth-8:900;
   const nat=W*n+maxG*(n-1);
   const totalW=Math.min(nat,cw);
   const step=n>1?(totalW-W)/(n-1):0;
@@ -745,7 +779,7 @@ function rEN(w){
 }
 function rHB(){
   const c=$('ehbcards'),cnt=$('ehbcnt');c.innerHTML='';
-  const n=Math.min(G.enemy.handCount,13);
+  const n=Math.min(G.enemy.handCount,10);
   for(let i=0;i<n;i++){const d=document.createElement('div');d.className='ehbc';c.appendChild(d);}
   cnt.textContent=G.enemy.handCount+'枚';
   applyEFan(Array.from(c.children));
@@ -967,6 +1001,26 @@ function dBreak(){
   else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊('+G.my.partner.prog+'/2)';
   brkSh('e',idx);ra();
 }
+function dAddMySh(){
+  if(G.my.shields.length>=10){nc('自分SH最大(10枚)');return;}
+  G.my.shields.push(true);
+  G.my.shCards.push({name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true});
+  nc('自分SH追加 ('+G.my.shields.length+'枚)');rSh('m');
+}
+function dBreakMySh(){
+  const idx=findAlive('m');if(idx<0){nc('自分Shieldなし');return;}
+  brkSh('m',idx);
+}
+function dMyBreak(){
+  const idx=findAlive('m');if(idx<0){nc('自分Shieldなし');return;}
+  brkSh('m',idx);ra();
+}
+function dMyAddSh(){
+  if(G.my.shields.length>=10){nc('自分Shield最大(10枚)');return;}
+  G.my.shields.push(true);
+  G.my.shCards.push({name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true});
+  nc('自分SH追加 ('+G.my.shields.length+'枚)');rSh('m');
+}
 function dAddSh(){
   if(G.enemy.shields.length>=10){nc('Shield最大(10枚)');return;}
   G.enemy.shields.push(true);G.enemy.shCards.push({name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス',trigger:false});
@@ -993,7 +1047,7 @@ function dMons(){
   G.my.enMax=Math.min(10,G.my.enMax+4);G.my.en=G.my.enMax;nc('MON追加');ra();
 }
 function dLowEN(){G.my.en=0;nc('EN=0','var(--red)');rEN('m');rHand();}
-function dEdraw(){G.enemy.handCount=Math.min(G.enemy.handCount+1,13);nc('相手ドロー ('+G.enemy.handCount+'枚)');rHB();}
+function dEdraw(){if(G.enemy.handCount>=10){nc('相手手札上限(10枚)','var(--red)');return;}G.enemy.handCount++;nc('相手ドロー ('+G.enemy.handCount+'枚)');rHB();}
 function dMdraw(){
   if(G.my.hand.length>=10){nc('手札上限(10枚)','var(--red)');return;}
   const cards=[
