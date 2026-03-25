@@ -18,9 +18,9 @@
   --tx:#c0c8e0;--tx2:#606888;--tx3:#303050;--white:#edf0f8;
   --mono:'Roboto Mono',monospace;
   --CW:112px;   /* カード統一幅 */
-  --SH:80px;    /* Shield高さ */
-  --MH:108px;   /* Monster高さ */
-  --HH:88px;    /* 手札カード高さ */
+  --SH:112px;    /* Shield高さ */
+  --MH:112px;   /* Monster高さ */
+  --HH:112px;    /* 手札カード高さ */
 }
 html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;}
 
@@ -38,6 +38,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   display:flex;flex-direction:column;
   background:var(--p1);border-right:1px solid var(--l2);
   overflow:hidden;
+  position:relative;z-index:9200;
 }
 #dbar{
   height:32px;flex-shrink:0;
@@ -173,19 +174,19 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .fp-name{font-size:11px;font-weight:700;color:var(--white);}
 .fp-turn{font-size:9px;font-family:var(--mono);color:var(--tx3);}
 
-/* 相手手札行: Shieldに40px重ねる */
+/* 相手手札行: Shieldに重ねる */
 #e-hand{
   height:112px;flex-shrink:0;
   display:flex;align-items:flex-end;justify-content:center;
-  padding:6px 8px;
-  overflow:hidden;
-  margin-bottom:-40px; /* Shieldと重ねる */
-  z-index:1; /* Shieldより手前 → Shieldが上に来るようz-indexをShieldで上書き */
+  padding:0 8px 6px;
+  overflow:visible; /* 扇形の上部を表示 */
+  margin-bottom:-44px;
+  z-index:1;
 }
 #ehb-inner{
   display:flex;align-items:flex-end;
-  overflow:hidden;
-  height:var(--HH);  /* 88px: カード高さで切る */
+  overflow:visible;
+  height:var(--HH);
 }
 .ehbc{
   width:var(--CW);height:var(--HH);flex-shrink:0;
@@ -206,7 +207,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 /* ゾーン行: Shield 96px / Monster 120px */
 .zone-row{flex-shrink:0;display:flex;align-items:stretch;position:relative;}
-.zone-sh{height:96px;position:relative;}
+.zone-sh{height:120px;position:relative;}
 .zone-mn{height:120px;}
 .zone-esh{background:rgba(74,144,226,.022);z-index:50;}
 .zone-emn{background:rgba(153,102,221,.018);}
@@ -342,7 +343,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .hcard.hastrig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
 .ccost{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--gold);color:#000;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);z-index:1;}
 .ccost.cant{background:var(--l2);color:var(--tx3);}
-.cart-h{width:100%;height:44px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
+.cart-h{width:100%;height:64px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
 .ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 .cnm{font-size:8px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
 .csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
@@ -376,7 +377,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .cfmbtns{display:flex;gap:8px;justify-content:center;}
 .cfy{padding:6px 18px;background:var(--red);color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cfn{padding:6px 14px;background:transparent;color:var(--tx2);border:1px solid var(--l2);border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit;}
-.modal-bg{background:rgba(0,0,0,.82);}
+.modal-bg{background:rgba(0,0,0,.7);backdrop-filter:blur(2px);}
 .mbox{background:var(--p2);border:1px solid var(--l2);border-radius:10px;padding:20px;max-width:380px;width:90%;max-height:70vh;overflow-y:auto;}
 .mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .mttl{font-size:13px;font-weight:700;color:var(--gold);}
@@ -445,6 +446,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       <div class="ptc-skill" id="epskill"></div>
       <div class="ptc-cond unmet" id="epcd"></div>
       <div class="ptc-guard">🛡 GUARDIAN</div>
+      <div style="width:100%;height:24px;flex-shrink:0;"></div>
     </div>
   </div>
 
@@ -680,8 +682,13 @@ function applyFan(cards){
 }
 function applyEFan(cards){
   const n=cards.length;if(!n)return;
-  const maxA=Math.min(3*(n-1),24),step=n>1?maxA/(n-1):0;
-  cards.forEach((c,i)=>{const a=-maxA/2+step*i;c.style.transform=`rotate(${a}deg)`;c.style.zIndex=String(i+1);});
+  const maxA=Math.min(4*(n-1),28),step=n>1?maxA/(n-1):0;
+  cards.forEach((c,i)=>{
+    const a=-maxA/2+step*i;
+    const lift=Math.cos((i/(Math.max(n-1,1))-.5)*Math.PI)*14;
+    c.style.transform=`rotate(${a}deg) translateY(${-lift}px)`;
+    c.style.zIndex=String(i+1);
+  });
 }
 function applyShFan(cards,cw){
   const n=cards.length;if(!n)return;
