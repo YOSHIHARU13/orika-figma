@@ -20,7 +20,7 @@
   --CW:112px;   /* カード統一幅 */
   --SH:112px;    /* Shield高さ */
   --MH:112px;   /* Monster高さ */
-  --HH:112px;    /* 手札カード高さ */
+  --HH:110px;    /* 手札カード高さ */
 }
 html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;}
 
@@ -172,6 +172,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   flex:1;height:688px;
   display:flex;flex-direction:column;
   position:relative;overflow:hidden;
+  transform:translateZ(0); /* create stacking context */
 }
 
 /* プレート行 32px */
@@ -191,13 +192,13 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   z-index:1;
 }
 #ehb-inner{
-  display:flex;align-items:flex-end;justify-content:center;
+  display:flex;align-items:flex-end;justify-content:flex-end;
   overflow:hidden;
   height:100%;
   width:100%;
 }
 .ehbc{
-  width:var(--CW);height:var(--HH);flex-shrink:0;
+  width:80px;height:var(--HH);flex-shrink:0;
   border-radius:6px;border:1.5px solid var(--l2);background:var(--p2);
   position:relative;overflow:hidden;
   transform-origin:bottom center;
@@ -330,13 +331,14 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 /* 自分手札 absolute */
 #hand-area{
-  position:absolute;bottom:112px;left:0;right:0;height:130px;
-  z-index:40;display:flex;align-items:flex-end;justify-content:center;
-  padding:0 0 6px;pointer-events:none;overflow:hidden;
+  position:fixed;bottom:32px;right:auto;height:130px;
+  z-index:40;display:flex;align-items:flex-end;justify-content:flex-end;
+  padding:0 4px 6px 0;pointer-events:none;overflow:hidden;
+  /* left/rightはJSで設定 */
 }
 #hrow{display:flex;align-items:flex-end;justify-content:center;pointer-events:all;overflow:visible;}
 .hcard{
-  width:var(--CW);height:var(--HH);flex-shrink:0;
+  width:80px;height:var(--HH);flex-shrink:0;
   border-radius:7px;border:2px solid var(--l2);background:var(--p2);
   cursor:pointer;display:flex;flex-direction:column;align-items:center;
   padding:4px;gap:2px;position:relative;overflow:visible;
@@ -349,9 +351,9 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .hcard.spell{border-color:rgba(212,130,10,.35);}
 .hcard.spell.playable{border-color:var(--green);}
 .hcard.hastrig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
-.ccost{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--gold);color:#000;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);z-index:1;}
-.ccost.cant{background:var(--l2);color:var(--tx3);}
-.cart-h{width:100%;height:64px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
+.ccost{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid rgba(0,0,0,.6);font-family:var(--mono);z-index:10;}
+.ccost.cant{background:rgba(30,30,50,.9);color:var(--tx3);border-color:var(--l2);}
+.cart-h{width:100%;height:52px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
 .ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 .cnm{font-size:8px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
 .csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
@@ -406,6 +408,86 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 #nc{position:fixed;top:50%;left:640px;transform:translate(-50%,-50%);z-index:500;pointer-events:none!important;text-align:center;opacity:0;transition:opacity .15s;}
 #nc.show{opacity:1;}
 #nc-msg{font-size:18px;font-weight:900;color:var(--white);font-family:var(--mono);text-shadow:0 0 20px rgba(0,0,0,.9);}
+
+/* フィールド内デッキ/墓地 */
+#m-dkgv{
+  position:absolute;right:0;bottom:32px;
+  width:100px;display:flex;flex-direction:column;gap:4px;
+  padding:6px;z-index:60;
+}
+#e-dkgv{
+  position:absolute;right:0;top:32px;
+  width:100px;display:flex;flex-direction:column;gap:4px;
+  padding:6px;z-index:60;
+}
+.fdkcard{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+.fdkcard:hover .fdkface{border-color:var(--gold);}
+.fdkface{
+  width:56px;height:76px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+}
+.fdkface.fdkdk{
+  background:repeating-linear-gradient(-45deg,var(--p3),var(--p3) 4px,var(--l2) 4px,var(--l2) 8px);
+  border:1.5px solid var(--l3);
+}
+.fdkface.fdkgv{background:var(--p3);border:1.5px solid var(--l3);}
+.fdknum{font-size:16px;font-weight:900;font-family:var(--mono);line-height:1;}
+.fdknum.wh{color:var(--white);}.fdknum.gd{color:var(--gold);}
+.fdklbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+
+/* ステータスバー */
+#m-status{
+  position:absolute;left:4px;bottom:36px;
+  display:flex;align-items:center;gap:5px;
+  background:rgba(7,7,14,.85);border:1px solid var(--l2);
+  border-radius:5px;padding:3px 8px;z-index:60;
+  font-size:11px;font-family:var(--mono);
+}
+#e-status{
+  position:absolute;left:4px;top:36px;
+  display:flex;align-items:center;gap:5px;
+  background:rgba(7,7,14,.85);border:1px solid var(--l2);
+  border-radius:5px;padding:3px 8px;z-index:60;
+  font-size:11px;font-family:var(--mono);
+}
+.sicon{font-size:12px;}
+.sval{font-weight:700;color:var(--white);}
+.sdiv{color:var(--tx3);}
+
+/* ---- フィールド内 デッキ/墓地 ---- */
+#m-dkgv{
+  position:fixed;
+  display:flex;flex-direction:column;gap:4px;padding:4px;z-index:500;
+}
+#e-dkgv{
+  position:fixed;
+  display:flex;flex-direction:column;gap:4px;padding:4px;z-index:500;
+}
+.fdkcard{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+.fdkcard:hover .fdkface{border-color:var(--gold);}
+.fdkface{width:54px;height:74px;border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.fdkface.fdkdk{
+  background:repeating-linear-gradient(-45deg,var(--p3),var(--p3) 4px,var(--l2) 4px,var(--l2) 8px);
+  border:1.5px solid var(--l3);
+}
+.fdkface.fdkgv{background:var(--p3);border:1.5px solid var(--l3);}
+.fdknum{font-size:16px;font-weight:900;font-family:var(--mono);}
+.fdknum.wh{color:var(--white);}.fdknum.gd{color:var(--gold);}
+.fdklbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+
+/* ---- ステータスバー ---- */
+#m-status,#e-status{
+  position:fixed;
+  display:flex;align-items:center;gap:5px;
+  background:rgba(7,7,14,.88);border:1px solid var(--l2);
+  border-radius:5px;padding:4px 10px;z-index:500;
+  font-size:11px;font-family:var(--mono);white-space:nowrap;
+  pointer-events:none;
+}
+.sico{font-size:11px;line-height:1;}
+.sval{font-weight:700;color:var(--white);font-size:11px;}
+.sdv{color:var(--tx3);margin:0 1px;}
+
 </style>
 </head>
 <body>
@@ -577,6 +659,48 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     </div>
   </div>
 
+  <!-- 自分デッキ/墓地: フィールド右下 -->
+  <div id="m-dkgv">
+    <div class="fdkcard" onclick="og('m')">
+      <div class="fdkface fdkgv"><div class="fdknum gd" id="mgbcnt">0</div></div>
+      <div class="fdklbl">墓地</div>
+    </div>
+    <div class="fdkcard">
+      <div class="fdkface fdkdk"><div class="fdknum wh" id="mdeckval">30</div></div>
+      <div class="fdklbl">デッキ</div>
+    </div>
+  </div>
+  <!-- 相手デッキ/墓地: フィールド右上 -->
+  <div id="e-dkgv">
+    <div class="fdkcard">
+      <div class="fdkface fdkdk"><div class="fdknum wh" id="edeckval">30</div></div>
+      <div class="fdklbl">デッキ</div>
+    </div>
+    <div class="fdkcard" onclick="og('e')">
+      <div class="fdkface fdkgv"><div class="fdknum gd" id="egbcnt">0</div></div>
+      <div class="fdklbl">墓地</div>
+    </div>
+  </div>
+  <!-- 自分ステータスバー: フィールド左下 -->
+  <div id="m-status">
+    <span class="sico">🃏</span><span class="sval" id="st-mhand">5</span>
+    <span class="sdv">|</span>
+    <span class="sico">📚</span><span class="sval" id="st-mdeck">30</span>
+    <span class="sdv">|</span>
+    <span class="sico">💀</span><span class="sval" id="st-mgrave">0</span>
+    <span class="sdv">|</span>
+    <span class="sico">⚡</span><span class="sval" id="st-men">1/1</span>
+  </div>
+  <!-- 相手ステータスバー: フィールド左上 -->
+  <div id="e-status">
+    <span class="sico">🃏</span><span class="sval" id="st-ehand">5</span>
+    <span class="sdv">|</span>
+    <span class="sico">📚</span><span class="sval" id="st-edeck">30</span>
+    <span class="sdv">|</span>
+    <span class="sico">💀</span><span class="sval" id="st-egrave">0</span>
+    <span class="sdv">|</span>
+    <span class="sico">⚡</span><span class="sval" id="st-een">1/1</span>
+  </div>
   <!-- 自分手札 + abar (absolute) -->
   <div id="hand-area"><div id="hrow"></div></div>
   <div id="abar">
@@ -636,16 +760,6 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       <div class="ptc-cond unmet" id="mpcd"></div>
       <div class="ptc-guard">🛡 GUARDIAN</div>
       <button class="pt-sbtn" id="mpbtn" onclick="sumP()" disabled>召喚不可</button>
-    </div>
-    <div class="dg-side" style="margin-top:6px;">
-      <div class="dkcard">
-        <div class="dkface deck"><div class="dknum w" id="mdeckval">30</div></div>
-        <div class="dklbl">デッキ</div>
-      </div>
-      <div class="dkcard" onclick="og('m')">
-        <div class="dkface grave"><div class="dknum g" id="mgbcnt">0</div></div>
-        <div class="dklbl">墓地</div>
-      </div>
     </div>
     <div class="pt-lbl" style="margin-top:5px;">Partner — 自分</div>
   </div>
@@ -716,39 +830,52 @@ function pvPt(who){const p=who==='e'?G.enemy.partner:G.my.partner;pvShow({name:p
 
 function applyFan(cards){
   const n=cards.length;if(!n)return;
-  const W=112,maxG=6;
-  // fieldの幅を基準に
+  const W=80,maxG=4;
   const field=$('field');
-  const cw=field?Math.min(field.offsetWidth-24, 880):880;
+  const fr=field?field.getBoundingClientRect():{x:180,width:1056,right:1236};
+  const halfW=fr.width/2; // フィールド右半分
+  const avail=halfW-72;   // デッキ/墓地(68px)+余白
   const nat=W*n+maxG*(n-1);
-  const totalW=Math.min(nat,cw);
+  const totalW=Math.min(nat,avail);
   const step=n>1?(totalW-W)/(n-1):0;
   const gap=step-W;
+  // hand-areaをfixed座標でフィールド中央〜右に配置
+  const ha=$('hand-area');
+  if(ha){
+    ha.style.left=(fr.x+halfW)+'px';
+    ha.style.right=(window.innerWidth-fr.right+68)+'px';
+    ha.style.width='auto';
+  }
   const hrow=$('hrow');
-  if(hrow){hrow.style.width=totalW+'px';hrow.style.flexShrink='0';hrow.style.maxWidth=cw+'px';}
+  if(hrow){hrow.style.width=totalW+'px';hrow.style.flexShrink='0';}
   cards.forEach((c,i)=>{
     c.style.marginLeft=i===0?'0':gap+'px';
-    c.style.zIndex=String(i+1);
+    c.style.zIndex=String(n-i);
     c.style.flexShrink='0';
     c.style.transform='';
   });
 }
 function applyEFan(cards){
   const n=cards.length;if(!n)return;
-  const W=112,maxG=6;
+  const W=80,maxG=4;
   const field=document.getElementById('field');
-  const cw=field?field.offsetWidth-8:900;
+  const fr=field?field.getBoundingClientRect():{x:180,width:1056};
+  const halfW=fr.width/2;
+  const avail=halfW-72;
   const nat=W*n+maxG*(n-1);
-  const totalW=Math.min(nat,cw);
+  const totalW=Math.min(nat,avail);
   const step=n>1?(totalW-W)/(n-1):0;
   const gap=step-W;
   const ehbcards=document.getElementById('ehbcards');
   if(ehbcards){ehbcards.style.width=totalW+'px';ehbcards.style.display='flex';ehbcards.style.flexShrink='0';}
+  // e-handのpadding-leftをフィールド中央に合わせる(右半分のみ使用)
+  const eh=document.getElementById('e-hand');
+  if(eh) eh.style.paddingLeft=(fr.width/2-4)+'px';
   cards.forEach((c,i)=>{
     c.style.marginLeft=i===0?'0':gap+'px';
     c.style.flexShrink='0';
     c.style.transform='';
-    c.style.zIndex=String(i+1);
+    c.style.zIndex=String(n-i);
   });
 }
 function applyShFan(cards,cw){
@@ -770,8 +897,33 @@ function applyShFan(cards,cw){
 
 function nc(msg,col){clearTimeout(ncT);$('nc-msg').textContent=msg;$('nc-msg').style.color=col||'var(--white)';$('nc').classList.add('show');ncT=setTimeout(()=>$('nc').classList.remove('show'),1400);}
 
-function ra(){rEN('e');rEN('m');rHB();rSh('e');rSh('m');rPt('e');rPt('m');rMon('e');rMon('m');rHand();rGrave('e');rGrave('m');rPhase();updBtn();$('edeckval').textContent=G.enemy.deck;$('mdeckval').textContent=G.my.deck;}
+function ra(){rEN('e');rEN('m');rHB();rSh('e');rSh('m');rPt('e');rPt('m');rMon('e');rMon('m');rHand();rGrave('e');rGrave('m');rPhase();updBtn();rStatus();
+}
 
+function rStatus(){
+  const fe=s=>document.getElementById(s);
+  const field=fe('field');
+  if(field){
+    const fr=field.getBoundingClientRect();
+    // ステータスバーをfieldの左端に固定
+    const ms=fe('m-status'),es=fe('e-status');
+    const halfW=fr.width/2;
+    if(ms){ms.style.left=(fr.left+4)+'px';ms.style.bottom=(window.innerHeight-fr.bottom+36)+'px';ms.style.maxWidth=(halfW-8)+'px';}
+    if(es){es.style.left=(fr.left+4)+'px';es.style.top=(fr.top+4)+'px';es.style.maxWidth=(halfW-8)+'px';}
+    // デッキ/墓地をfieldの右端に固定
+    const mdk=fe('m-dkgv'),edk=fe('e-dkgv');
+    if(mdk){mdk.style.right=(window.innerWidth-fr.right+4)+'px';mdk.style.bottom=(window.innerHeight-fr.bottom+36)+'px';}
+    if(edk){edk.style.right=(window.innerWidth-fr.right+4)+'px';edk.style.top=(fr.top+6)+'px';}
+  }
+  fe('st-mhand')&&(fe('st-mhand').textContent=G.my.hand.length);
+  fe('st-mdeck')&&(fe('st-mdeck').textContent=G.my.deck);
+  fe('st-mgrave')&&(fe('st-mgrave').textContent=G.my.grave.length);
+  fe('st-men')&&(fe('st-men').textContent=G.my.en+'/'+G.my.enMax);
+  fe('st-ehand')&&(fe('st-ehand').textContent=G.enemy.handCount);
+  fe('st-edeck')&&(fe('st-edeck').textContent=G.enemy.deck);
+  fe('st-egrave')&&(fe('st-egrave').textContent=G.enemy.grave.length);
+  fe('st-een')&&(fe('st-een').textContent=G.enemy.en+'/'+G.enemy.enMax);
+}
 function rEN(w){
   const d=w==='e'?G.enemy:G.my;
   $(w==='e'?'eenval':'menval').textContent=d.en+'/'+d.enMax;
