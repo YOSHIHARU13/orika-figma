@@ -92,7 +92,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   display:grid;
   grid-template-rows:auto 1fr auto;
   background:var(--p1);border-left:1px solid var(--l2);
-  overflow:hidden;
+  overflow:hidden;z-index:1;
 }
 /* 相手プレイヤー情報 (右上) */
 #r-einfo{padding:10px;border-bottom:1px solid var(--l2);}
@@ -176,7 +176,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 }
 
 /* プレート行 32px */
-.fplate{height:32px;flex-shrink:0;display:flex;align-items:center;padding:0 12px;gap:8px;}
+.fplate{height:0;flex-shrink:0;display:none;}
 .fplate.fen{background:rgba(153,102,221,.04);border-bottom:1px solid var(--l1);}
 .fplate.fmn{background:rgba(39,174,96,.03);border-top:1px solid var(--l1);}
 .fp-name{font-size:11px;font-weight:700;color:var(--white);}
@@ -192,7 +192,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   z-index:1;
 }
 #ehb-inner{
-  display:flex;align-items:flex-end;justify-content:flex-end;
+  display:flex;align-items:flex-end;justify-content:flex-start;
   overflow:hidden;
   height:100%;
   width:100%;
@@ -212,7 +212,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   content:'';position:absolute;inset:5px;
   border:1px solid var(--l1);border-radius:3px;
 }
-.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);flex-shrink:0;padding-left:8px;align-self:flex-end;padding-bottom:4px;}
+.e-hcnt{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);font-family:var(--mono);flex-shrink:0;padding-left:8px;align-self:flex-end;padding-bottom:4px;}
 
 /* ゾーン行: Shield 96px / Monster 120px */
 .zone-row{flex-shrink:0;display:flex;align-items:stretch;position:relative;}
@@ -221,7 +221,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .zone-esh{background:rgba(74,144,226,.022);z-index:100;}
 .zone-emn{background:rgba(153,102,221,.018);}
 .zone-mmn{background:rgba(255,255,255,.004);}
-.zone-msh{background:rgba(74,144,226,.022);z-index:100;}
+.zone-msh{background:rgba(74,144,226,.022);z-index:120;}
 
 /* デッキ/墓地バー */
 
@@ -317,7 +317,8 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   background:rgba(0,0,0,.65);
   border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);
   position:relative;overflow:hidden;transition:background .4s;
-  pointer-events:none;
+  pointer-events:all;
+  cursor:default;
 }
 #cbar *{pointer-events:all;}
 #cbar.battle{background:rgba(50,8,8,.8);border-color:#5a1a1a;}
@@ -478,19 +479,51 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 /* ---- ステータスバー ---- */
 #m-status,#e-status{
   position:fixed;
-  display:flex;align-items:center;gap:5px;
-  background:rgba(7,7,14,.88);border:1px solid var(--l2);
-  border-radius:5px;padding:4px 10px;z-index:500;
-  font-size:11px;font-family:var(--mono);white-space:nowrap;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(7,7,14,.92);border:1px solid var(--l2);
+  border-radius:6px;padding:6px 14px;z-index:500;
+  font-size:13px;font-family:var(--mono);white-space:nowrap;
   pointer-events:none;
 }
-.sico{font-size:11px;line-height:1;}
-.sval{font-weight:700;color:var(--white);font-size:11px;}
+.sico{font-size:14px;line-height:1;}
+.sval{font-weight:700;color:var(--white);font-size:13px;}
 .sdv{color:var(--tx3);margin:0 1px;}
+
+
+/* 墓地ホバーパネル */
+.sgrave{cursor:pointer;transition:color .15s;}
+.sgrave:hover{color:var(--gold);}
+.sgrave.active{color:var(--gold);text-shadow:0 0 6px rgba(212,168,67,.4);}
+#grave-hover-panel{
+  position:fixed;
+  width:260px;max-height:360px;
+  background:rgba(8,8,18,.97);
+  border:1px solid var(--l2);border-radius:8px;
+  padding:10px;z-index:900;
+  overflow-y:auto;
+  display:none;
+  box-shadow:0 4px 24px rgba(0,0,0,.7);
+}
+#grave-hover-panel.show{display:block;}
+#grave-hover-panel .ghdr{font-size:11px;color:var(--tx3);font-family:var(--mono);margin-bottom:8px;border-bottom:1px solid var(--l1);padding-bottom:5px;}
+#grave-hover-panel .gcard{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:6px 0;border-bottom:1px solid var(--l1);cursor:pointer;
+}
+#grave-hover-panel .gcard:last-child{border-bottom:none;}
+#grave-hover-panel .gcard:hover{background:rgba(255,255,255,.03);}
+#grave-hover-panel .gc-art{width:38px;height:52px;border-radius:5px;flex-shrink:0;border:1px solid var(--l2);}
+#grave-hover-panel .gc-art.monster{background:var(--bdim);}
+#grave-hover-panel .gc-art.spell{background:rgba(212,130,10,.12);}
+#grave-hover-panel .gc-name{font-size:12px;font-weight:700;color:var(--white);}
+#grave-hover-panel .gc-stat{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:2px;}
+#grave-hover-panel .gc-eff{font-size:9px;color:#8ab4ff;margin-top:3px;line-height:1.4;}
+#grave-hover-panel .gc-empty{font-size:11px;color:var(--tx3);text-align:center;padding:16px 0;}
 
 </style>
 </head>
 <body>
+<div id="grave-hover-panel"></div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
 <div class="ov" id="tov" onclick="hideTrig()">
@@ -633,53 +666,22 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   <div class="fplate fmn">
     <span class="fp-name">自分</span>
     <span class="fp-turn" id="fturn-m"></span>
-  </div>
-        <div class="dklbl">相手デッキ</div>
-      </div>
-      <div class="dk-item" onclick="og('e')">
-        <div class="dkface grave" style="width:44px;height:60px;border-radius:5px;border:1.5px solid var(--l3);background:var(--p3);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div class="dknum g" id="egbcnt">0</div>
-        </div>
-        <div class="dklbl">相手墓地</div>
+  </div></div>
+      
+        
       </div>
     </div>
-    <div id="dk-mine">
-      <div class="dk-item" onclick="og('m')">
-        <div class="dkface grave" style="width:44px;height:60px;border-radius:5px;border:1.5px solid var(--l3);background:var(--p3);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div class="dknum g" id="mgbcnt">0</div>
-        </div>
-        <div class="dklbl">自分墓地</div>
-      </div>
-      <div class="dk-item">
-        <div class="dkface deck" style="width:44px;height:60px;border-radius:5px;border:1.5px solid var(--l2);display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div class="dknum w" id="mdeckval">30</div>
-        </div>
-        <div class="dklbl">自分デッキ</div>
-      </div>
+    
     </div>
   </div>
 
-  <!-- 自分デッキ/墓地: フィールド右下 -->
-  <div id="m-dkgv">
-    <div class="fdkcard" onclick="og('m')">
-      <div class="fdkface fdkgv"><div class="fdknum gd" id="mgbcnt">0</div></div>
-      <div class="fdklbl">墓地</div>
-    </div>
-    <div class="fdkcard">
-      <div class="fdkface fdkdk"><div class="fdknum wh" id="mdeckval">30</div></div>
-      <div class="fdklbl">デッキ</div>
-    </div>
+  <!-- 自分墓地クリック(非表示、UIバーで代替) -->
+  <div id="m-dkgv" style="display:none;">
+    <span id="mgbcnt">0</span><span id="mdeckval">30</span>
   </div>
-  <!-- 相手デッキ/墓地: フィールド右上 -->
-  <div id="e-dkgv">
-    <div class="fdkcard">
-      <div class="fdkface fdkdk"><div class="fdknum wh" id="edeckval">30</div></div>
-      <div class="fdklbl">デッキ</div>
-    </div>
-    <div class="fdkcard" onclick="og('e')">
-      <div class="fdkface fdkgv"><div class="fdknum gd" id="egbcnt">0</div></div>
-      <div class="fdklbl">墓地</div>
-    </div>
+  <!-- 相手墓地クリック(非表示、UIバーで代替) -->
+  <div id="e-dkgv" style="display:none;">
+    <span id="egbcnt">0</span><span id="edeckval">30</span>
   </div>
   <!-- 自分ステータスバー: フィールド左下 -->
   <div id="m-status">
@@ -687,7 +689,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">📚</span><span class="sval" id="st-mdeck">30</span>
     <span class="sdv">|</span>
-    <span class="sico">💀</span><span class="sval" id="st-mgrave">0</span>
+    <span class="sico sgrave" id="mgrave-btn" onmouseenter="showGrave('m')" onmouseleave="hideGrave()">💀</span><span class="sval sgrave" onmouseenter="showGrave('m')" onmouseleave="hideGrave()" id="st-mgrave">0</span>
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-men">1/1</span>
   </div>
@@ -697,7 +699,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">📚</span><span class="sval" id="st-edeck">30</span>
     <span class="sdv">|</span>
-    <span class="sico">💀</span><span class="sval" id="st-egrave">0</span>
+    <span class="sico sgrave" id="egrave-btn" onmouseenter="showGrave('e')" onmouseleave="hideGrave()">💀</span><span class="sval sgrave" onmouseenter="showGrave('e')" onmouseleave="hideGrave()" id="st-egrave">0</span>
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-een">1/1</span>
   </div>
@@ -727,15 +729,11 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
   <!-- デッキ・墓地 -->
   <div id="r-dkgv">
-    <div style="flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;">
-      <div class="dkcard"><div class="dkface deck"><div class="dknum w" id="edeckval">30</div></div><div class="dklbl">相手デッキ</div></div>
-      <div class="dkcard" onclick="og('e')"><div class="dkface grave"><div class="dknum g" id="egbcnt">0</div></div><div class="dklbl">相手墓地</div></div>
+    <div style="display:none;">
+      <span id="_edeckval_r">30</span><span id="_egbcnt_r">0</span>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;">
-      <div class="dkcard"><div class="dkface deck"><div class="dknum w" id="mdeckval">30</div></div><div class="dklbl">自分デッキ</div></div>
-      <div class="dkcard" onclick="og('m')"><div class="dkface grave"><div class="dknum g" id="mgbcnt">0</div></div><div class="dklbl">自分墓地</div></div>
-    </div>
-  </div>
+      
 
   <!-- フェイズ/ボタン (右中央 = 1fr + justify-content:center) -->
   <div id="r-sys">
@@ -868,9 +866,9 @@ function applyEFan(cards){
   const gap=step-W;
   const ehbcards=document.getElementById('ehbcards');
   if(ehbcards){ehbcards.style.width=totalW+'px';ehbcards.style.display='flex';ehbcards.style.flexShrink='0';}
-  // e-handのpadding-leftをフィールド中央に合わせる(右半分のみ使用)
+  // e-handの右paddingをフィールド右半分分に設定(手札は左半分)
   const eh=document.getElementById('e-hand');
-  if(eh) eh.style.paddingLeft=(fr.width/2-4)+'px';
+  if(eh){eh.style.paddingLeft='72px';eh.style.paddingRight=(fr.width/2)+'px';}
   cards.forEach((c,i)=>{
     c.style.marginLeft=i===0?'0':gap+'px';
     c.style.flexShrink='0';
@@ -909,19 +907,23 @@ function rStatus(){
     const ms=fe('m-status'),es=fe('e-status');
     const halfW=fr.width/2;
     if(ms){ms.style.left=(fr.left+4)+'px';ms.style.bottom=(window.innerHeight-fr.bottom+36)+'px';ms.style.maxWidth=(halfW-8)+'px';}
-    if(es){es.style.left=(fr.left+4)+'px';es.style.top=(fr.top+4)+'px';es.style.maxWidth=(halfW-8)+'px';}
+    if(es){es.style.left=(fr.left+halfW+4)+'px';es.style.top=(fr.top+4)+'px';es.style.maxWidth=(halfW-8)+'px';}
     // デッキ/墓地をfieldの右端に固定
     const mdk=fe('m-dkgv'),edk=fe('e-dkgv');
     if(mdk){mdk.style.right=(window.innerWidth-fr.right+4)+'px';mdk.style.bottom=(window.innerHeight-fr.bottom+36)+'px';}
-    if(edk){edk.style.right=(window.innerWidth-fr.right+4)+'px';edk.style.top=(fr.top+6)+'px';}
+    if(edk){edk.style.left=(fr.left+4)+'px';edk.style.top=(fr.top+80)+'px';edk.style.right='auto';}
   }
   fe('st-mhand')&&(fe('st-mhand').textContent=G.my.hand.length);
   fe('st-mdeck')&&(fe('st-mdeck').textContent=G.my.deck);
-  fe('st-mgrave')&&(fe('st-mgrave').textContent=G.my.grave.length);
+  const mgn=G.my.grave.length,egn=G.enemy.grave.length;
+  fe('st-mgrave')&&(fe('st-mgrave').textContent=mgn);
+  fe('st-egrave')&&(fe('st-egrave').textContent=egn);
+  // 墓地あるとき金色強調
+  ['mgrave-btn','st-mgrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',mgn>0);el.style.opacity=mgn>0?'1':'.45';}});
+  ['egrave-btn','st-egrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',egn>0);el.style.opacity=egn>0?'1':'.45';}});
   fe('st-men')&&(fe('st-men').textContent=G.my.en+'/'+G.my.enMax);
   fe('st-ehand')&&(fe('st-ehand').textContent=G.enemy.handCount);
   fe('st-edeck')&&(fe('st-edeck').textContent=G.enemy.deck);
-  fe('st-egrave')&&(fe('st-egrave').textContent=G.enemy.grave.length);
   fe('st-een')&&(fe('st-een').textContent=G.enemy.en+'/'+G.enemy.enMax);
 }
 function rEN(w){
@@ -1035,6 +1037,55 @@ function updBtn(){
   const ok=G.myTurn&&G.phase==='main',okB=G.myTurn&&(G.phase==='main'||G.phase==='battle');
   $('btnB').disabled=!ok;$('btnE').disabled=!okB;$('btnB2').disabled=!ok;$('btnE2').disabled=!okB;
 }
+
+let graveHideTimer=null;
+function showGrave(w){
+  clearTimeout(graveHideTimer);
+  const grave=w==='m'?G.my.grave:G.enemy.grave;
+  const panel=document.getElementById('grave-hover-panel');
+  if(!panel)return;
+  // コンテンツ生成
+  const title=(w==='m'?'自分':'相手')+'の墓地（'+grave.length+'枚）';
+  let inner='<div class="ghdr">'+title+'</div>';
+  if(!grave.length){
+    inner+='<div class="gc-empty">墓地にカードはありません</div>';
+  } else {
+    [...grave].reverse().forEach(card=>{
+      const sp=card.type==='spell';
+      const stat=sp?'EN'+card.cost:(card.atk!==undefined?'EN'+card.cost+' ATK'+card.atk+' LIFE'+(card.maxHp||card.hp):'EN'+card.cost);
+      inner+=`<div class="gcard" onmouseenter="pvShow(${JSON.stringify(card).replace(/"/g,'&quot;')})" onmouseleave="pvClear()">
+        <div class="gc-art ${card.type}"></div>
+        <div><div class="gc-name">${card.name}</div><div class="gc-stat">${stat}</div><div class="gc-eff">${card.eff||''}</div></div>
+      </div>`;
+    });
+  }
+  panel.innerHTML=inner;
+  // パネルの位置をUIバーに合わせる
+  const btn=document.getElementById(w==='m'?'mgrave-btn':'egrave-btn');
+  if(btn){
+    const r=btn.getBoundingClientRect();
+    panel.style.left=r.left+'px';
+    if(w==='m'){
+      panel.style.bottom=(window.innerHeight-r.top+6)+'px';
+      panel.style.top='auto';
+    } else {
+      panel.style.top=(r.bottom+6)+'px';
+      panel.style.bottom='auto';
+    }
+    // 画面右端のはみ出し防止
+    const pw=260;
+    if(r.left+pw>window.innerWidth) panel.style.left=(window.innerWidth-pw-8)+'px';
+  }
+  panel.classList.add('show');
+}
+function hideGrave(){
+  graveHideTimer=setTimeout(()=>{
+    const panel=document.getElementById('grave-hover-panel');
+    if(panel)panel.classList.remove('show');
+    pvClear();
+  },200);
+}
+
 const logs=[];
 function addLog(icon,text,cls){
   logs.push({icon,text,cls});if(logs.length>30)logs.shift();
