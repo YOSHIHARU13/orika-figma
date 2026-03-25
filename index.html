@@ -27,7 +27,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 /* ============================================================
    ルートレイアウト: 左180 / フィールド920 / 右180
    ============================================================ */
-#app{width:1280px;height:720px;display:flex;overflow:hidden;}
+#app{width:1280px;height:720px;display:flex;overflow:hidden;margin-top:32px;}
 
 /* ============================================================
    LEFT 180px
@@ -41,10 +41,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   position:relative;z-index:9200;
 }
 #dbar{
-  height:32px;flex-shrink:0;
-  display:flex;align-items:center;gap:3px;padding:0 5px;
-  background:rgba(7,7,14,.95);border-bottom:1px solid var(--l2);
-  z-index:200;position:relative;
+  position:fixed;top:0;left:0;right:0;height:32px;
+  display:flex;align-items:center;gap:4px;padding:0 8px;flex-wrap:nowrap;
+  background:rgba(7,7,14,.98);border-bottom:1px solid var(--l2);
+  z-index:1000;
 }
 .dbtn{padding:0 5px;height:18px;border-radius:3px;font-size:8px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
 .dbtn:hover,.dbtn.act{border-color:var(--gold);color:var(--gold);}
@@ -56,6 +56,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:8px;gap:5px;overflow:hidden;
   pointer-events:none;
+  z-index:0;
 }
 #pv-empty{font-size:9px;color:var(--tx3);font-family:var(--mono);text-align:center;line-height:1.8;}
 #pv-card{display:none;flex-direction:column;align-items:center;gap:4px;width:100%;}
@@ -87,7 +88,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
    CSS Grid: 相手情報(auto) / フェイズ中央(1fr) / 自分PT(auto)
    ============================================================ */
 #right{
-  width:180px;flex-shrink:0;height:720px;
+  width:180px;flex-shrink:0;height:688px;
   display:grid;
   grid-template-rows:auto 1fr auto;
   background:var(--p1);border-left:1px solid var(--l2);
@@ -163,7 +164,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
    flex-direction:column, 各行高さ固定
    ============================================================ */
 #field{
-  flex:1;height:720px;
+  flex:1;height:688px;
   display:flex;flex-direction:column;
   position:relative;overflow:hidden;
 }
@@ -210,10 +211,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .zone-row{flex-shrink:0;display:flex;align-items:stretch;position:relative;}
 .zone-sh{height:120px;position:relative;}
 .zone-mn{height:120px;}
-.zone-esh{background:rgba(74,144,226,.022);z-index:50;}
+.zone-esh{background:rgba(74,144,226,.022);z-index:100;}
 .zone-emn{background:rgba(153,102,221,.018);}
 .zone-mmn{background:rgba(255,255,255,.004);}
-.zone-msh{background:rgba(74,144,226,.022);z-index:50;}
+.zone-msh{background:rgba(74,144,226,.022);z-index:100;}
 
 /* デッキ/墓地パネル */
 .dkpanel{
@@ -264,8 +265,8 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 }
 .shc::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(74,144,226,.05) 5px,rgba(74,144,226,.05) 10px);}
 .shc::after{content:'';position:absolute;inset:5px;border:1px solid rgba(74,144,226,.2);border-radius:4px;}
-.shc.broken{border-color:var(--l1);background:transparent;opacity:.1;}
-.shc.broken::before,.shc.broken::after{display:none;}
+.shc.broken{display:none;}
+
 .shc.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;box-shadow:0 0 8px var(--red);}
 .shc.atk-tgt::before{display:none;}
 
@@ -424,9 +425,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 <div id="app">
 
-<!-- ===== LEFT ===== -->
-<div id="left">
-  <div id="dbar">
+<div id="dbar">
     <button class="dbtn" onclick="dBreak()">SH破壊</button>
     <button class="dbtn" onclick="dAddSh()">SH追加</button>
     <button class="dbtn" onclick="dTrig()">鼓動</button>
@@ -437,7 +436,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <button class="dbtn" onclick="dEdraw()">相手ドロー</button>
     <button class="dbtn" onclick="dMdraw()">自分ドロー</button>
     <button class="dbtn" onclick="location.reload()">Reset</button>
-  </div>
+</div>
+
+<!-- ===== LEFT ===== -->
+<div id="left">
 
   <!-- 相手パートナー (左上) -->
   <div id="l-ept">
@@ -742,7 +744,7 @@ function rSh(w){
     }
     c.appendChild(el);
   });
-  const alive=Array.from(c.children).filter(e=>!e.classList.contains('broken'));
+  const alive=Array.from(c.children).filter(e=>!e.classList.contains('broken') && e.style.display!=='none');
   const cw=(c.closest('.czwrap')||{offsetWidth:700}).offsetWidth||700;
   applyShFan(alive,cw);
 }
@@ -889,7 +891,19 @@ function doDirect(asi,shi){
   else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊('+G.my.partner.prog+'/2)';
   brkSh('e',shi);ra();
 }
-function findAlive(w){const s=w==='e'?G.enemy.shields:G.my.shields;for(let i=s.length-1;i>=0;i--)if(s[i])return i;return -1;}
+function findAlive(w){
+  const s=w==='e'?G.enemy.shields:G.my.shields;
+  const n=s.length;
+  const center=(n-1)/2;
+  // 中央に近い生存シールドを選ぶ
+  let best=-1,bestDist=Infinity;
+  for(let i=0;i<n;i++){
+    if(!s[i])continue;
+    const d=Math.abs(i-center);
+    if(d<bestDist){bestDist=d;best=i;}
+  }
+  return best;
+}
 function brkSh(w,idx){
   if(idx<0)return;const gd=w==='e'?G.enemy:G.my;gd.shields[idx]=false;
   const el=$((w==='e'?'esh-':'msh-')+idx);if(el)el.className='shc broken';
