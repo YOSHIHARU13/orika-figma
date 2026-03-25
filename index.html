@@ -7,472 +7,337 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#08080f;--p1:#0d0d1a;--p2:#131324;--p3:#181828;
-  --l1:#20203a;--l2:#2e2e50;--l3:#424268;
-  --gold:#d4a843;--gdim:rgba(212,168,67,.13);
-  --blue:#4a90e2;--bdim:rgba(74,144,226,.14);
+  --bg:#07070e;--p1:#0c0c18;--p2:#111120;--p3:#161628;
+  --l1:#1e1e36;--l2:#2a2a48;--l3:#3e3e60;
+  --gold:#d4a843;--gdim:rgba(212,168,67,.12);
+  --blue:#4a90e2;--bdim:rgba(74,144,226,.14);--bglow:rgba(74,144,226,.3);
+  --purple:#9966dd;--pdim:rgba(153,102,221,.16);--pglow:rgba(153,102,221,.35);
   --green:#27ae60;--gdim2:rgba(39,174,96,.12);
   --red:#c0392b;--rdim:rgba(192,57,43,.15);
   --orange:#d4820a;
-  --tx:#c4c8e0;--tx2:#6878a0;--tx3:#384060;--white:#eef0f8;
+  --tx:#c0c8e0;--tx2:#606888;--tx3:#303050;--white:#edf0f8;
   --mono:'Roboto Mono',monospace;
-  /* フィールド幅: 1280-220-220=840 */
-  --FW:840px;
-  /* フェイズ色 */
-  --phase-bg:rgba(0,0,0,0);
+  --CW:112px;--SH:80px;--MH:150px;
+  --LEFT:280px;--BATTLE:1000px;
 }
 html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;}
+#app{width:1280px;height:720px;overflow:hidden;display:flex;background:var(--bg);}
 
-/* ==============================  ROOT  */
-#root{position:relative;width:1280px;height:720px;overflow:hidden;background:var(--bg);transition:background .4s;}
-#root.phase-battle{background:#110808;}
-#root.phase-main{background:#08080f;}
-#root.enemy-turn{background:#08080f;}
+/* LEFT 280px */
+#left{width:var(--LEFT);flex-shrink:0;height:100%;display:flex;flex-direction:column;background:var(--p1);border-right:1px solid var(--l2);overflow:hidden;}
+#left-dbar{height:32px;flex-shrink:0;display:flex;align-items:center;gap:3px;padding:0 6px;background:rgba(7,7,14,.95);border-bottom:1px solid var(--l2);}
+.dlbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.dbtn{padding:0 5px;height:18px;border-radius:3px;font-size:8px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
+.dbtn:hover,.dbtn.active{border-color:var(--gold);color:var(--gold);}
+#left-enemy{flex:0 0 298px;display:flex;flex-direction:column;gap:5px;padding:7px;border-bottom:1px solid var(--l2);}
+#left-sys{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px 7px;background:rgba(0,0,0,.4);}
+#left-mine{flex:0 0 298px;display:flex;flex-direction:column;gap:5px;padding:7px;border-top:1px solid var(--l2);}
+#left-log{height:36px;flex-shrink:0;display:flex;align-items:center;padding:0 7px;background:rgba(7,7,14,.95);border-top:1px solid var(--l2);font-size:8px;font-family:var(--mono);overflow:hidden;}
+#loginner{white-space:nowrap;overflow:hidden;color:var(--tx3);}
+.le{display:inline-flex;gap:2px;margin-right:8px;}.le .li{color:var(--tx3);}.le .lt{color:var(--tx3);}
+.le.atk .lt{color:var(--orange);}.le.trig .lt{color:var(--gold);font-weight:700;}.le.ptn .lt{color:#aa88ff;font-weight:700;}.le.dmg .lt{color:var(--red);}
 
-/* フィールド境界線 */
-#field-bg{position:absolute;left:220px;right:220px;top:34px;bottom:0;border-left:1px solid var(--l1);border-right:1px solid var(--l1);pointer-events:none;z-index:1;}
-#center-line{position:absolute;left:220px;right:220px;top:calc(34px + 268px + 44px/2);height:1px;background:linear-gradient(90deg,transparent,var(--l2) 10%,var(--l2) 90%,transparent);pointer-events:none;z-index:2;}
-
-/* ==============================  DEMO BAR 34px  */
-#dbar{position:absolute;top:0;left:0;right:0;height:34px;z-index:200;display:flex;align-items:center;gap:5px;padding:0 12px;background:rgba(8,8,15,.95);border-bottom:1px solid var(--l2);}
-.dlbl{font-size:9px;color:var(--tx3);font-family:var(--mono);}
-.dbtn{padding:0 8px;height:20px;border-radius:3px;font-size:9px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
-.dbtn:hover{border-color:var(--gold);color:var(--gold);}
-.dbtn.active{border-color:var(--gold);color:var(--gold);background:var(--gdim);}
-
-/* ==============================  四隅プレイヤーユニット  */
-/* 右上: 相手パートナー */
-#pu-enemy{position:absolute;top:40px;right:8px;width:206px;z-index:50;display:flex;flex-direction:column;gap:6px;padding:8px;}
-/* 右下: 自分パートナー */
-#pu-mine{position:absolute;bottom:8px;right:8px;width:206px;z-index:50;display:flex;flex-direction:column;gap:6px;padding:8px;}
-
-.pu-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;}
-
-/* パートナーカード */
-.ptc{border-radius:10px;border:2px solid var(--gold);background:rgba(10,10,22,.9);display:flex;flex-direction:column;align-items:center;padding:10px 8px;gap:5px;cursor:pointer;}
-.ptc:hover{box-shadow:0 0 12px rgba(212,168,67,.2);}
-.ptc.ready{box-shadow:0 0 14px rgba(212,168,67,.25);}
-.ptc.guardian{border-color:var(--red);box-shadow:0 0 14px rgba(192,57,43,.3);}
-.ptc.summoned{border-color:var(--l2);opacity:.5;}
-.ptc-art{width:68px;height:68px;border-radius:7px;background:var(--l2);border:1.5px solid rgba(212,168,67,.3);}
-.ptc-name{font-size:12px;font-weight:700;color:var(--gold);text-align:center;}
-.ptc-stat{font-size:9px;color:var(--tx2);font-family:var(--mono);text-align:center;}
-.ptc-skill{font-size:8px;color:var(--tx);text-align:center;line-height:1.5;padding:4px 0 2px;border-top:1px solid var(--l1);width:100%;}
-.ptc-cond{font-size:8px;padding:2px 6px;border-radius:3px;font-family:var(--mono);text-align:center;}
-.ptc-cond.unmet{background:rgba(30,30,55,.6);color:var(--tx3);border:1px solid var(--l1);}
-.ptc-cond.met{background:var(--gdim2);color:var(--green);border:1px solid rgba(39,174,96,.3);}
-.ptc-guard{display:none;font-size:9px;font-weight:700;color:var(--red);font-family:var(--mono);text-align:center;}
-.ptc.guardian .ptc-guard{display:block;}
-.ptc-sbtn{width:100%;padding:5px 0;background:var(--gold);color:#000;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:2px;}
-.ptc-sbtn:disabled{background:var(--p3);color:var(--tx3);cursor:not-allowed;}
-
-/* ENバー */
-.en-unit{display:flex;flex-direction:column;gap:3px;}
+/* player plate */
+.pplate{display:flex;align-items:center;gap:7px;padding:6px 9px;background:rgba(12,12,24,.9);border:1px solid var(--l2);border-radius:8px;flex-shrink:0;}
+.pplate.active{border-color:var(--gold);box-shadow:0 0 8px rgba(212,168,67,.12);}
+.pplate.ep{border-color:rgba(153,102,221,.3);}
+.pav{width:30px;height:30px;border-radius:50%;background:var(--p3);border:2px solid var(--l2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pav-i{width:13px;height:13px;border-radius:3px;background:var(--l2);}
+.pinfo{flex:1;min-width:0;}
+.pname{font-size:11px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ptb{display:inline-block;margin-top:1px;font-size:8px;font-family:var(--mono);padding:1px 4px;border-radius:3px;}
+.ptb.my{background:var(--gdim2);color:var(--green);border:1px solid rgba(39,174,96,.3);}
+.ptb.opp{background:var(--pdim);color:var(--purple);border:1px solid rgba(153,102,221,.3);}
+.ptb.wait{color:var(--tx3);border:1px solid var(--l1);}
+/* EN */
+.en-blk{padding:5px 7px;background:rgba(10,10,20,.8);border:1px solid var(--l1);border-radius:6px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
 .en-top{display:flex;justify-content:space-between;align-items:center;}
 .en-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.en-val{font-size:11px;font-weight:900;color:var(--gold);font-family:var(--mono);}
-.en-track{height:5px;background:var(--l1);border-radius:3px;overflow:hidden;}
+.en-val{font-size:12px;font-weight:900;color:var(--gold);font-family:var(--mono);}
+.en-bar{height:5px;background:var(--l1);border-radius:3px;overflow:hidden;}
 .en-fill{height:100%;border-radius:3px;background:var(--gold);transition:width .3s;}
 .en-pips{display:flex;gap:3px;flex-wrap:wrap;}
-.ep{width:8px;height:8px;border-radius:50%;}
-.ep.on{background:var(--gold);}
-.ep.off{background:transparent;border:1.5px solid rgba(212,168,67,.2);}
+.ep{width:8px;height:8px;border-radius:50%;}.ep.on{background:var(--gold);}.ep.off{background:transparent;border:1.5px solid rgba(212,168,67,.18);}
+/* deck+grave */
+.dg-row{display:flex;gap:5px;flex-shrink:0;}
+.deck-box,.grave-box{flex:1;padding:5px 7px;background:rgba(10,10,20,.8);border:1px solid var(--l1);border-radius:6px;display:flex;flex-direction:column;gap:1px;}
+.grave-box{cursor:pointer;}.grave-box:hover{border-color:var(--gold);}
+.grave-box.empty{opacity:.5;}
+.box-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.box-val{font-size:18px;font-weight:900;color:var(--white);font-family:var(--mono);line-height:1.1;}
+.box-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.grave-cnt{font-size:18px;font-weight:900;color:var(--gold);font-family:var(--mono);line-height:1.1;}
+/* partner card */
+.ptc{border-radius:8px;border:2px solid var(--gold);background:rgba(10,10,20,.9);display:flex;flex-direction:row;align-items:center;padding:6px;gap:7px;cursor:pointer;flex-shrink:0;}
+.ptc:hover{box-shadow:0 0 10px rgba(212,168,67,.15);}
+.ptc.ready{box-shadow:0 0 12px rgba(212,168,67,.22);}
+.ptc.guardian{border-color:var(--red);box-shadow:0 0 12px rgba(192,57,43,.25);}
+.ptc.summoned{border-color:var(--l2);opacity:.45;}
+.ptc-art{width:48px;height:48px;border-radius:5px;background:var(--l2);border:1.5px solid rgba(212,168,67,.25);flex-shrink:0;}
+.ptc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.ptc-name{font-size:10px;font-weight:700;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ptc-stat{font-size:9px;color:var(--tx2);font-family:var(--mono);}
+.ptc-skill{font-size:8px;color:var(--tx);line-height:1.3;}
+.ptc-cond{font-size:8px;padding:1px 4px;border-radius:3px;font-family:var(--mono);display:inline-block;margin-top:1px;}
+.ptc-cond.unmet{background:rgba(30,30,55,.6);color:var(--tx3);border:1px solid var(--l1);}
+.ptc-cond.met{background:var(--gdim2);color:var(--green);border:1px solid rgba(39,174,96,.3);}
+.ptc-guard{display:none;font-size:8px;font-weight:700;color:var(--red);font-family:var(--mono);}
+.ptc.guardian .ptc-guard{display:block;}
+/* sys */
+#sys-phase{display:flex;gap:3px;}
+.pp{padding:3px 7px;border-radius:4px;font-size:9px;font-weight:700;border:1px solid transparent;font-family:var(--mono);}
+.pp.mon{background:var(--blue);color:#fff;}.pp.bon{background:var(--red);color:#fff;}.pp.off{color:var(--tx3);border-color:var(--l1);}
+#sys-turn{font-size:11px;font-weight:700;color:var(--gold);font-family:var(--mono);}
+.sys-btn{width:100%;padding:5px 0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.sys-btn-b{background:#c0392b;color:#fff;box-shadow:0 2px 6px rgba(192,57,43,.35);}.sys-btn-b:hover{filter:brightness(1.1);}
+.sys-btn-e{background:var(--gold);color:#000;box-shadow:0 2px 6px rgba(212,168,67,.3);}.sys-btn-e:hover{filter:brightness(1.05);}
+.sys-btn:disabled{opacity:.35;cursor:not-allowed;filter:none!important;box-shadow:none;}
+.pt-sbtn{width:100%;padding:4px 0;background:var(--gold);color:#000;border:none;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.pt-sbtn:disabled{background:var(--p3);color:var(--tx3);cursor:not-allowed;}
 
-/* 左上: 相手情報 */
-#info-enemy{position:absolute;top:40px;left:8px;width:206px;z-index:50;padding:8px;display:flex;flex-direction:column;gap:5px;}
-/* 左下: 自分情報 */
-#info-mine{position:absolute;bottom:8px;left:8px;width:206px;z-index:50;padding:8px;display:flex;flex-direction:column;gap:5px;}
-.info-nm{font-size:10px;font-weight:700;color:var(--white);}
+/* BATTLE 1000px */
+#battle{width:var(--BATTLE);flex-shrink:0;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+#bdbar{height:32px;flex-shrink:0;display:flex;align-items:center;padding:0 12px;background:rgba(7,7,14,.95);border-bottom:1px solid var(--l2);}
+#bdbar-turn{font-size:11px;font-weight:700;color:var(--gold);font-family:var(--mono);flex:1;}
+#bdbar-btns{display:flex;gap:5px;}
+.abtn{padding:0 11px;height:22px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.abtn-b{background:#c0392b;color:#fff;}.abtn-b:hover{filter:brightness(1.15);}
+.abtn-e{background:var(--gold);color:#000;}.abtn-e:hover{filter:brightness(1.1);}
+.abtn:disabled{opacity:.35;cursor:not-allowed;}
 
-/* デッキ行 */
-.deck-row{display:flex;align-items:center;justify-content:space-between;padding:3px 7px;background:rgba(13,13,26,.8);border:1px solid var(--l1);border-radius:4px;}
-.deck-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.deck-val{font-size:13px;font-weight:700;color:var(--white);font-family:var(--mono);}
-.deck-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+/* field area flex column */
+#field-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.fplate{height:32px;flex-shrink:0;display:flex;align-items:center;padding:0 14px;gap:7px;}
+.fplate.fen{background:rgba(153,102,221,.04);border-bottom:1px solid var(--l1);}
+.fplate.fmn{background:rgba(39,174,96,.03);border-top:1px solid var(--l1);}
+.fplate-name{font-size:11px;font-weight:700;color:var(--white);}
+.fplate-turn{font-size:9px;font-family:var(--mono);color:var(--tx3);}
+#e-hand{height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0 14px;overflow:visible;}
+.hbc{width:30px;height:42px;border-radius:4px;border:1.5px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -2px;}
+.hbc::after{content:'';position:absolute;inset:3px;border:1px solid var(--l1);border-radius:2px;background:repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,.02) 4px,rgba(255,255,255,.02) 8px);}
+.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:7px;}
 
-/* 墓地スタック */
-.grave-stack-wrap{display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 2px;}
-.grave-stack-wrap:hover .gs-top{border-color:var(--gold);}
-.gs-stack{position:relative;width:44px;height:62px;flex-shrink:0;}
-.gs-card{position:absolute;border-radius:5px;border:1.5px solid var(--l2);background:var(--p3);}
-.gs-card:nth-child(1){width:38px;height:54px;bottom:0;left:0;background:var(--p2);}
-.gs-card:nth-child(2){width:40px;height:56px;bottom:2px;left:2px;}
-.gs-card:nth-child(3){width:42px;height:58px;bottom:4px;left:4px;}
-.gs-top{width:44px;height:62px;bottom:6px;left:6px;border-color:var(--l3);background:var(--p3);display:flex;align-items:center;justify-content:center;}
-.gs-top-inner{width:22px;height:22px;border-radius:3px;background:var(--l2);border:1px solid var(--l3);}
-.gs-empty .gs-top{border-style:dashed;border-color:var(--tx3);background:rgba(0,0,0,.3);opacity:.4;}
-.gs-info{display:flex;flex-direction:column;gap:2px;}
-.gs-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.gs-cnt{font-size:20px;font-weight:900;color:var(--white);font-family:var(--mono);line-height:1;}
-.gs-unit{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.gs-hint{font-size:8px;color:var(--tx3);}
-
-/* ==============================  中央フィールド  */
-#field{
-  position:absolute;
-  left:220px;right:220px;
-  top:34px;bottom:0;
-  z-index:10;
-  display:flex;flex-direction:column;
-  overflow:hidden;
+/* card zones: CSS Grid 5列 112px固定 */
+.card-zone{
+  flex-shrink:0;
+  display:grid;
+  grid-template-columns:repeat(5,var(--CW));
+  gap:8px;
+  justify-content:center;
+  align-items:center;
 }
+.sh-zone{height:94px;}.sh-zone.esh{background:rgba(74,144,226,.025);}.sh-zone.msh{background:rgba(74,144,226,.025);}
+.mn-zone{height:164px;}.mn-zone.emn{background:rgba(153,102,221,.018);}.mn-zone.mmn{background:rgba(255,255,255,.004);}
 
-/* 相手手札 80px — 扇状裏向き */
-#e-hand-row{height:70px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;overflow:visible;position:relative;z-index:25;}
-/* 相手手札裏向きカード */
-.hbc{width:44px;height:60px;border-radius:6px;border:2px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -4px;}
-.hbc::after{content:'';position:absolute;inset:4px;border:1px solid var(--l1);border-radius:2px;background:repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,.025) 4px,rgba(255,255,255,.025) 8px);}
-.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);position:absolute;right:8px;top:50%;transform:translateY(-50%);}
+/* Shield 112×80 横長裏向き */
+.shc{width:var(--CW);height:var(--SH);border-radius:7px;border:2px solid var(--blue);background:var(--bdim);position:relative;overflow:hidden;cursor:default;}
+.shc::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(74,144,226,.05) 5px,rgba(74,144,226,.05) 10px);}
+.shc::after{content:'';position:absolute;inset:5px;border:1px solid rgba(74,144,226,.22);border-radius:4px;}
+.shc.broken{border-color:var(--l1);background:transparent;opacity:.12;}.shc.broken::before,.shc.broken::after{display:none;}
+.shc.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;box-shadow:0 0 8px var(--red);}.shc.atk-tgt::before{display:none;}
 
-/* 相手Shield 94px */
-#e-sh-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
-
-/* Shield: 110×80px — モンスターと幅統一 */
-.shc{
-  width:110px;height:110px;flex-shrink:0;
-  border-radius:8px;border:2px solid var(--blue);background:var(--bdim);
-  display:flex;align-items:center;justify-content:center;
-  cursor:default;position:relative;overflow:hidden;
-  box-shadow:inset 0 0 14px rgba(74,144,226,.18),0 4px 10px rgba(0,0,0,.4);
-}
-/* 裏向き模様 */
-.shc::after{content:'';position:absolute;inset:4px;border:1px solid rgba(74,144,226,.25);border-radius:3px;background:repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(74,144,226,.04) 5px,rgba(74,144,226,.04) 10px);}
-.shc.broken{border-color:var(--l1);background:transparent;opacity:.12;}
-.shc.broken::after{display:none;}
-.shc.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;}
-.shc.atk-tgt::after{display:none;}
-#eshcards,#mshcards{display:flex;gap:12px;justify-content:center;}
-
-/* 相手Monster 144px */
-#e-mon-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
-
-/* Monster: 縦長 110×130px */
-.mslot{
-  width:110px;height:110px;flex-shrink:0;
-  border-radius:7px;border:1.5px dashed var(--l1);
-  background:rgba(255,255,255,.003);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;cursor:default;position:relative;overflow:visible;padding:5px;
-}
+/* Monster 112×150 縦長 */
+.mslot{width:var(--CW);height:var(--MH);border-radius:8px;border:1.5px dashed var(--l1);background:rgba(255,255,255,.003);display:flex;flex-direction:column;align-items:center;cursor:default;position:relative;overflow:visible;}
 .mslot.filled{border:2px solid var(--l2);background:var(--p3);cursor:pointer;}
-.mslot.filled.enemy{border-color:#5a3a6a;background:#1a1228;box-shadow:0 0 8px rgba(120,60,160,.15);}
-.mslot.filled:hover{border-color:var(--blue);}
-.mslot.filled.enemy:hover{border-color:#a060d0;}
-.mslot.summon-tgt{border-color:var(--green);background:var(--gdim2);cursor:pointer;}
+.mslot.filled:hover{border-color:var(--blue);box-shadow:0 0 8px var(--bglow);}
+.mslot.filled.es{border-color:rgba(153,102,221,.5);background:rgba(25,12,40,.6);}
+.mslot.filled.es:hover{border-color:var(--purple);box-shadow:0 0 8px var(--pglow);}
+.mslot.summon-tgt{border-color:var(--green);background:var(--gdim2);cursor:pointer;box-shadow:0 0 8px rgba(39,174,96,.3);}
 .mslot.atk-ready{border-color:var(--red);background:var(--rdim);cursor:pointer;}
-.mslot.atk-sel{border-color:var(--gold);background:var(--gdim);}
-.mslot.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;}
-.mslot.front-guard{border-color:var(--green);}
-.mslot.used{opacity:.38;border-color:var(--l1);}
-.mslot.enemy-slot{border-color:rgba(180,60,200,.3);}
-.mslot.enemy-slot.filled{border-color:rgba(180,60,200,.6);background:rgba(60,10,60,.3);}
-.mslot.enemy-slot.filled:hover{border-color:rgba(200,80,220,.8);}
-.mart{width:66px;height:66px;border-radius:5px;background:var(--p2);border:1px solid var(--l2);flex-shrink:0;}
-.mnm{font-size:8px;color:var(--tx2);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
-.mst{display:flex;gap:4px;font-size:14px;font-weight:900;font-family:var(--mono);justify-content:center;margin-top:1px;}
-.ma{color:#ff7040;}.msl{color:var(--tx3);font-size:11px;}.mh{color:#40e060;}
-.kwrow{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
-.kw{font-size:9px;width:18px;height:18px;border-radius:4px;font-weight:700;display:flex;align-items:center;justify-content:center;}
-.kw-突撃{background:rgba(220,80,20,.3);color:#ff8040;border:1px solid rgba(220,80,20,.5);}/* ⚔ */
-.kw-前衛{background:rgba(30,120,60,.3);color:#40e060;border:1px solid rgba(39,174,96,.4);}/* 🛡 */
-.lbar{width:90%;height:5px;background:var(--l2);border-radius:3px;overflow:hidden;margin-top:2px;}
+.mslot.atk-sel{border-color:var(--gold);background:var(--gdim);box-shadow:0 0 10px rgba(212,168,67,.3);}
+.mslot.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;box-shadow:0 0 8px var(--red);}
+.mslot.fg{border-color:var(--green);}
+.mslot.used{opacity:.35;border-color:var(--l1);}
+.mart{width:100%;border-radius:6px 6px 0 0;background:var(--p2);border-bottom:1px solid var(--l2);flex:1;min-height:0;}
+.msa{width:100%;padding:4px 5px 5px;display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+.mnm{font-size:8px;font-weight:400;color:var(--tx2);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mst{display:flex;gap:2px;justify-content:center;font-size:14px;font-weight:900;font-family:var(--mono);}
+.ma{color:#f09060;}.msl{color:var(--tx3);font-size:11px;}.mh{color:#60c870;}
+.kwrow{display:flex;gap:3px;justify-content:center;}
+.kwi{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+.kwi.突撃{background:rgba(220,80,20,.25);border:1px solid rgba(220,80,20,.5);}
+.kwi.前衛{background:rgba(30,120,60,.3);border:1px solid rgba(39,174,96,.4);}
+.lbar{width:90%;height:5px;background:rgba(0,0,0,.5);border-radius:3px;overflow:hidden;margin:1px auto 0;}
 .lbf{height:100%;border-radius:3px;}
-.lbf.full{background:#2ecc71;box-shadow:0 0 4px rgba(46,204,113,.4);}.lbf.half{background:#e67e22;box-shadow:0 0 4px rgba(230,126,34,.4);}.lbf.low{background:#e74c3c;box-shadow:0 0 4px rgba(231,76,60,.5);}
+.lbf.full{background:#2ecc71;box-shadow:0 0 5px rgba(46,204,113,.4);}
+.lbf.half{background:#e67e22;}.lbf.low{background:#e74c3c;box-shadow:0 0 5px rgba(231,76,60,.5);}
 .ubadge{position:absolute;top:3px;right:3px;font-size:6px;color:var(--tx3);background:rgba(0,0,0,.7);padding:1px 3px;border-radius:2px;font-family:var(--mono);}
-.empty-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-#emslots,#mmslots{display:flex;gap:12px;justify-content:center;}
+.elbl{font-size:8px;color:var(--tx3);font-family:var(--mono);margin:auto;}
 
-/* CENTER BAR 44px */
-#cbar{
-  height:42px;flex-shrink:0;
-  display:flex;align-items:center;
-  padding:0 16px;
-  border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);
-  position:relative;overflow:hidden;
-  transition:background .4s;
-  background:rgba(0,0,0,.6);
-}
-#cbar.battle{background:rgba(60,10,10,.8);border-top-color:#6a2020;border-bottom-color:#6a2020;}
-#cbar.enemy{background:rgba(10,20,50,.6);}
-/* フェイズ大文字 */
-#phase-bg-txt{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  font-size:26px;font-weight:900;font-family:var(--mono);
-  color:rgba(255,255,255,.04);
-  letter-spacing:.2em;pointer-events:none;white-space:nowrap;
-}
-.phase-pills{display:flex;gap:4px;flex-shrink:0;}
-.pp{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;border:1px solid transparent;font-family:var(--mono);}
-.pp.mon{background:var(--blue);color:#fff;}
-.pp.bon{background:var(--red);color:#fff;}
-.pp.off{color:var(--tx3);border-color:var(--l1);}
-#turn-txt{font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);margin:0 auto;}
-.cbar-btns{display:flex;gap:6px;flex-shrink:0;}
-.btn{padding:0 18px;height:30px;border-radius:5px;font-size:12px;font-weight:900;letter-spacing:.03em;font-weight:700;cursor:pointer;border:none;font-family:inherit;display:flex;align-items:center;}
-.btn-b{background:#c0392b;color:#fff;box-shadow:0 2px 8px rgba(192,57,43,.4);}
-.btn-b:hover{filter:brightness(1.15);}
-.btn-e{background:var(--gold);color:#000;box-shadow:0 2px 8px rgba(212,168,67,.4);}
-.btn-e:hover{filter:brightness(1.1);}
-.btn:disabled{opacity:.35;cursor:not-allowed;filter:none !important;}
+/* center bar 40px */
+#cbar{height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0 14px;background:rgba(0,0,0,.65);border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);position:relative;overflow:hidden;transition:background .4s;}
+#cbar.battle{background:rgba(50,8,8,.8);border-color:#5a1a1a;}
+#cbar.enemy-t{background:rgba(15,10,35,.7);}
+#cbar-bg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;font-weight:900;font-family:var(--mono);color:rgba(255,255,255,.04);letter-spacing:.2em;pointer-events:none;}
+#cbar-inner{font-size:13px;font-weight:700;color:var(--gold);font-family:var(--mono);}
 
-/* 自分Monster 144px */
-#m-mon-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;background:rgba(255,255,255,.003);}
-
-/* 自分Shield 94px */
-#m-sh-row{height:122px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;background:rgba(74,144,226,.025);}
-
-/* 手札 86px */
-#m-hand-row{
-  height:86px;flex-shrink:0;
-  display:flex;align-items:flex-end;justify-content:center;
-  padding:0 0 8px;
-  overflow:visible;
-  position:relative;
-  z-index:30;
-}
-#hrow{
-  display:flex;align-items:flex-end;
-  position:relative;bottom:0;
-  overflow:visible;
-}
-/* 手札カード: 76×112px 縦長 */
-.hcard{
-  width:72px;height:96px;flex-shrink:0;
-  border-radius:7px;border:2px solid var(--l2);background:var(--p2);
-  cursor:pointer;display:flex;flex-direction:column;align-items:center;
-  padding:5px 4px;gap:2px;position:relative;overflow:visible;
-  transform-origin:bottom center;
-  margin:0 -5px;
-  transition:box-shadow .15s;
-}
-.hcard.playable{border-color:var(--green);}
-.hcard.selected{border-color:var(--gold);box-shadow:0 0 14px rgba(212,168,67,.5);z-index:200 !important;}
-.hcard:not(.selected):hover{z-index:100 !important;box-shadow:0 4px 20px rgba(0,0,0,.6);}
-.hcard.no-en{opacity:.3;filter:grayscale(.6);}
-.hcard.spell{border-color:rgba(212,130,10,.4);}
-.hcard.spell.playable{border-color:var(--green);}
+/* hand absolute */
+#hand-area{position:absolute;bottom:36px;left:0;right:0;height:148px;z-index:40;display:flex;align-items:flex-end;justify-content:center;padding:0 0 10px;pointer-events:none;overflow:visible;}
+#hrow{display:flex;align-items:flex-end;pointer-events:all;overflow:visible;}
+.hcard{width:76px;height:108px;flex-shrink:0;border-radius:7px;border:2px solid var(--l2);background:var(--p2);cursor:pointer;display:flex;flex-direction:column;align-items:center;padding:5px 4px;gap:2px;position:relative;overflow:visible;transform-origin:bottom center;margin:0 -5px;}
+.hcard.playable{border-color:var(--green);box-shadow:0 0 7px rgba(39,174,96,.3);}
+.hcard.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,67,.5);z-index:200!important;}
+.hcard:not(.selected):hover{z-index:100!important;box-shadow:0 4px 16px rgba(0,0,0,.7);}
+.hcard.no-en{opacity:.28;filter:grayscale(.6);}
+.hcard.spell{border-color:rgba(212,130,10,.35);}.hcard.spell.playable{border-color:var(--green);}
 .hcard.has-trig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
 .ccost{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);z-index:1;}
 .ccost.cant{background:var(--l2);color:var(--tx3);}
-.cart-h{width:100%;height:44px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
+.cart-h{width:100%;height:52px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
 .ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 .cnm{font-size:8px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
 .csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
+/* abar absolute */
+#babar{position:absolute;bottom:0;left:0;right:0;height:36px;z-index:50;background:rgba(7,7,14,.95);border-top:1px solid var(--l2);display:flex;align-items:center;padding:0 12px;font-size:9px;color:var(--tx3);font-family:var(--mono);}
 
-/* ==============================  フローティングプレビュー  */
-#fp{
-  display:none;position:fixed;z-index:9500;pointer-events:none;
-  width:172px;
-  background:rgba(8,8,18,.95);
-  border:1px solid rgba(212,168,67,.4);
-  border-radius:10px;padding:10px;
-}
-#fp-art{width:100%;height:150px;border-radius:7px;background:var(--p3);border:2px solid var(--l2);flex-shrink:0;}
-#fp-name{font-size:14px;font-weight:700;color:var(--white);margin-top:7px;}
-#fp-type{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-#fp-stat{font-size:12px;font-family:var(--mono);margin-top:3px;}
-#fp-kw{font-size:9px;color:#60c870;margin-top:2px;}
-#fp-eff{font-size:10px;color:#8ab4ff;line-height:1.55;margin-top:5px;border-top:1px solid var(--l1);padding-top:5px;}
-#fp-cost{font-size:9px;color:var(--gold);font-family:var(--mono);margin-top:4px;}
-
-/* ==============================  中央通知  */
-#nc{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:500;pointer-events:none;text-align:center;
-  opacity:0;transition:opacity .15s;
-}
+/* fp */
+#fp{display:none;position:fixed;z-index:9500;pointer-events:none;width:170px;background:rgba(8,8,18,.97);border:1px solid rgba(212,168,67,.35);border-radius:10px;padding:10px;}
+#fp-art{width:100%;height:145px;border-radius:7px;background:var(--p3);border:2px solid var(--l2);}
+#fp-name{font-size:13px;font-weight:700;color:var(--white);margin-top:6px;display:block;}
+#fp-type{font-size:8px;color:var(--tx3);font-family:var(--mono);display:block;}
+#fp-stat{font-size:12px;font-family:var(--mono);margin-top:3px;display:none;}
+#fp-kw{font-size:9px;color:#60c870;margin-top:2px;display:none;}
+#fp-eff{font-size:10px;color:#8ab4ff;line-height:1.55;margin-top:5px;border-top:1px solid var(--l1);padding-top:5px;display:none;}
+#fp-cost{font-size:9px;color:var(--gold);font-family:var(--mono);margin-top:4px;display:block;}
+#nc{position:fixed;top:50%;left:640px;transform:translate(-50%,-50%);z-index:500;pointer-events:none;text-align:center;opacity:0;transition:opacity .15s;}
 #nc.show{opacity:1;}
-#nc-msg{font-size:18px;font-weight:900;color:var(--white);font-family:var(--mono);text-shadow:0 0 20px rgba(0,0,0,.8);}
-
-/* 上部トースト */
-#notif{position:fixed;top:34px;left:50%;transform:translateX(-50%) translateY(-100%);background:rgba(13,13,26,.96);border:1px solid var(--gold);border-top:none;border-radius:0 0 8px 8px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--gold);z-index:800;transition:transform .2s;white-space:nowrap;}
+#nc-msg{font-size:18px;font-weight:900;color:var(--white);font-family:var(--mono);text-shadow:0 0 20px rgba(0,0,0,.9);}
+#notif{position:fixed;top:0;left:640px;transform:translateX(-50%) translateY(-100%);background:rgba(12,12,24,.96);border:1px solid var(--gold);border-top:none;border-radius:0 0 8px 8px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--gold);z-index:800;transition:transform .2s;white-space:nowrap;}
 #notif.show{transform:translateX(-50%) translateY(0);}
-
-/* ==============================  OVERLAYS  */
 .ov{display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;}
 .ov.show{display:flex;}
 #tov{background:rgba(0,0,0,.92);flex-direction:column;align-items:center;gap:16px;cursor:pointer;}
-.tov-lbl{font-size:10px;color:var(--tx3);font-family:var(--mono);letter-spacing:.16em;}
-.tov-title{font-size:5rem;font-weight:900;color:var(--orange);}
-.tov-box{width:120px;height:168px;border-radius:10px;border:2px solid var(--orange);background:rgba(212,130,10,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
-.tov-art{width:60px;height:60px;border-radius:6px;background:var(--p3);border:1.5px solid var(--orange);}
-.tov-cnm{font-size:1rem;font-weight:700;color:var(--gold);}
-.tov-ceff{font-size:.9rem;color:var(--tx);max-width:280px;text-align:center;}
-.tov-hint{font-size:10px;color:var(--tx3);}
+.tov-lbl{font-size:10px;color:var(--tx3);font-family:var(--mono);letter-spacing:.16em;}.tov-title{font-size:5rem;font-weight:900;color:var(--orange);}
+.tov-box{width:110px;height:154px;border-radius:9px;border:2px solid var(--orange);background:rgba(212,130,10,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.tov-art{width:58px;height:58px;border-radius:5px;background:var(--p3);border:1.5px solid var(--orange);}
+.tov-cnm{font-size:1rem;font-weight:700;color:var(--gold);}.tov-ceff{font-size:.9rem;color:var(--tx);max-width:280px;text-align:center;}.tov-hint{font-size:10px;color:var(--tx3);}
 #cfmov{background:rgba(0,0,0,.8);}
 .cfmbox{background:var(--p2);border:1px solid var(--l2);border-radius:10px;padding:22px;max-width:280px;text-align:center;}
 .cfmmsg{font-size:12px;line-height:1.7;margin-bottom:16px;white-space:pre-wrap;}
 .cfmbtns{display:flex;gap:8px;justify-content:center;}
 .cfy{padding:6px 18px;background:var(--red);color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cfn{padding:6px 14px;background:transparent;color:var(--tx2);border:1px solid var(--l2);border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit;}
-/* 墓地モーダル */
-.modal-bg{background:rgba(0,0,0,.82);backdrop-filter:blur(3px);}
+.modal-bg{background:rgba(0,0,0,.82);}
 .mbox{background:var(--p2);border:1px solid var(--l2);border-radius:10px;padding:20px;max-width:380px;width:90%;max-height:70vh;overflow-y:auto;}
 .mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .mttl{font-size:13px;font-weight:700;color:var(--gold);}
-.mx{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px;}
-.mx:hover{color:var(--tx);}
-.grow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--l1);}
-.grow:last-child{border-bottom:none;}
+.mx{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px;}.mx:hover{color:var(--tx);}
+.grow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--l1);cursor:pointer;}.grow:hover{background:rgba(255,255,255,.02);}.grow:last-child{border-bottom:none;}
 .gth{width:36px;height:50px;border-radius:4px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
-.gth.monster{background:var(--bdim);border:1.5px solid var(--blue);}
-.gth.spell{background:rgba(212,130,10,.12);border:1.5px solid var(--orange);}
-.gti{width:16px;height:16px;border-radius:2px;background:var(--l2);}
-.gtl{font-size:7px;color:var(--tx3);font-family:var(--mono);}
-.gn{font-size:11px;font-weight:700;color:var(--white);}
-.gs{font-size:9px;color:var(--tx3);margin-top:2px;}
-.ge{font-size:9px;color:#8ab4ff;margin-top:2px;line-height:1.5;}
+.gth.monster{background:var(--bdim);border:1.5px solid var(--blue);}.gth.spell{background:rgba(212,130,10,.12);border:1.5px solid var(--orange);}
+.gti{width:16px;height:16px;border-radius:2px;background:var(--l2);}.gtl{font-size:7px;color:var(--tx3);font-family:var(--mono);}
+.gn{font-size:11px;font-weight:700;color:var(--white);}.gs2{font-size:9px;color:var(--tx3);margin-top:2px;}.ge{font-size:9px;color:#8ab4ff;margin-top:2px;line-height:1.5;}
 .empty-grave{color:var(--tx3);font-size:11px;padding:10px 0;}
 </style>
 </head>
 <body>
-
-<!-- フローティングプレビュー -->
-<div id="fp">
-  <div id="fp-art"></div>
-  <div id="fp-name"></div>
-  <div id="fp-type"></div>
-  <div id="fp-stat"></div>
-  <div id="fp-kw"></div>
-  <div id="fp-eff"></div>
-  <div id="fp-cost"></div>
-</div>
-
-<!-- 中央通知 -->
+<div id="fp"><div id="fp-art"></div><div id="fp-name"></div><div id="fp-type"></div><div id="fp-stat"></div><div id="fp-kw"></div><div id="fp-eff"></div><div id="fp-cost"></div></div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
-
 <div class="ov" id="tov" onclick="hideTrig()">
-  <div class="tov-lbl">Shield Trigger</div>
-  <div class="tov-title">TRIGGER!</div>
-  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-    <div class="tov-box"><div class="tov-art"></div><div class="tov-cnm" id="tn"></div></div>
-    <div class="tov-ceff" id="te"></div>
-  </div>
+  <div class="tov-lbl">Shield Trigger</div><div class="tov-title">TRIGGER!</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;"><div class="tov-box"><div class="tov-art"></div><div class="tov-cnm" id="tn"></div></div><div class="tov-ceff" id="te"></div></div>
   <div class="tov-hint">click to dismiss</div>
 </div>
 <div class="ov" id="cfmov"><div class="cfmbox"><div class="cfmmsg" id="cfmsg"></div><div class="cfmbtns"><button class="cfy" onclick="cfmY()">発動</button><button class="cfn" onclick="cfmN()">キャンセル</button></div></div></div>
 <div class="ov modal-bg" id="modal-eg"><div class="mbox"><div class="mhdr"><span class="mttl">相手の墓地<span id="egc"></span></span><button class="mx" onclick="cm('modal-eg')">✕</button></div><div id="egl"></div></div></div>
 <div class="ov modal-bg" id="modal-mg"><div class="mbox"><div class="mhdr"><span class="mttl">自分の墓地<span id="mgc"></span></span><button class="mx" onclick="cm('modal-mg')">✕</button></div><div id="mgl"></div></div></div>
 
-<div id="root">
-  <div id="field-bg"></div>
-
-  <!-- DEMO BAR -->
-  <div id="dbar">
-    <span class="dlbl">DEMO //</span>
-    <button class="dbtn" onclick="dBreak()">Shield破壊</button>
+<div id="app">
+<div id="left">
+  <div id="left-dbar">
+    <span class="dlbl">DEMO//</span>
+    <button class="dbtn" onclick="dBreak()">SH破壊</button>
     <button class="dbtn" onclick="dTrig()">鼓動</button>
-    <button class="dbtn" id="dbtn-ready" onclick="dReady()">条件達成</button>
-    <button class="dbtn" id="dbtn-guard" onclick="dGuard()">守護状態</button>
-    <button class="dbtn" onclick="dMons()">Monster追加</button>
-    <button class="dbtn" onclick="dLowEN()">EN不足状態</button>
+    <button class="dbtn" id="dbrdy" onclick="dReady()">条件達成</button>
+    <button class="dbtn" id="dbgrd" onclick="dGuard()">守護</button>
+    <button class="dbtn" onclick="dMons()">MON追加</button>
+    <button class="dbtn" onclick="dLowEN()">EN0</button>
     <button class="dbtn" onclick="location.reload()">Reset</button>
   </div>
-
-  <!-- 左上: 相手デッキ・墓地 -->
-  <div id="info-enemy">
-    <div class="info-nm">相手プレイヤー</div>
-    <div class="deck-row"><span class="deck-lbl">デッキ</span><span class="deck-val" id="edeckval"></span><span class="deck-unit">枚</span></div>
-    <!-- 墓地スタック -->
-    <div class="grave-stack-wrap" id="egrave-stack" onclick="og('e')">
-      <div class="gs-stack" id="egs-stack">
-        <div class="gs-card"></div><div class="gs-card"></div><div class="gs-card"></div>
-        <div class="gs-card gs-top"><div class="gs-top-inner"></div></div>
-      </div>
-      <div class="gs-info">
-        <span class="gs-lbl">墓地</span>
-        <span class="gs-cnt" id="egbcnt">0</span>
-        <span class="gs-unit">枚</span>
-        <span class="gs-hint">クリックで確認</span>
-      </div>
+  <div id="left-enemy">
+    <div class="pplate ep" id="pe-plate"><div class="pav"><div class="pav-i"></div></div><div class="pinfo"><div class="pname">相手プレイヤー</div><div class="ptb wait" id="pe-badge">待機中</div></div></div>
+    <div class="en-blk"><div class="en-top"><span class="en-lbl">EN</span><span class="en-val" id="eenval"></span></div><div class="en-bar"><div class="en-fill" id="eenfill"></div></div><div class="en-pips" id="eenpips"></div></div>
+    <div class="dg-row">
+      <div class="deck-box"><span class="box-lbl">デッキ</span><span class="box-val" id="edeckval"></span><span class="box-unit">枚</span></div>
+      <div class="grave-box" id="egrave" onclick="og('e')"><span class="box-lbl">墓地</span><span class="grave-cnt" id="egbcnt">0</span><span class="box-unit">枚</span><span style="font-size:8px;color:var(--tx3)">▶確認</span></div>
     </div>
-  </div>
-
-  <!-- 左下: 自分デッキ・墓地 -->
-  <div id="info-mine">
-    <div class="grave-stack-wrap" id="mgrave-stack" onclick="og('m')">
-      <div class="gs-stack" id="mgs-stack">
-        <div class="gs-card"></div><div class="gs-card"></div><div class="gs-card"></div>
-        <div class="gs-card gs-top"><div class="gs-top-inner"></div></div>
-      </div>
-      <div class="gs-info">
-        <span class="gs-lbl">墓地</span>
-        <span class="gs-cnt" id="mgbcnt">0</span>
-        <span class="gs-unit">枚</span>
-        <span class="gs-hint">クリックで確認</span>
-      </div>
-    </div>
-    <div class="deck-row"><span class="deck-lbl">デッキ</span><span class="deck-val" id="mdeckval"></span><span class="deck-unit">枚</span></div>
-    <div class="info-nm">自分</div>
-  </div>
-
-  <!-- 右上: 相手パートナーユニット -->
-  <div id="pu-enemy">
-    <div class="pu-lbl">Partner — 相手</div>
     <div class="ptc" id="epc" onmouseenter="pvPt('e',this)" onmouseleave="pvClear()">
       <div class="ptc-art"></div>
-      <div class="ptc-name" id="epname"></div>
-      <div class="ptc-stat" id="epstat"></div>
-      <div class="ptc-skill" id="epskill"></div>
-      <div class="ptc-cond unmet" id="epcd"></div>
-      <div class="ptc-guard">🛡 GUARDIAN</div>
-    </div>
-    <div class="en-unit">
-      <div class="en-top"><span class="en-lbl">EN</span><span class="en-val" id="eenval"></span></div>
-      <div class="en-track"><div class="en-fill" id="eenfill"></div></div>
-      <div class="en-pips" id="eenpips"></div>
+      <div class="ptc-info"><div class="ptc-name" id="epname"></div><div class="ptc-stat" id="epstat"></div><div class="ptc-skill" id="epskill"></div><div class="ptc-cond unmet" id="epcd"></div><div class="ptc-guard">🛡 GUARDIAN</div></div>
     </div>
   </div>
-
-  <!-- 右下: 自分パートナーユニット -->
-  <div id="pu-mine">
-    <div class="en-unit">
-      <div class="en-pips" id="menpips"></div>
-      <div class="en-track"><div class="en-fill" id="menfill"></div></div>
-      <div class="en-top"><span class="en-lbl">EN</span><span class="en-val" id="menval"></span></div>
-    </div>
+  <div id="left-sys">
+    <div id="sys-phase"><div class="pp off" id="pd">Draw</div><div class="pp mon" id="pm">Main</div><div class="pp off" id="pb">Battle</div><div class="pp off" id="pe">End</div></div>
+    <div id="sys-turn"></div>
+    <button class="sys-btn sys-btn-b" id="btnB" onclick="goBattle()">⚔ Battle Phase</button>
+    <button class="sys-btn sys-btn-e" id="btnE" onclick="endTurn()">✓ End Turn</button>
+  </div>
+  <div id="left-mine">
     <div class="ptc" id="mpc" onmouseenter="pvPt('m',this)" onmouseleave="pvClear()">
       <div class="ptc-art"></div>
-      <div class="ptc-name" id="mpname"></div>
-      <div class="ptc-stat" id="mpstat"></div>
-      <div class="ptc-skill" id="mpskill"></div>
-      <div class="ptc-cond unmet" id="mpcd"></div>
-      <div class="ptc-guard">🛡 GUARDIAN</div>
-      <button class="ptc-sbtn" id="mpbtn" onclick="sumP()" disabled>召喚不可</button>
+      <div class="ptc-info"><div class="ptc-name" id="mpname"></div><div class="ptc-stat" id="mpstat"></div><div class="ptc-skill" id="mpskill"></div><div class="ptc-cond unmet" id="mpcd"></div><div class="ptc-guard">🛡 GUARDIAN</div></div>
     </div>
-    <div class="pu-lbl">Partner — 自分</div>
+    <button class="pt-sbtn" id="mpbtn" onclick="sumP()" disabled>召喚不可</button>
+    <div class="dg-row">
+      <div class="deck-box"><span class="box-lbl">デッキ</span><span class="box-val" id="mdeckval"></span><span class="box-unit">枚</span></div>
+      <div class="grave-box" id="mgrave" onclick="og('m')"><span class="box-lbl">墓地</span><span class="grave-cnt" id="mgbcnt">0</span><span class="box-unit">枚</span><span style="font-size:8px;color:var(--tx3)">▶確認</span></div>
+    </div>
+    <div class="en-blk"><div class="en-pips" id="menpips"></div><div class="en-bar"><div class="en-fill" id="menfill"></div></div><div class="en-top"><span class="en-lbl">EN</span><span class="en-val" id="menval"></span></div></div>
+    <div class="pplate active" id="pm-plate"><div class="pav"><div class="pav-i"></div></div><div class="pinfo"><div class="pname">自分</div><div class="ptb my" id="pm-badge">MY TURN</div></div></div>
   </div>
+  <div id="left-log"><span id="loginner"></span></div>
+</div>
 
-  <!-- 中央フィールド -->
-  <div id="field">
-    <div id="e-hand-row">
-      <div id="ehbcards" style="display:flex;align-items:flex-end;overflow:visible;"></div>
-      <span class="e-hcnt" id="ehbcnt"></span>
+<div id="battle">
+  <div id="bdbar">
+    <span id="bdbar-turn"></span>
+    <div id="bdbar-btns">
+      <button class="abtn abtn-b" id="btnB2" onclick="goBattle()">⚔ Battle</button>
+      <button class="abtn abtn-e" id="btnE2" onclick="endTurn()">✓ End Turn</button>
     </div>
-    <div id="e-sh-row"><div id="eshcards"></div></div>
-    <div id="e-mon-row"><div id="emslots"></div></div>
-
-    <div id="cbar">
-      <div id="phase-bg-txt"></div>
-      <div class="phase-pills">
-        <div class="pp off" id="pd">Draw</div>
-        <div class="pp mon" id="pm">Main</div>
-        <div class="pp off" id="pb">Battle</div>
-        <div class="pp off" id="pe">End</div>
-      </div>
-      <div id="turn-txt"></div>
-      <div class="cbar-btns">
-        <button class="btn btn-b" id="btnB" onclick="goBattle()">⚔ Battle</button>
-        <button class="btn btn-e" id="btnE" onclick="endTurn()">✓ End Turn</button>
-      </div>
-    </div>
-
-    <div id="m-mon-row"><div id="mmslots"></div></div>
-    <div id="m-sh-row"><div id="mshcards"></div></div>
-    <div id="m-hand-row"><div id="hrow"></div></div>
   </div>
-
+  <div id="field-area">
+    <div class="fplate fen"><span class="fplate-name">相手プレイヤー</span><span class="fplate-turn" id="fturn-e"></span></div>
+    <div id="e-hand"><div id="ehbcards"></div><span class="e-hcnt" id="ehbcnt"></span></div>
+    <!-- 相手Shield: CSS Grid 5列固定 -->
+    <div class="card-zone sh-zone esh" id="esh-zone">
+      <div id="esh-0" class="shc"></div>
+      <div id="esh-1" class="shc"></div>
+      <div id="esh-2" class="shc"></div>
+      <div id="esh-3" class="shc"></div>
+      <div id="esh-4" class="shc"></div>
+    </div>
+    <!-- 相手Monster: CSS Grid 5列固定 -->
+    <div class="card-zone mn-zone emn" id="emn-zone">
+      <div id="em-0" class="mslot es"><span class="elbl">EMPTY</span></div>
+      <div id="em-1" class="mslot es"><span class="elbl">EMPTY</span></div>
+      <div id="em-2" class="mslot es"><span class="elbl">EMPTY</span></div>
+      <div id="em-3" class="mslot es"><span class="elbl">EMPTY</span></div>
+      <div id="em-4" class="mslot es"><span class="elbl">EMPTY</span></div>
+    </div>
+    <div id="cbar"><div id="cbar-bg"></div><div id="cbar-inner"></div></div>
+    <!-- 自分Monster: CSS Grid 5列固定 -->
+    <div class="card-zone mn-zone mmn" id="mmn-zone">
+      <div id="mm-0" class="mslot"><span class="elbl">EMPTY</span></div>
+      <div id="mm-1" class="mslot"><span class="elbl">EMPTY</span></div>
+      <div id="mm-2" class="mslot"><span class="elbl">EMPTY</span></div>
+      <div id="mm-3" class="mslot"><span class="elbl">EMPTY</span></div>
+      <div id="mm-4" class="mslot"><span class="elbl">EMPTY</span></div>
+    </div>
+    <!-- 自分Shield: CSS Grid 5列固定 -->
+    <div class="card-zone sh-zone msh" id="msh-zone">
+      <div id="msh-0" class="shc"></div>
+      <div id="msh-1" class="shc"></div>
+      <div id="msh-2" class="shc"></div>
+      <div id="msh-3" class="shc"></div>
+      <div id="msh-4" class="shc"></div>
+    </div>
+    <div class="fplate fmn"><span class="fplate-name">自分</span><span class="fplate-turn" id="fturn-m"></span></div>
+  </div>
+  <div id="hand-area"><div id="hrow"></div></div>
+  <div id="babar">手札クリック→召喚先選択 / Battle→赤スロット→攻撃対象 / Shieldはホバー詳細なし</div>
+</div>
 </div>
 
 <script>
@@ -480,23 +345,23 @@ const G={
   phase:'main',myTurn:true,turn:1,selCard:null,selAtk:null,pendCfm:null,
   my:{en:1,enMax:1,deck:30,
     hand:[
-      {name:'炎獣ファング', type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃: 召喚ターンに攻撃可'},
-      {name:'紅蓮の戦士',  type:'monster',cost:5,atk:6,hp:8,maxHp:8,kw:[],eff:'攻撃時: 相手に2ダメ'},
-      {name:'炎の守護者',  type:'monster',cost:3,atk:3,hp:8,maxHp:8,kw:['前衛'],eff:'前衛'},
+      {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃: 召喚ターンに攻撃可'},
+      {name:'紅蓮の戦士', type:'monster',cost:5,atk:6,hp:8,maxHp:8,kw:[],eff:'攻撃時: 相手に2ダメ'},
+      {name:'炎の守護者', type:'monster',cost:3,atk:3,hp:8,maxHp:8,kw:['前衛'],eff:'前衛'},
       {name:'ファイアボール',type:'spell',cost:3,eff:'相手モンスター1体に5ダメ'},
-      {name:'烈火の斬撃',  type:'spell',cost:2,eff:'相手モンスター1体に3ダメ',trigger:true},
+      {name:'烈火の斬撃', type:'spell',cost:2,eff:'相手モンスター1体に3ダメ',trigger:true},
     ],
     monsters:[null,null,null,null,null],
     shields:[true,true,true,true,true],
     shCards:[
-      {name:'炎の加護',    type:'spell',  cost:1,eff:'ATK+3（このターン）',trigger:true},
-      {name:'烈火の斬撃',  type:'spell',  cost:2,eff:'モンスター1体に3ダメ',trigger:true},
-      {name:'灼熱突撃兵',  type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃',trigger:false},
-      {name:'ファイアボール',type:'spell', cost:3,eff:'モンスター1体に5ダメ',trigger:false},
-      {name:'炎獣ファング', type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃',trigger:false},
+      {name:'炎の加護',   type:'spell',  cost:1,eff:'ATK+3（このターン）',trigger:true},
+      {name:'烈火の斬撃', type:'spell',  cost:2,eff:'モンスター1体に3ダメ',trigger:true},
+      {name:'灼熱突撃兵', type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃',trigger:false},
+      {name:'ファイアボール',type:'spell',cost:3,eff:'モンスター1体に5ダメ',trigger:false},
+      {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃',trigger:false},
     ],
     grave:[],
-    partner:{name:'紅蓮王ヴァルド',cost:5,atk:8,hp:12,maxHp:12,skill:'突撃モンスターATK+1',condText:'1Tに2枚Shield破壊(0/2)',condMet:false,summoned:false,prog:0},
+    partner:{name:'紅蓮王ヴァルド',cost:5,atk:8,hp:12,maxHp:12,skill:'突撃モンスターATK+1',condText:'1Tに2枚SH破壊(0/2)',condMet:false,summoned:false,prog:0},
   },
   enemy:{en:1,enMax:1,deck:30,handCount:5,
     monsters:[
@@ -512,134 +377,63 @@ const G={
     ],
     grave:[
       {name:'水流の踊り手',type:'monster',cost:1,atk:1,hp:4,maxHp:4,eff:'召喚時:1ドロー'},
-      {name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス'},
+      {name:'大波',        type:'spell', cost:3,eff:'モンスター1体バウンス'},
     ],
     partner:{name:'深淵王リゼル',cost:5,atk:5,hp:15,maxHp:15,skill:'ダメ受けるたび1ドロー',condText:'墓地8枚以上(現2枚)',condMet:false,summoned:false},
   },
 };
 const $=id=>document.getElementById(id);
-let pvT=null;
+let pvT=null,ncT=null;
 
-/* ===== FLOATING PREVIEW ===== */
 function pvShow(card,el){
-  clearTimeout(pvT);
-  const fp=$('fp');fp.style.display='block';
-  const isSpell=card.type==='spell';
-  $('fp-art').style.cssText=`width:100%;height:150px;border-radius:7px;background:var(--p3);border:2px solid ${isSpell?'var(--orange)':'var(--blue)'};`;
-  $('fp-name').textContent=card.name;
-  $('fp-name').style.cssText='font-size:14px;font-weight:700;color:var(--white);margin-top:7px;display:block;';
-  $('fp-type').textContent=isSpell?'Spell'+(card.trigger?' / 鼓動':''):'Monster';
-  $('fp-type').style.cssText='font-size:8px;color:var(--tx3);font-family:var(--mono);display:block;';
-  if(card.atk!==undefined){
-    $('fp-stat').innerHTML=`<span style="color:#f09060;font-family:var(--mono)">ATK${card.atk}</span> / <span style="color:#60c870;font-family:var(--mono)">LIFE${card.hp}</span>`;
-    $('fp-stat').style.cssText='font-size:12px;font-family:var(--mono);margin-top:3px;display:block;';
-  }else $('fp-stat').style.display='none';
+  clearTimeout(pvT);const fp=$('fp');fp.style.display='block';
+  const sp=card.type==='spell';
+  $('fp-art').style.cssText=`width:100%;height:145px;border-radius:7px;background:var(--p3);border:2px solid ${sp?'var(--orange)':'var(--blue)'};`;
+  $('fp-name').textContent=card.name;$('fp-type').textContent=sp?'Spell'+(card.trigger?' / 鼓動':''):'Monster';
+  if(card.atk!==undefined){$('fp-stat').innerHTML=`<span style="color:#f09060;font-family:var(--mono)">ATK${card.atk}</span> / <span style="color:#60c870;font-family:var(--mono)">LIFE${card.hp}</span>`;$('fp-stat').style.display='block';}else $('fp-stat').style.display='none';
   const kw=(card.kw&&card.kw.length)?card.kw.join(' / '):'';
-  $('fp-kw').textContent=kw;$('fp-kw').style.cssText=`font-size:9px;color:#60c870;margin-top:2px;display:${kw?'block':'none'};`;
-  $('fp-eff').textContent=card.eff||'';$('fp-eff').style.cssText=`font-size:10px;color:#8ab4ff;line-height:1.55;margin-top:5px;border-top:1px solid var(--l1);padding-top:5px;display:${card.eff?'block':'none'};`;
+  $('fp-kw').textContent=kw;$('fp-kw').style.display=kw?'block':'none';
+  $('fp-eff').textContent=card.eff||'';$('fp-eff').style.display=card.eff?'block':'none';
   $('fp-cost').textContent='EN '+card.cost;
-  $('fp-cost').style.cssText='font-size:9px;color:var(--gold);font-family:var(--mono);margin-top:4px;display:block;';
-  // 位置計算
-  const r=el.getBoundingClientRect();
-  let x=r.right+14,y=r.top;
-  if(x+172>1280)x=r.left-186;
-  if(x<0)x=4;
-  if(y+320>720)y=720-324;
-  if(y<34)y=38;
+  const r=el.getBoundingClientRect();let x=r.right+12,y=r.top;
+  if(x+170>1280)x=r.left-182;if(x<0)x=2;if(y+290>720)y=720-294;if(y<0)y=2;
   fp.style.left=x+'px';fp.style.top=y+'px';
 }
 function pvClear(){pvT=setTimeout(()=>{$('fp').style.display='none';},80);}
-function pvGraveStack(who,el){
-  const grave=who==='e'?G.enemy.grave:G.my.grave;
-  if(!grave.length)return;
-  const card=grave[grave.length-1];
-  pvShow(card,el);
-}
-function pvPt(who,el){
-  const gp=who==='e'?G.enemy.partner:G.my.partner;
-  pvShow({name:gp.name,type:'monster',cost:gp.cost,atk:gp.atk,hp:gp.hp,kw:[],eff:'【常在】'+gp.skill+'\n【召喚条件】'+gp.condText},el);
-}
+function pvPt(who,el){const gp=who==='e'?G.enemy.partner:G.my.partner;pvShow({name:gp.name,type:'monster',cost:gp.cost,atk:gp.atk,hp:gp.hp,kw:[],eff:'【常在】'+gp.skill+'\n【条件】'+gp.condText},el);}
 
-/* ===== FANHAND ===== */
 function applyFan(cards){
   const n=cards.length;if(!n)return;
-  const maxAngle=Math.min(4*(n-1),28);
-  const step=n>1?maxAngle/(n-1):0;
-  cards.forEach((c,i)=>{
-    const a=-maxAngle/2+step*i;
-    const lift=Math.cos((i/(n-1)-.5)*Math.PI)*14;
-    c.style.transform=`rotate(${a}deg) translateY(${-lift}px)`;
-    c.style.zIndex=String(i+1);
-  });
+  const maxA=Math.min(4*(n-1),26),step=n>1?maxA/(n-1):0;
+  cards.forEach((c,i)=>{const a=-maxA/2+step*i,lift=Math.cos((i/(Math.max(n-1,1))-.5)*Math.PI)*12;c.style.transform=`rotate(${a}deg) translateY(${-lift}px)`;c.style.zIndex=String(i+1);});
 }
+function applyEFan(cards){
+  const n=cards.length;if(!n)return;
+  const maxA=Math.min(3*(n-1),20),step=n>1?maxA/(n-1):0;
+  cards.forEach((c,i)=>{const a=-maxA/2+step*i;c.style.transform=`rotate(${a}deg)`;c.style.zIndex=String(i+1);});
+}
+function nc(msg,col){clearTimeout(ncT);$('nc-msg').textContent=msg;$('nc-msg').style.color=col||'var(--white)';$('nc').classList.add('show');ncT=setTimeout(()=>$('nc').classList.remove('show'),1400);}
 
-/* ===== NC ===== */
-let ncT=null,ncBigT=null;
-function ncBig(msg,col){
-  clearTimeout(ncBigT);
-  const el=$('nc-msg');
-  el.textContent=msg;
-  el.style.color=col||'var(--white)';
-  el.style.fontSize='32px';
-  el.style.letterSpacing='.15em';
-  $('nc').classList.add('show');
-  ncBigT=setTimeout(()=>{
-    $('nc').classList.remove('show');
-    el.style.fontSize='18px';
-    el.style.letterSpacing='normal';
-  },1200);
-}
-function nc(msg,col){
-  clearTimeout(ncT);
-  const el=$('nc-msg');el.textContent=msg;
-  el.style.color=col||'var(--white)';
-  $('nc').classList.add('show');
-  ncT=setTimeout(()=>$('nc').classList.remove('show'),1400);
-}
-
-/* ===== GRAVE STACK ===== */
-function rGraveStack(who){
-  const cnt=who==='e'?G.enemy.grave.length:G.my.grave.length;
-  $(who==='e'?'egbcnt':'mgbcnt').textContent=cnt;
-  const stack=$(who==='e'?'egs-stack':'mgs-stack');
-  if(cnt===0)stack.classList.add('gs-empty');
-  else stack.classList.remove('gs-empty');
-}
-
-/* ===== RENDER ===== */
 function ra(){
-  rEN('e');rEN('m');rHB();
-  rSh('e');rSh('m');rPt('e');rPt('m');
-  rMon('e');rMon('m');rHand();
-  rGraveStack('e');rGraveStack('m');
-  rPhase();updBtn();
-  $('edeckval').textContent=G.enemy.deck;
-  $('mdeckval').textContent=G.my.deck;
+  rEN('e');rEN('m');rHB();rSh('e');rSh('m');rPt('e');rPt('m');rMon('e');rMon('m');rHand();
+  rGrave('e');rGrave('m');rPhase();updBtn();
+  $('edeckval').textContent=G.enemy.deck;$('mdeckval').textContent=G.my.deck;
 }
 function rEN(who){
-  const d=who==='e'?G.enemy:G.my;
-  const pips=$(who==='e'?'eenpips':'menpips');
+  const d=who==='e'?G.enemy:G.my;const pips=$(who==='e'?'eenpips':'menpips');
   $(who==='e'?'eenval':'menval').textContent=d.en+'/'+d.enMax;
-  $(who==='e'?'eenfill':'menfill').style.width=(d.enMax>0?(d.en/d.enMax*100):0)+'%';
-  pips.innerHTML='';
-  for(let i=0;i<Math.min(d.enMax,10);i++){const el=document.createElement('div');el.className='ep '+(i<d.en?'on':'off');pips.appendChild(el);}
+  $(who==='e'?'eenfill':'menfill').style.width=(d.enMax>0?d.en/d.enMax*100:0)+'%';
+  pips.innerHTML='';for(let i=0;i<Math.min(d.enMax,10);i++){const el=document.createElement('div');el.className='ep '+(i<d.en?'on':'off');pips.appendChild(el);}
 }
 function rHB(){
   const c=$('ehbcards'),cnt=$('ehbcnt');c.innerHTML='';
-  const n=Math.min(G.enemy.handCount,10);
-  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='hbc';c.appendChild(d);}
-  cnt.textContent=G.enemy.handCount+'枚';
-  applyFan(Array.from(c.children));
+  const n=Math.min(G.enemy.handCount,12);for(let i=0;i<n;i++){const d=document.createElement('div');d.className='hbc';c.appendChild(d);}
+  cnt.textContent=G.enemy.handCount+'枚';applyEFan(Array.from(c.children));
 }
 function rSh(who){
-  const gd=who==='e'?G.enemy:G.my;
-  const c=$(who==='e'?'eshcards':'mshcards');
-  c.innerHTML='';
-  gd.shields.forEach((s,i)=>{
-    const el=document.createElement('div');
+  G[who==='e'?'enemy':'my'].shields.forEach((s,i)=>{
+    const el=$((who==='e'?'esh-':'msh-')+i);if(!el)return;
     el.className='shc'+(s?'':' broken');
-    el.id=(who==='e'?'esh-':'msh-')+i;
-    c.appendChild(el);
   });
 }
 function rPt(who){
@@ -649,46 +443,32 @@ function rPt(who){
   $(who==='e'?'epstat':'mpstat').textContent='ATK'+gp.atk+' / LIFE'+gp.hp;
   $(who==='e'?'epskill':'mpskill').textContent='常在: '+gp.skill;
   const cd=$(who==='e'?'epcd':'mpcd');
-  cd.textContent=gp.condMet?'✓ 召喚条件達成':'条件: '+gp.condText;
-  cd.className='ptc-cond '+(gp.condMet?'met':'unmet');
+  cd.textContent=gp.condMet?'✓ 召喚条件達成':'条件: '+gp.condText;cd.className='ptc-cond '+(gp.condMet?'met':'unmet');
   const allBroken=(who==='e'?G.enemy:G.my).shields.every(s=>!s);
   card.className='ptc';
-  if(gp.summoned&&allBroken)card.classList.add('guardian');
-  else if(gp.summoned)card.classList.add('summoned');
-  else if(gp.condMet)card.classList.add('ready');
-  if(who==='m'){
-    const btn=$('mpbtn');
-    if(gp.summoned){btn.textContent='召喚済';btn.disabled=true;}
-    else if(gp.condMet){btn.textContent='召喚！';btn.disabled=false;}
-    else{btn.textContent='召喚不可';btn.disabled=true;}
-  }
+  if(gp.summoned&&allBroken)card.classList.add('guardian');else if(gp.summoned)card.classList.add('summoned');else if(gp.condMet)card.classList.add('ready');
+  if(who==='m'){const btn=$('mpbtn');if(gp.summoned){btn.textContent='召喚済';btn.disabled=true;}else if(gp.condMet){btn.textContent='召喚！';btn.disabled=false;}else{btn.textContent='召喚不可';btn.disabled=true;}}
 }
 function rMon(who){
-  const row=$(who==='e'?'emslots':'mmslots');row.innerHTML='';
-  const mons=who==='e'?G.enemy.monsters:G.my.monsters;
-  mons.forEach((m,i)=>{
-    const slot=document.createElement('div');slot.id=(who==='e'?'em-':'mm-')+i;
+  G[who==='e'?'enemy':'my'].monsters.forEach((m,i)=>{
+    const slot=$((who==='e'?'em-':'mm-')+i);if(!slot)return;
     if(m){
       const hp=m.hp/m.maxHp*100,hpc=hp>50?'full':hp>25?'half':'low';
-      const KW_ICON={'突撃':'⚔','前衛':'🛡'};
-      const kwh=(m.kw||[]).map(k=>`<span class="kw kw-${k}" title="${k}">${KW_ICON[k]||k}</span>`).join('');
-      const eClass=who==='e'?' enemy-slot':'';
-      slot.className='mslot filled'+eClass+(m.kw&&m.kw.includes('前衛')?' front-guard':'')+(m.used?' used':'');
+      const kwh=(m.kw||[]).map(k=>`<div class="kwi ${k}" title="${k}">${k==='突撃'?'⚔':'🛡'}</div>`).join('');
+      slot.className='mslot filled'+(who==='e'?' es':'')+(m.kw&&m.kw.includes('前衛')?' fg':'')+(m.used?' used':'');
       slot.innerHTML=(m.used?'<div class="ubadge">攻撃済</div>':'')+
-        `<div class="mart"></div>`+
-        `<div class="mnm">${m.name}</div>`+
+        `<div class="mart"></div><div class="msa"><div class="mnm">${m.name}</div>`+
         `<div class="mst"><span class="ma">${m.atk}</span><span class="msl">/</span><span class="mh">${m.hp}</span></div>`+
         `<div class="kwrow">${kwh}</div>`+
-        `<div class="lbar"><div class="lbf ${hpc}" style="width:${hp}%"></div></div>`;
-      slot.addEventListener('mouseenter',()=>pvShow(m,slot));
-      slot.addEventListener('mouseleave',pvClear);
+        `<div class="lbar"><div class="lbf ${hpc}" style="width:${hp}%"></div></div></div>`;
+      slot.addEventListener('mouseenter',()=>pvShow(m,slot));slot.addEventListener('mouseleave',pvClear);
       if(who==='m'&&G.phase==='battle'&&m.canAttack&&!m.used){slot.classList.add('atk-ready');slot.onclick=()=>selAtk(i);}
-      else if(who==='m'&&G.phase==='main'){slot.onclick=()=>tryPlace(i);}
+      else if(who==='m'&&G.phase==='main'){slot.onclick=()=>tryPlace(i);}else slot.onclick=null;
     }else{
-      slot.className='mslot'+(who==='e'?' enemy-slot':'');slot.innerHTML='<span class="empty-lbl">EMPTY</span>';
-      if(who==='m')slot.onclick=()=>tryPlace(i);
+      slot.className='mslot'+(who==='e'?' es':'');slot.innerHTML='<span class="elbl">EMPTY</span>';
+      slot.removeEventListener('mouseenter',()=>{});slot.removeEventListener('mouseleave',()=>{});
+      if(who==='m')slot.onclick=()=>tryPlace(i);else slot.onclick=null;
     }
-    row.appendChild(slot);
   });
 }
 function rHand(){
@@ -698,129 +478,99 @@ function rHand(){
     const hc=document.createElement('div');
     hc.className='hcard'+(c.type==='spell'?' spell':'')+(ok?' playable':' no-en')+(sel?' selected':'')+(c.trigger?' has-trig':'');
     hc.id='hc-'+i;
-    hc.innerHTML=`<div class="ccost ${ok?'':'cant'}">${c.cost}</div>`+
-      `<div class="cart-h"></div>`+
-      `<div class="ctype">${c.type==='spell'?'SPELL':'MONSTER'}</div>`+
-      `<div class="cnm">${c.name}</div>`+
-      `<div class="csub">${c.type==='monster'?`ATK${c.atk}/LIFE${c.hp}`:''}</div>`;
-    hc.addEventListener('mouseenter',()=>pvShow(c,hc));
-    hc.addEventListener('mouseleave',pvClear);
-    if(ok)hc.onclick=()=>selCard(i);
-    row.appendChild(hc);
+    hc.innerHTML=`<div class="ccost ${ok?'':'cant'}">${c.cost}</div><div class="cart-h"></div><div class="ctype">${c.type==='spell'?'SPELL':'MONSTER'}</div><div class="cnm">${c.name}</div><div class="csub">${c.type==='monster'?`ATK${c.atk}/LIFE${c.hp}`:''}</div>`;
+    hc.addEventListener('mouseenter',()=>pvShow(c,hc));hc.addEventListener('mouseleave',pvClear);
+    if(ok)hc.onclick=()=>selCard(i);row.appendChild(hc);
   });
   applyFan(Array.from(row.children));
 }
+function rGrave(who){
+  const cnt=who==='e'?G.enemy.grave.length:G.my.grave.length;
+  $(who==='e'?'egbcnt':'mgbcnt').textContent=cnt;
+  const blk=$(who==='e'?'egrave':'mgrave');
+  if(cnt===0)blk.classList.add('empty');else blk.classList.remove('empty');
+}
 function rPhase(){
-  const isEnemy=!G.myTurn;
-  const isBattle=G.phase==='battle';
-  $('turn-txt').textContent='T'+G.turn+' — '+(G.myTurn?'My Turn':'Enemy Turn');
-  $('phase-bg-txt').textContent=G.phase.toUpperCase();
-  const cbar=$('cbar');
-  cbar.className='';
-  if(isBattle)cbar.classList.add('battle');
-  else if(isEnemy)cbar.classList.add('enemy');
-  const root=$('root');
-  root.className='';
-  if(isBattle)root.classList.add('phase-battle');
-  else if(isEnemy)root.classList.add('enemy-turn');
-  else root.classList.add('phase-main');
+  const isBattle=G.phase==='battle',isEnemy=!G.myTurn;
+  const t='T'+G.turn+' — '+(G.myTurn?'My Turn':'Enemy Turn');
+  $('sys-turn').textContent=t;$('bdbar-turn').textContent=t;
+  $('cbar-bg').textContent=G.phase.toUpperCase();
+  $('cbar-inner').textContent=G.phase==='battle'?'⚔ BATTLE':'';
+  const cb=$('cbar');cb.className='';if(isBattle)cb.classList.add('battle');else if(isEnemy)cb.classList.add('enemy-t');
   [['pd','draw'],['pm','main'],['pb','battle'],['pe','end']].forEach(([id,p])=>{
     const el=$(id);el.className='pp off';
-    if(p==='main'&&G.phase==='main')el.classList.add('mon');
-    if(p==='battle'&&G.phase==='battle')el.classList.add('bon');
+    if(p==='main'&&G.phase==='main')el.classList.add('mon');if(p==='battle'&&G.phase==='battle')el.classList.add('bon');
   });
+  $('pm-plate').className='pplate'+(G.myTurn?' active':'');
+  $('pe-plate').className='pplate ep'+((!G.myTurn)?' active':'');
+  $('pm-badge').className='ptb '+(G.myTurn?'my':'wait');$('pm-badge').textContent=G.myTurn?'MY TURN':'待機中';
+  $('pe-badge').className='ptb '+((!G.myTurn)?'opp':'wait');$('pe-badge').textContent=(!G.myTurn)?'ENEMY TURN':'待機中';
+  $('fturn-m').textContent=G.myTurn?'▶ My Turn':'';$('fturn-e').textContent=(!G.myTurn)?'▶ Enemy Turn':'';
 }
 function updBtn(){
-  $('btnB').disabled=!(G.myTurn&&G.phase==='main');
-  $('btnE').disabled=!(G.myTurn&&(G.phase==='main'||G.phase==='battle'));
+  const ok=G.myTurn&&G.phase==='main',okB=G.myTurn&&(G.phase==='main'||G.phase==='battle');
+  $('btnB').disabled=!ok;$('btnE').disabled=!okB;$('btnB2').disabled=!ok;$('btnE2').disabled=!okB;
+}
+const logs=[];
+function addLog(icon,text,cls){
+  logs.push({icon,text,cls});if(logs.length>30)logs.shift();
+  const li=$('loginner');li.innerHTML='';
+  logs.forEach(e=>{const el=document.createElement('span');el.className='le '+(e.cls||'');el.innerHTML=`<span class="li">${e.icon}</span><span class="lt">${e.text}</span>`;li.appendChild(el);});
 }
 function selCard(i){
   if(!G.myTurn||G.phase!=='main')return;
   if(G.selCard===i){clrSel();return;}
   G.selCard=i;clrAtk();clrHL();
   const c=G.my.hand[i];
-  if(c.type==='spell'){
-    if(c.eff&&(c.eff.includes('1体')||c.eff.includes('1枚'))){hlEnemyTgt();nc(c.name+' — 対象を選択');}
-    else showCfm('「'+c.name+'」を発動しますか？\n'+c.eff,()=>castSpell(i));
-  }else{hlMySlots();nc(c.name+' — 召喚先を選択');}
-  rHand();
+  if(c.type==='spell'){if(c.eff&&(c.eff.includes('1体')||c.eff.includes('1枚'))){hlEnemyTgt();nc(c.name+' — 対象を選択');}else showCfm('「'+c.name+'」を発動しますか？\n'+c.eff,()=>castSpell(i));}
+  else{hlMySlots();nc(c.name+' — 召喚先を選択');}rHand();
 }
 function clrSel(){G.selCard=null;clrHL();rHand();}
-function clrHL(){
-  document.querySelectorAll('.summon-tgt').forEach(s=>s.classList.remove('summon-tgt'));
-  document.querySelectorAll('.atk-tgt').forEach(s=>{s.classList.remove('atk-tgt');s.onclick=null;});
-  rSh('e');
-}
+function clrHL(){document.querySelectorAll('.summon-tgt').forEach(s=>s.classList.remove('summon-tgt'));document.querySelectorAll('.atk-tgt').forEach(s=>{s.classList.remove('atk-tgt');s.onclick=null;});rSh('e');}
 function hlMySlots(){G.my.monsters.forEach((m,i)=>{if(!m){const s=$('mm-'+i);if(s)s.classList.add('summon-tgt');}});}
 function hlEnemyTgt(){G.enemy.monsters.forEach((m,i)=>{if(m){const s=$('em-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>castSpellOn(G.selCard,i);}}});}
 function tryPlace(si){if(G.selCard===null)return;const c=G.my.hand[G.selCard];if(!c||c.type!=='monster'||G.my.monsters[si]!==null)return;placeM(G.selCard,si);}
 function placeM(hi,si){
   const c=G.my.hand[hi];if(c.cost>G.my.en){nc('EN不足','var(--red)');return;}
   G.my.en-=c.cost;G.my.monsters[si]={name:c.name,type:c.type,cost:c.cost,atk:c.atk,hp:c.hp,maxHp:c.hp,kw:c.kw||[],eff:c.eff||'',canAttack:(c.kw||[]).includes('突撃'),used:false};
-  G.my.hand.splice(hi,1);G.selCard=null;clrHL();nc(c.name+' 召喚！','var(--green)');ra();
+  G.my.hand.splice(hi,1);G.selCard=null;clrHL();nc(c.name+' 召喚！','var(--green)');addLog('+',c.name+' 召喚','');ra();
 }
 function castSpell(hi){
   const c=G.my.hand[hi];if(!c||c.cost>G.my.en)return;
-  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();nc(c.name+' 発動');ra();
+  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();nc(c.name+' 発動');addLog('*',c.name+' 発動','');ra();
 }
 function castSpellOn(hi,ti){
   const c=G.my.hand[hi],t=G.enemy.monsters[ti];if(!c||!t||c.cost>G.my.en)return;
-  const dmg=parseInt(c.eff.match(/\d+/)?.[0]||0);
-  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
-  t.hp-=dmg;
-  if(t.hp<=0){nc(t.name+' 破壊！','var(--orange)');destroyM('e',ti);}else nc(c.name+' — -'+dmg);
-  ra();
+  const dmg=parseInt(c.eff.match(/\d+/)?.[0]||0);G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
+  t.hp-=dmg;if(t.hp<=0){nc(t.name+' 破壊！','var(--orange)');destroyM('e',ti);}else nc(c.name+' — -'+dmg);ra();
 }
-function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();ncBig('⚔ BATTLE PHASE','var(--red)');ra();}
+function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');addLog('>','Battle Phase','atk');ra();}
 function selAtk(si){
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
-  // 同じスロット再クリックで解除
-  if(G.selAtk===si){
-    document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
-    G.selAtk=null;return;
-  }
-  G.selAtk=si;
-  // 前の選択をクリア
-  document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
-  // 選択中スロットをハイライト
+  if(G.selAtk===si){document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});G.selAtk=null;return;}
+  G.selAtk=si;document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});
   const sel=$('mm-'+si);if(sel)sel.classList.add('atk-sel');
-  // 前衛チェック
   const hasFront=G.enemy.monsters.some(em=>em&&em.kw&&em.kw.includes('前衛'));
-  // 相手Monsterに atk-tgt
-  G.enemy.monsters.forEach((em,i)=>{
-    if(!em)return;
-    if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;
-    const s=$('em-'+i);
-    if(s){s.classList.add('atk-tgt');s.onclick=()=>doAtk(si,i);}
-  });
-  // 前衛がいない場合のみShieldを対象に
-  if(!hasFront){
-    G.enemy.shields.forEach((alive,i)=>{
-      if(!alive)return;
-      // ShieldのDOM要素に直接onclick設定（rShで再描画しない）
-      let sh=document.getElementById('esh-'+i);
-      if(sh){sh.classList.add('atk-tgt');sh.onclick=(e)=>{e.stopPropagation();doDirect(si,i);};}
-    });
-  }
-  nc(m.name+' 攻撃宣言');
+  G.enemy.monsters.forEach((em,i)=>{if(!em)return;if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;const s=$('em-'+i);if(s){s.classList.add('atk-tgt');s.onclick=()=>doAtk(si,i);}});
+  if(!hasFront){G.enemy.shields.forEach((alive,i)=>{if(!alive)return;const sh=$('esh-'+i);if(sh){sh.classList.add('atk-tgt');sh.onclick=(e)=>{e.stopPropagation();doDirect(si,i);};}});}
+  nc(m.name+' 攻撃宣言');addLog('>',m.name+' 攻撃宣言','atk');
 }
 function clrAtk(doRsh=true){G.selAtk=null;document.querySelectorAll('.atk-sel,.atk-tgt').forEach(s=>{s.classList.remove('atk-sel','atk-tgt');s.onclick=null;});if(doRsh)rSh('e');}
 function doAtk(asi,dsi){
   const a=G.my.monsters[asi],d=G.enemy.monsters[dsi];if(!a||!d)return;
-  clrAtk();a.used=true;d.hp-=a.atk;a.hp-=d.atk;
-  if(d.hp<=0&&a.hp<=0){destroyM('e',dsi);destroyM('m',asi);nc('相打ち！');}
-  else if(d.hp<=0){destroyM('e',dsi);nc(d.name+' 破壊！','var(--orange)');}
-  else if(a.hp<=0){destroyM('m',asi);nc(a.name+' 撃破された','var(--red)');}
-  else nc('⚔ '+a.name+' vs '+d.name);
-  if(a.eff&&a.eff.includes('攻撃時')){const dn=parseInt(a.eff.match(/\d+/)?.[0]||0);if(dn>0)brkSh('e',findAlive('e'));}
-  ra();
+  clrAtk(false);a.used=true;d.hp-=a.atk;a.hp-=d.atk;
+  if(d.hp<=0&&a.hp<=0){destroyM('e',dsi);destroyM('m',asi);nc('相打ち！');addLog('!','相打ち','dmg');}
+  else if(d.hp<=0){destroyM('e',dsi);nc(d.name+' 破壊！','var(--orange)');addLog('!',d.name+' 破壊','dmg');}
+  else if(a.hp<=0){destroyM('m',asi);nc(a.name+' 撃破','var(--red)');addLog('x',a.name+' 撃破','dmg');}
+  else{nc('⚔ '+a.name+' vs '+d.name);addLog('!',a.name+' ⚔ '+d.name,'atk');}
+  if(a&&a.eff&&a.eff.includes('攻撃時')){const dn=parseInt(a.eff.match(/\d+/)?.[0]||0);if(dn>0)brkSh('e',findAlive('e'));}ra();
 }
 function doDirect(asi,shi){
-  const a=G.my.monsters[asi];if(!a)return;clrAtk();a.used=true;
+  const a=G.my.monsters[asi];if(!a)return;clrAtk(false);a.used=true;
   G.my.partner.prog=(G.my.partner.prog||0)+1;
   if(G.my.partner.prog>=2&&!G.my.partner.condMet){G.my.partner.condMet=true;G.my.partner.condText='達成済み';showNotif('⚡ '+G.my.partner.name+' 召喚条件達成！');}
-  else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚Shield破壊('+G.my.partner.prog+'/2)';
+  else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊('+G.my.partner.prog+'/2)';
   brkSh('e',shi);ra();
 }
 function findAlive(who){const sh=who==='e'?G.enemy.shields:G.my.shields;for(let i=sh.length-1;i>=0;i--)if(sh[i])return i;return -1;}
@@ -829,38 +579,27 @@ function brkSh(who,idx){
   const el=$((who==='e'?'esh-':'msh-')+idx);if(el)el.className='shc broken';
   const card=gd.shCards[idx];
   if(card){gd.grave.push({...card});if(card.trigger){showTrig(card,who);return;}
-    if(who==='m'){G.my.hand.push({...card});nc('Shield → '+card.name+' 手札へ');}
-    else{G.enemy.handCount--;nc('相手Shield破壊','var(--orange)');}}
-  else nc('Shield破壊');
-  ra();
+    if(who==='m'){G.my.hand.push({...card});nc('SH → '+card.name+' 手札へ');addLog('+',card.name+' 手札へ','');}
+    else{G.enemy.handCount--;nc('相手SH破壊','var(--orange)');addLog('>','相手SH破壊','atk');}}
+  else{nc('SH破壊');addLog('>','SH破壊','atk');}ra();
 }
-function showTrig(card,who){
-  $('tn').textContent=card.name;$('te').textContent=card.eff||'';$('tov').classList.add('show');
-  nc('TRIGGER: '+card.name,'var(--gold)');
-  if(who==='m')G.my.hand.push({...card,trigger:false});
-}
+function showTrig(card,who){$('tn').textContent=card.name;$('te').textContent=card.eff||'';$('tov').classList.add('show');nc('TRIGGER: '+card.name,'var(--gold)');addLog('!!','TRIGGER: '+card.name,'trig');if(who==='m')G.my.hand.push({...card,trigger:false});}
 function hideTrig(){$('tov').classList.remove('show');ra();}
-function destroyM(who,si){
-  const mons=who==='e'?G.enemy.monsters:G.my.monsters;const m=mons[si];if(!m)return;
-  (who==='e'?G.enemy:G.my).grave.push({...m});mons[si]=null;
-}
+function destroyM(who,si){const mons=G[who==='e'?'enemy':'my'].monsters;const m=mons[si];if(!m)return;G[who==='e'?'enemy':'my'].grave.push({...m});mons[si]=null;}
 function endTurn(){
   if(!G.myTurn)return;G.phase='enemy';G.myTurn=false;G.selCard=null;G.selAtk=null;clrHL();
   document.querySelectorAll('#hrow .hcard').forEach(c=>{c.style.opacity='.3';c.style.pointerEvents='none';});
-  nc('Enemy Turn...','var(--blue)');rPhase();updBtn();
+  nc('Enemy Turn...','var(--blue)');addLog('>','Enemy Turn','');rPhase();updBtn();
   setTimeout(()=>{
     const ei=G.enemy.monsters.findIndex(m=>m===null);
     if(ei>=0){G.enemy.monsters[ei]={name:'波濤の剣士',type:'monster',cost:4,atk:4,hp:7,maxHp:7,kw:[],eff:'召喚時:1ドロー',canAttack:false,used:false};G.enemy.handCount--;}
     G.turn++;G.myTurn=true;G.phase='main';
-    G.my.enMax=Math.min(10,G.my.enMax+1);G.my.en=G.my.enMax;
-    G.enemy.enMax=Math.min(10,G.enemy.enMax+1);G.enemy.en=G.enemy.enMax;
-    G.my.partner.prog=0;if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚Shield破壊(0/2)';
-    G.my.monsters.forEach(m=>{if(m){m.canAttack=true;m.used=false;}});
-    G.enemy.monsters.forEach(m=>{if(m)m.canAttack=false;});
-    G.my.hand.push({name:'灼熱突撃兵',type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃'});
-    G.my.deck=Math.max(0,G.my.deck-1);
+    G.my.enMax=Math.min(10,G.my.enMax+1);G.my.en=G.my.enMax;G.enemy.enMax=Math.min(10,G.enemy.enMax+1);G.enemy.en=G.enemy.enMax;
+    G.my.partner.prog=0;if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊(0/2)';
+    G.my.monsters.forEach(m=>{if(m){m.canAttack=true;m.used=false;}});G.enemy.monsters.forEach(m=>{if(m)m.canAttack=false;});
+    G.my.hand.push({name:'灼熱突撃兵',type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃'});G.my.deck=Math.max(0,G.my.deck-1);
     document.querySelectorAll('#hrow .hcard').forEach(c=>{c.style.opacity='';c.style.pointerEvents='';});
-    ncBig('T'+G.turn+' MY TURN','var(--gold)');ra();
+    nc('T'+G.turn+' My Turn','var(--gold)');addLog('>','T'+G.turn+' My Turn','ptn');ra();
   },1500);
 }
 function sumP(){
@@ -869,61 +608,45 @@ function sumP(){
   if(ei>=0)G.my.monsters[ei]={name:p.name,type:'monster',cost:p.cost,atk:p.atk,hp:p.hp,maxHp:p.maxHp,kw:[],eff:p.skill,canAttack:true,used:false,isPartner:true};
   nc('⚡ '+p.name+' 召喚！','var(--gold)');ra();
 }
-/* DEMO関数 */
 function dBreak(){
   const idx=findAlive('e');if(idx<0){nc('Shieldなし');return;}
   G.my.partner.prog=(G.my.partner.prog||0)+1;
-  if(G.my.partner.prog>=2&&!G.my.partner.condMet){G.my.partner.condMet=true;G.my.partner.condText='達成済み';showNotif('⚡ '+G.my.partner.name+' 召喚条件達成！');$('dbtn-ready').classList.add('active');}
-  else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚Shield破壊('+G.my.partner.prog+'/2)';
+  if(G.my.partner.prog>=2&&!G.my.partner.condMet){G.my.partner.condMet=true;G.my.partner.condText='達成済み';showNotif('⚡ '+G.my.partner.name+' 条件達成！');$('dbrdy').classList.add('active');}
+  else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊('+G.my.partner.prog+'/2)';
   brkSh('e',idx);ra();
 }
-function dTrig(){
-  const idx=findAlive('m');if(idx<0){nc('Shieldなし');return;}
-  G.my.shCards[idx]={name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true};
-  brkSh('m',idx);
-}
-function dReady(){
-  G.my.partner.condMet=true;G.my.partner.condText='達成済み';
-  $('dbtn-ready').classList.add('active');
-  nc('⚡ '+G.my.partner.name+' 召喚条件達成！','var(--gold)');ra();
-}
+function dTrig(){const idx=findAlive('m');if(idx<0){nc('Shieldなし');return;}G.my.shCards[idx]={name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true};brkSh('m',idx);}
+function dReady(){G.my.partner.condMet=true;G.my.partner.condText='達成済み';$('dbrdy').classList.add('active');nc('⚡ 条件達成！','var(--gold)');ra();}
 function dGuard(){
   G.my.shields=[false,false,false,false,false];G.my.partner.condMet=true;G.my.partner.condText='達成済み';
   if(!G.my.partner.summoned){G.my.partner.summoned=true;const ei=G.my.monsters.findIndex(m=>m===null);if(ei>=0)G.my.monsters[ei]={name:G.my.partner.name,type:'monster',cost:G.my.partner.cost,atk:G.my.partner.atk,hp:G.my.partner.hp,maxHp:G.my.partner.maxHp,kw:[],eff:G.my.partner.skill,canAttack:true,used:false};}
-  $('dbtn-guard').classList.add('active');
-  nc('🛡 守護状態','var(--red)');ra();
+  $('dbgrd').classList.add('active');nc('🛡 守護状態','var(--red)');ra();
 }
 function dMons(){
   [0,1,2].forEach((si,i)=>{if(!G.my.monsters[si])G.my.monsters[si]=[
     {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃',canAttack:true,used:false},
-    {name:'紅蓮の戦士',type:'monster',cost:5,atk:6,hp:8,maxHp:8,kw:[],eff:'攻撃時:相手2ダメ',canAttack:true,used:false},
-    {name:'炎の守護者',type:'monster',cost:3,atk:3,hp:8,maxHp:8,kw:['前衛'],eff:'前衛',canAttack:true,used:false},
+    {name:'紅蓮の戦士', type:'monster',cost:5,atk:6,hp:8,maxHp:8,kw:[],eff:'攻撃時:相手2ダメ',canAttack:true,used:false},
+    {name:'炎の守護者', type:'monster',cost:3,atk:3,hp:8,maxHp:8,kw:['前衛'],eff:'前衛',canAttack:true,used:false},
   ][i];});
   [2,3,4].forEach((si,i)=>{if(!G.enemy.monsters[si])G.enemy.monsters[si]=[
-    {name:'深海の剣士',type:'monster',cost:4,atk:4,hp:7,maxHp:7,kw:[],eff:'召喚時:1ドロー',canAttack:false,used:false},
-    {name:'氷壁の守護者',type:'monster',cost:4,atk:3,hp:10,maxHp:10,kw:['前衛'],eff:'前衛',canAttack:false,used:false},
-    {name:'水流の踊り手',type:'monster',cost:1,atk:1,hp:4,maxHp:4,kw:[],eff:'召喚時:1ドロー',canAttack:false,used:false},
+    {name:'深海の剣士',  type:'monster',cost:4,atk:4,hp:7, maxHp:7, kw:[],       eff:'召喚時:1ドロー',canAttack:false,used:false},
+    {name:'氷壁の守護者',type:'monster',cost:4,atk:3,hp:10,maxHp:10,kw:['前衛'], eff:'前衛',canAttack:false,used:false},
+    {name:'水流の踊り手',type:'monster',cost:1,atk:1,hp:4, maxHp:4, kw:[],       eff:'召喚時:1ドロー',canAttack:false,used:false},
   ][i];});
-  G.my.enMax=Math.min(10,G.my.enMax+4);G.my.en=G.my.enMax;nc('Monster追加');ra();
+  G.my.enMax=Math.min(10,G.my.enMax+4);G.my.en=G.my.enMax;nc('MON追加');ra();
 }
-function dLowEN(){
-  G.my.en=0;nc('EN=0 コスト不足状態','var(--red)');rEN('m');rHand();
-}
+function dLowEN(){G.my.en=0;nc('EN=0','var(--red)');rEN('m');rHand();}
 function og(who){
   const isE=(who==='e'),grave=isE?G.enemy.grave:G.my.grave;
   $(isE?'egc':'mgc').textContent='（'+grave.length+'枚）';
-  const list=$(isE?'egl':'mgl');
-  if(!grave.length){list.innerHTML='<div class="empty-grave">墓地にカードはありません</div>';}
-  else{
-    list.innerHTML='';
-    grave.forEach(card=>{
-      const row=document.createElement('div');row.className='grow';
-      row.innerHTML=`<div class="gth ${card.type}"><div class="gti"></div><div class="gtl">${card.type==='spell'?'SPELL':'MON'}</div></div><div><div class="gn">${card.name}</div><div class="gs">${card.type==='monster'?'EN'+card.cost+' ATK'+card.atk+' LIFE'+(card.maxHp||card.hp):'EN'+card.cost}</div><div class="ge">${card.eff||''}</div></div>`;
-      row.addEventListener('mouseenter',()=>pvShow(card,row));
-      row.addEventListener('mouseleave',pvClear);
-      list.appendChild(row);
-    });
-  }
+  const list=$(isE?'egl':'mgl');list.innerHTML='';
+  if(!grave.length)list.innerHTML='<div class="empty-grave">墓地にカードはありません</div>';
+  else grave.forEach(card=>{
+    const row=document.createElement('div');row.className='grow';
+    row.innerHTML=`<div class="gth ${card.type}"><div class="gti"></div><div class="gtl">${card.type==='spell'?'SP':'MON'}</div></div><div><div class="gn">${card.name}</div><div class="gs2">${card.type==='monster'?'EN'+card.cost+' ATK'+card.atk+' LIFE'+(card.maxHp||card.hp):'EN'+card.cost}</div><div class="ge">${card.eff||''}</div></div>`;
+    row.addEventListener('mouseenter',()=>pvShow(card,row));row.addEventListener('mouseleave',pvClear);
+    list.appendChild(row);
+  });
   $(isE?'modal-eg':'modal-mg').classList.add('show');
 }
 function cm(id){$(id).classList.remove('show');}
@@ -933,7 +656,7 @@ function showCfm(msg,cb){G.pendCfm=cb;$('cfmsg').textContent=msg;$('cfmov').clas
 function cfmY(){$('cfmov').classList.remove('show');if(G.pendCfm){G.pendCfm();G.pendCfm=null;}}
 function cfmN(){$('cfmov').classList.remove('show');G.pendCfm=null;clrSel();}
 
-nc('T1 My Turn','var(--gold)');ra();
+addLog('>','T1 My Turn','ptn');ra();
 </script>
 </body>
 </html>
