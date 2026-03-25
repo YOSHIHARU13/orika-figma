@@ -10,56 +10,23 @@
   --bg:#07070e;--p1:#0c0c18;--p2:#111120;--p3:#161628;
   --l1:#1e1e36;--l2:#2a2a48;--l3:#3e3e60;
   --gold:#d4a843;--gdim:rgba(212,168,67,.12);
-  --blue:#4a90e2;--bdim:rgba(74,144,226,.14);--bglow:rgba(74,144,226,.3);
-  --purple:#9966dd;--pdim:rgba(153,102,221,.16);--pglow:rgba(153,102,221,.35);
+  --blue:#4a90e2;--bdim:rgba(74,144,226,.14);--bglow:rgba(74,144,226,.28);
+  --purple:#9966dd;--pdim:rgba(153,102,221,.16);--pglow:rgba(153,102,221,.3);
   --green:#27ae60;--gdim2:rgba(39,174,96,.12);
-  --red:#c0392b;--rdim:rgba(192,57,43,.15);
+  --red:#c0392b;--rdim:rgba(192,57,43,.14);
   --orange:#d4820a;
   --tx:#c0c8e0;--tx2:#606888;--tx3:#303050;--white:#edf0f8;
   --mono:'Roboto Mono',monospace;
-  --CW:112px;
+  --CW:112px;  /* カード統一幅 */
+  --SH:108px;  /* Shield高さ */
+  --MH:116px;  /* Monster高さ */
 }
 html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;}
 #app{width:1280px;height:720px;display:flex;overflow:hidden;}
 
-/* ============================================================
-   LEFT 180px: 名前+EN + プレビューエリア
-   ============================================================ */
-#left{
-  width:180px;flex-shrink:0;height:100%;
-  display:flex;flex-direction:column;
-  background:var(--p1);border-right:1px solid var(--l2);
-}
-/* dbar */
-#dbar{height:32px;flex-shrink:0;display:flex;align-items:center;gap:3px;padding:0 5px;background:rgba(7,7,14,.95);border-bottom:1px solid var(--l2);position:relative;z-index:200;}
-.dlbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.dbtn{padding:0 5px;height:18px;border-radius:3px;font-size:8px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
-.dbtn:hover,.dbtn.active{border-color:var(--gold);color:var(--gold);}
-/* 相手プレート */
-#left-ep{height:64px;flex-shrink:0;padding:8px;border-bottom:1px solid var(--l1);display:flex;flex-direction:column;gap:5px;}
-/* カードプレビューエリア */
-#preview{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;gap:6px;border-bottom:1px solid var(--l1);border-top:1px solid var(--l1);overflow:hidden;}
-#pv-empty{font-size:9px;color:var(--tx3);font-family:var(--mono);text-align:center;line-height:1.8;}
-#pv-card{display:none;flex-direction:column;align-items:center;gap:5px;width:100%;}
-#pv-art{width:120px;height:120px;border-radius:8px;background:var(--p3);border:2px solid var(--l2);flex-shrink:0;}
-#pv-name{font-size:13px;font-weight:700;color:var(--white);text-align:center;}
-#pv-type{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-#pv-stat{font-size:13px;font-family:var(--mono);text-align:center;}
-#pv-kw{font-size:9px;color:#60c870;text-align:center;}
-#pv-eff{font-size:9px;color:#8ab4ff;line-height:1.5;text-align:center;padding:4px 4px 2px;border-top:1px solid var(--l1);width:100%;}
-#pv-cost{font-size:9px;color:var(--gold);font-family:var(--mono);}
-/* 自分プレート */
-#left-mp{height:64px;flex-shrink:0;padding:8px;border-top:1px solid var(--l1);display:flex;flex-direction:column;gap:5px;}
-/* ログ */
-#left-log{height:32px;flex-shrink:0;padding:0 6px;display:flex;align-items:center;background:rgba(7,7,14,.95);border-top:1px solid var(--l2);overflow:hidden;}
-#loginner{font-size:8px;font-family:var(--mono);white-space:nowrap;overflow:hidden;color:var(--tx3);}
-.le{display:inline-flex;gap:2px;margin-right:8px;}
-.le .li{color:var(--tx3);}.le .lt{color:var(--tx3);}
-.le.atk .lt{color:var(--orange);}.le.trig .lt{color:var(--gold);font-weight:700;}
-.le.ptn .lt{color:#aa88ff;font-weight:700;}.le.dmg .lt{color:var(--red);}
-
-/* プレート共通 */
-.pplate{display:flex;align-items:center;gap:6px;}
+/* ==========================
+   共通パーツ
+   ========================== */
 .pav{width:28px;height:28px;border-radius:50%;background:var(--p3);border:2px solid var(--l2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pav-i{width:12px;height:12px;border-radius:3px;background:var(--l2);}
 .pav.active{border-color:var(--gold);}
@@ -68,43 +35,21 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .ptb.my{background:var(--gdim2);color:var(--green);border:1px solid rgba(39,174,96,.3);}
 .ptb.opp{background:var(--pdim);color:var(--purple);border:1px solid rgba(153,102,221,.3);}
 .ptb.wait{color:var(--tx3);border:1px solid var(--l1);}
-/* ENバー */
 .en-row{display:flex;align-items:center;gap:4px;}
 .en-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);flex-shrink:0;}
 .en-track{flex:1;height:4px;background:var(--l1);border-radius:2px;overflow:hidden;}
 .en-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .3s;}
 .en-val{font-size:10px;font-weight:900;color:var(--gold);font-family:var(--mono);flex-shrink:0;}
-
-/* ============================================================
-   RIGHT 180px: パートナー+フェイズ
-   ============================================================ */
-#right{
-  width:180px;flex-shrink:0;height:100%;
-  display:flex;flex-direction:column;
-  background:var(--p1);border-left:1px solid var(--l2);
-}
-#right-ep{flex:1;display:flex;flex-direction:column;gap:6px;padding:8px;border-bottom:2px solid var(--l2);}
-#right-sys{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;padding:6px 8px;border-bottom:2px solid var(--l2);}
-#right-mp{flex:1;display:flex;flex-direction:column;gap:6px;padding:8px;}
-
-/* フェイズ */
-#sys-phase{display:flex;gap:2px;justify-content:center;}
 .pp{padding:3px 6px;border-radius:4px;font-size:9px;font-weight:700;border:1px solid transparent;font-family:var(--mono);}
 .pp.mon{background:var(--blue);color:#fff;}.pp.bon{background:var(--red);color:#fff;}.pp.off{color:var(--tx3);border-color:var(--l1);}
-#sys-turn{font-size:10px;font-weight:700;color:var(--gold);font-family:var(--mono);text-align:center;}
-.sys-btn{width:100%;padding:5px 0;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
-.sys-btn-b{background:#c0392b;color:#fff;}.sys-btn-b:hover{filter:brightness(1.1);}
-.sys-btn-e{background:var(--gold);color:#000;}.sys-btn-e:hover{filter:brightness(1.05);}
-.sys-btn:disabled{opacity:.35;cursor:not-allowed;filter:none!important;}
 
-/* パートナー */
-.pt-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;}
-.ptc{border-radius:8px;border:2px solid var(--gold);background:rgba(10,10,20,.9);display:flex;flex-direction:column;align-items:center;padding:7px 6px;gap:4px;cursor:pointer;flex:1;}
+/* パートナーカード */
+.ptc{border-radius:8px;border:2px solid var(--gold);background:rgba(10,10,20,.9);display:flex;flex-direction:column;align-items:center;padding:7px 6px;gap:4px;cursor:pointer;flex:1;min-height:0;}
 .ptc:hover{box-shadow:0 0 10px rgba(212,168,67,.15);}
 .ptc.ready{box-shadow:0 0 12px rgba(212,168,67,.22);}
 .ptc.guardian{border-color:var(--red);box-shadow:0 0 12px rgba(192,57,43,.25);}
 .ptc.summoned{border-color:var(--l2);opacity:.45;}
-.ptc-art{width:60px;height:60px;border-radius:6px;background:var(--l2);border:1.5px solid rgba(212,168,67,.25);flex-shrink:0;}
+.ptc-art{width:58px;height:58px;border-radius:6px;background:var(--l2);border:1.5px solid rgba(212,168,67,.25);flex-shrink:0;}
 .ptc-name{font-size:10px;font-weight:700;color:var(--gold);text-align:center;}
 .ptc-stat{font-size:9px;color:var(--tx2);font-family:var(--mono);text-align:center;}
 .ptc-skill{font-size:8px;color:var(--tx);text-align:center;line-height:1.3;padding:3px 0 1px;border-top:1px solid var(--l1);width:100%;}
@@ -115,15 +60,65 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .ptc.guardian .ptc-guard{display:block;}
 .pt-sbtn{width:100%;padding:4px 0;background:var(--gold);color:#000;border:none;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;}
 .pt-sbtn:disabled{background:var(--p3);color:var(--tx3);cursor:not-allowed;}
+.pt-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;}
 
-/* ============================================================
-   FIELD 920px中央
-   ============================================================ */
-#field{
-  flex:1;height:100%;display:flex;flex-direction:column;
-  position:relative;overflow:hidden;
-  z-index:0;
-}
+/* ==========================
+   LEFT 180px
+   上: 相手パートナー (対照: 右下に自分パートナー)
+   中: カードプレビュー
+   下: 自分プレイヤー情報
+   ========================== */
+#left{width:180px;flex-shrink:0;height:100%;display:flex;flex-direction:column;background:var(--p1);border-right:1px solid var(--l2);}
+/* DEMOバー 32px */
+#dbar{height:32px;flex-shrink:0;display:flex;align-items:center;gap:3px;padding:0 5px;background:rgba(7,7,14,.95);border-bottom:1px solid var(--l2);position:relative;z-index:200;}
+.dlbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+.dbtn{padding:0 5px;height:18px;border-radius:3px;font-size:8px;font-weight:700;cursor:pointer;border:1px solid var(--l2);background:transparent;color:var(--tx2);font-family:var(--mono);white-space:nowrap;}
+.dbtn:hover,.dbtn.active{border-color:var(--gold);color:var(--gold);}
+/* 相手パートナー(左上) */
+#left-epart{flex:0 0 auto;display:flex;flex-direction:column;gap:5px;padding:7px;border-bottom:1px solid var(--l2);}
+/* プレビュー(左中央) */
+#preview{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px;gap:5px;overflow:hidden;}
+#pv-empty{font-size:9px;color:var(--tx3);font-family:var(--mono);text-align:center;line-height:1.8;}
+#pv-card{display:none;flex-direction:column;align-items:center;gap:4px;width:100%;}
+#pv-art{width:116px;height:116px;border-radius:8px;background:var(--p3);border:2px solid var(--l2);flex-shrink:0;}
+#pv-name{font-size:13px;font-weight:700;color:var(--white);text-align:center;}
+#pv-type{font-size:8px;color:var(--tx3);font-family:var(--mono);}
+#pv-stat{font-size:12px;font-family:var(--mono);text-align:center;}
+#pv-kw{font-size:9px;color:#60c870;text-align:center;}
+#pv-eff{font-size:9px;color:#8ab4ff;line-height:1.5;text-align:center;padding:4px 3px 2px;border-top:1px solid var(--l1);width:100%;}
+#pv-cost{font-size:9px;color:var(--gold);font-family:var(--mono);}
+/* 自分プレイヤー情報(左下) */
+#left-minfo{flex:0 0 auto;display:flex;flex-direction:column;gap:5px;padding:7px;border-top:1px solid var(--l2);}
+/* ログ */
+#left-log{height:32px;flex-shrink:0;padding:0 6px;display:flex;align-items:center;background:rgba(7,7,14,.95);border-top:1px solid var(--l2);overflow:hidden;}
+#loginner{font-size:8px;font-family:var(--mono);white-space:nowrap;overflow:hidden;color:var(--tx3);}
+.le{display:inline-flex;gap:2px;margin-right:8px;}.le .li{color:var(--tx3);}.le .lt{color:var(--tx3);}
+.le.atk .lt{color:var(--orange);}.le.trig .lt{color:var(--gold);font-weight:700;}.le.ptn .lt{color:#aa88ff;font-weight:700;}.le.dmg .lt{color:var(--red);}
+
+/* ==========================
+   RIGHT 180px
+   上: 相手プレイヤー情報 (対照: 左下に自分)
+   中: フェイズ/ボタン
+   下: 自分パートナー (対照: 左上に相手)
+   ========================== */
+#right{width:180px;flex-shrink:0;height:100%;display:flex;flex-direction:column;background:var(--p1);border-left:1px solid var(--l2);}
+/* 相手プレイヤー情報(右上) */
+#right-einfo{flex:0 0 auto;display:flex;flex-direction:column;gap:5px;padding:7px;border-bottom:1px solid var(--l2);}
+/* フェイズ/ボタン(右中央) */
+#right-sys{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;padding:6px 8px;background:rgba(0,0,0,.3);border-bottom:1px solid var(--l2);}
+#sys-phase{display:flex;gap:2px;justify-content:center;}
+#sys-turn{font-size:10px;font-weight:700;color:var(--gold);font-family:var(--mono);text-align:center;}
+.sys-btn{width:100%;padding:5px 0;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.sys-btn-b{background:#c0392b;color:#fff;}.sys-btn-b:hover{filter:brightness(1.1);}
+.sys-btn-e{background:var(--gold);color:#000;}.sys-btn-e:hover{filter:brightness(1.05);}
+.sys-btn:disabled{opacity:.35;cursor:not-allowed;filter:none!important;}
+/* 自分パートナー(右下) */
+#right-mpart{flex:1;display:flex;flex-direction:column;gap:5px;padding:7px;border-top:1px solid var(--l2);min-height:0;}
+
+/* ==========================
+   FIELD 920px
+   ========================== */
+#field{flex:1;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden;z-index:0;}
 
 /* プレート行 32px */
 .fplate{height:32px;flex-shrink:0;display:flex;align-items:center;padding:0 12px;gap:8px;}
@@ -132,64 +127,57 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .fp-name{font-size:11px;font-weight:700;color:var(--white);}
 .fp-turn{font-size:9px;font-family:var(--mono);color:var(--tx3);margin-left:4px;}
 
-/* 相手手札 36px */
-#e-hand{height:36px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding:0 12px 4px;overflow:hidden;}
-.hbc{width:24px;height:30px;border-radius:3px;border:1.5px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -2px;}
-.hbc::after{content:'';position:absolute;inset:2px;border:1px solid var(--l1);border-radius:2px;background:repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,.02) 4px,rgba(255,255,255,.02) 8px);}
-.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:6px;flex-shrink:0;}
+/* 手札行 60px — 扇状 */
+.hand-row{height:60px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding:0 8px 5px;overflow:hidden;}
+/* 相手手札裏向き */
+.ehbc{width:36px;height:50px;border-radius:5px;border:1.5px solid var(--l2);background:var(--p2);flex-shrink:0;position:relative;overflow:hidden;transform-origin:bottom center;margin:0 -4px;}
+.ehbc::after{content:'';position:absolute;inset:3px;border:1px solid var(--l1);border-radius:2px;background:repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,.025) 4px,rgba(255,255,255,.025) 8px);}
+.e-hcnt{font-size:9px;color:var(--tx3);font-family:var(--mono);margin-left:8px;flex-shrink:0;}
 
-/* ゾーン行(Shield+Monster共通) 107px/120px */
-.zone-row{flex-shrink:0;display:flex;align-items:center;padding:0;}
-.zone-row.sh-r{height:107px;}
-.zone-row.mn-r{height:120px;}
-.zone-row.enemy-bg{background:rgba(153,102,221,.018);}
-.zone-row.mine-bg{background:rgba(255,255,255,.004);}
-.zone-row.sh-bg{background:rgba(74,144,226,.022);}
+/* カードゾーン行 — Shield 120px, Monster 128px */
+.zone-row{flex-shrink:0;display:flex;align-items:stretch;overflow:visible;}
+.zone-sh{height:120px;}
+.zone-mn{height:128px;}
+.zone-esh{background:rgba(74,144,226,.022);}
+.zone-emn{background:rgba(153,102,221,.018);}
+.zone-mmn{background:rgba(255,255,255,.004);}
+.zone-msh{background:rgba(74,144,226,.022);}
 
-/* デッキ+墓地パネル(フィールド左端) */
-.dk-panel{
-  width:120px;flex-shrink:0;height:100%;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-  padding:6px;
-  border-right:1px solid var(--l1);
+/* デッキ・墓地パネル (Shield行左端/右端) */
+.dkgv-panel{
+  width:110px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;padding:5px;
 }
-.dk-card{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
-.dk-card:hover .dk-face{border-color:var(--gold);}
-.dk-face{width:52px;height:72px;border-radius:5px;border:1.5px solid var(--l2);background:var(--p3);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;}
-.dk-face.deck-f{background:repeating-linear-gradient(-45deg,var(--p3),var(--p3) 4px,var(--l1) 4px,var(--l1) 8px);}
-.dk-face.grave-f{border-color:var(--l3);}
-.dk-num{font-size:14px;font-weight:900;color:var(--white);font-family:var(--mono);line-height:1;}
-.dk-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
-.dk-cnt{font-size:14px;font-weight:900;color:var(--gold);font-family:var(--mono);line-height:1;}
-
-/* カードゾーン本体: flexでShieldをfan展開 */
-.card-zone{
-  flex:1;height:100%;
-  display:flex;align-items:center;justify-content:center;
-  padding:0 6px;overflow:hidden;
+.dkgv-panel.right-side{border-left:1px solid var(--l1);}
+.dkgv-panel.left-side{border-right:1px solid var(--l1);}
+.dkgv-card{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;width:100%;}
+.dkgv-card:hover .dkgv-face{border-color:var(--gold);}
+.dkgv-face{
+  width:48px;height:66px;border-radius:5px;
+  border:1.5px solid var(--l2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
 }
-/* Shield列: fan対応flex */
-.sh-cards{display:flex;align-items:center;justify-content:center;}
-/* Monster列: grid固定5列 */
-.mn-cards{
-  display:grid;
-  grid-template-columns:repeat(5,var(--CW));
-  gap:6px;
-  justify-content:center;
-  align-items:center;
-  height:100%;
-}
+.dkgv-face.dk{background:repeating-linear-gradient(-45deg,var(--p3),var(--p3) 4px,var(--l1) 4px,var(--l1) 8px);}
+.dkgv-face.gv{background:var(--p3);border-color:var(--l3);}
+.dkgv-num{font-size:14px;font-weight:900;font-family:var(--mono);line-height:1;}
+.dkgv-num.wh{color:var(--white);}.dkgv-num.gd{color:var(--gold);}
+.dkgv-lbl{font-size:8px;color:var(--tx3);font-family:var(--mono);}
 
-/* Shield 112×95px 横長裏向き */
+/* カードゾーン本体 */
+.card-zone{flex:1;display:flex;align-items:center;justify-content:center;padding:0 4px;overflow:hidden;}
+/* Shield: flex fan展開 */
+.sh-cards{display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+/* Monster: CSS Grid 5列固定 */
+.mn-cards{display:grid;grid-template-columns:repeat(5,var(--CW));gap:6px;justify-content:center;align-items:center;}
+
+/* Shield 112×108px */
 .shc{
-  width:var(--CW);height:95px;flex-shrink:0;
+  width:var(--CW);height:var(--SH);flex-shrink:0;
   border-radius:7px;border:2px solid var(--blue);background:var(--bdim);
   position:relative;overflow:hidden;cursor:default;
-  /* fan展開用 */
   margin:0 2px;
-  transition:margin .2s;
 }
-/* 6枚以上はfanが自動で */
 .shc::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(74,144,226,.05) 5px,rgba(74,144,226,.05) 10px);}
 .shc::after{content:'';position:absolute;inset:5px;border:1px solid rgba(74,144,226,.22);border-radius:4px;}
 .shc.broken{border-color:var(--l1);background:transparent;opacity:.12;}
@@ -197,9 +185,9 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .shc.atk-tgt{border-color:var(--red);background:var(--rdim);cursor:pointer;box-shadow:0 0 8px var(--red);}
 .shc.atk-tgt::before{display:none;}
 
-/* Monster 112×108px 縦長 */
+/* Monster 112×116px */
 .mslot{
-  width:var(--CW);height:108px;
+  width:var(--CW);height:var(--MH);
   border-radius:7px;border:1.5px dashed var(--l1);
   background:rgba(255,255,255,.003);
   display:flex;flex-direction:column;align-items:center;
@@ -231,31 +219,38 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .elbl{font-size:8px;color:var(--tx3);font-family:var(--mono);margin:auto;}
 
 /* CENTER BAR 36px */
-#cbar{height:36px;flex-shrink:0;display:flex;align-items:center;padding:0 12px;background:rgba(0,0,0,.65);border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);position:relative;overflow:hidden;transition:background .4s;}
+#cbar{height:36px;flex-shrink:0;display:flex;align-items:center;padding:0 12px;background:rgba(0,0,0,.65);border-top:2px solid var(--l2);border-bottom:2px solid var(--l2);position:relative;overflow:hidden;transition:background .4s;pointer-events:none;}
 #cbar.battle{background:rgba(50,8,8,.8);border-color:#5a1a1a;}
 #cbar.enemy-t{background:rgba(15,10,35,.7);}
 #cbar-bg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:20px;font-weight:900;font-family:var(--mono);color:rgba(255,255,255,.04);letter-spacing:.2em;pointer-events:none;}
 #cbar-txt{font-size:12px;font-weight:700;color:var(--gold);font-family:var(--mono);margin:0 auto;}
 
 /* 手札 absolute */
-#hand-area{position:absolute;bottom:32px;left:0;right:0;height:140px;z-index:40;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;pointer-events:none;overflow:visible;}
+#hand-area{position:absolute;bottom:32px;left:0;right:0;height:136px;z-index:40;display:flex;align-items:flex-end;justify-content:center;padding:0 0 6px;pointer-events:none;overflow:visible;}
 #hrow{display:flex;align-items:flex-end;pointer-events:all;overflow:visible;}
-.hcard{width:72px;height:104px;flex-shrink:0;border-radius:7px;border:2px solid var(--l2);background:var(--p2);cursor:pointer;display:flex;flex-direction:column;align-items:center;padding:4px;gap:2px;position:relative;overflow:visible;transform-origin:bottom center;margin:0 -5px;}
+.hcard{
+  width:var(--CW);height:130px;flex-shrink:0;
+  border-radius:8px;border:2px solid var(--l2);background:var(--p2);
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  padding:5px 4px;gap:2px;position:relative;overflow:visible;
+  transform-origin:bottom center;margin:0 -7px;
+}
 .hcard.playable{border-color:var(--green);box-shadow:0 0 7px rgba(39,174,96,.3);}
 .hcard.selected{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,67,.5);z-index:200!important;}
 .hcard:not(.selected):hover{z-index:100!important;box-shadow:0 4px 16px rgba(0,0,0,.7);}
 .hcard.no-en{opacity:.28;filter:grayscale(.6);}
 .hcard.spell{border-color:rgba(212,130,10,.35);}.hcard.spell.playable{border-color:var(--green);}
 .hcard.has-trig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
-.ccost{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--gold);color:#000;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);z-index:1;}
+.ccost{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#000;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);font-family:var(--mono);z-index:1;}
 .ccost.cant{background:var(--l2);color:var(--tx3);}
-.cart-h{width:100%;height:48px;border-radius:4px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
+.cart-h{width:100%;height:68px;border-radius:5px;background:var(--p3);border:1px solid var(--l2);flex-shrink:0;}
 .ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
 .cnm{font-size:8px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
 .csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
-/* abar */
+
+/* ABAR */
 #abar{position:absolute;bottom:0;left:0;right:0;height:32px;z-index:50;background:rgba(7,7,14,.95);border-top:1px solid var(--l2);display:flex;align-items:center;padding:0 12px;gap:6px;}
-#abar-log{flex:1;font-size:9px;color:var(--tx3);font-family:var(--mono);overflow:hidden;white-space:nowrap;}
+#abar-msg{flex:1;font-size:9px;color:var(--tx3);font-family:var(--mono);overflow:hidden;white-space:nowrap;}
 .abtn{padding:0 10px;height:22px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
 .abtn-b{background:#c0392b;color:#fff;}.abtn-b:hover{filter:brightness(1.15);}
 .abtn-e{background:var(--gold);color:#000;}.abtn-e:hover{filter:brightness(1.1);}
@@ -292,7 +287,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .empty-grave{color:var(--tx3);font-size:11px;padding:10px 0;}
 #notif{position:fixed;top:0;left:640px;transform:translateX(-50%) translateY(-100%);background:rgba(12,12,24,.96);border:1px solid var(--gold);border-top:none;border-radius:0 0 8px 8px;padding:6px 20px;font-size:12px;font-weight:700;color:var(--gold);z-index:800;transition:transform .2s;white-space:nowrap;}
 #notif.show{transform:translateX(-50%) translateY(0);}
-#nc{position:fixed;top:50%;left:640px;transform:translate(-50%,-50%);z-index:500;pointer-events:none;text-align:center;opacity:0;transition:opacity .15s;}
+#nc{position:fixed;top:50%;left:640px;transform:translate(-50%,-50%);z-index:500;pointer-events:none!important;text-align:center;opacity:0;transition:opacity .15s;}
 #nc.show{opacity:1;}
 #nc-msg{font-size:18px;font-weight:900;color:var(--white);font-family:var(--mono);text-shadow:0 0 20px rgba(0,0,0,.9);}
 </style>
@@ -311,10 +306,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 <div id="app">
 
-<!-- LEFT -->
+<!-- ===== LEFT: 相手パートナー / プレビュー / 自分情報 ===== -->
 <div id="left">
+  <!-- DEMOバー -->
   <div id="dbar">
-    <span class="dlbl">DEMO</span>
     <button class="dbtn" onclick="dBreak()">SH破壊</button>
     <button class="dbtn" onclick="dAddSh()">SH追加</button>
     <button class="dbtn" onclick="dTrig()">鼓動</button>
@@ -324,12 +319,21 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <button class="dbtn" onclick="dLowEN()">EN0</button>
     <button class="dbtn" onclick="location.reload()">Reset</button>
   </div>
-  <!-- 相手プレート -->
-  <div id="left-ep">
-    <div class="pplate"><div class="pav" id="pav-e"><div class="pav-i"></div></div><div><div class="pname">相手プレイヤー</div><div class="ptb wait" id="pe-badge">待機中</div></div></div>
-    <div class="en-row"><span class="en-lbl">EN</span><div class="en-track"><div class="en-fill" id="eenfill"></div></div><span class="en-val" id="eenval"></span></div>
+
+  <!-- 相手パートナー (左上) -->
+  <div id="left-epart">
+    <div class="pt-lbl">Partner — 相手</div>
+    <div class="ptc" id="epc" onmouseenter="pvPt('e')" onmouseleave="pvClear()">
+      <div class="ptc-art"></div>
+      <div class="ptc-name" id="epname"></div>
+      <div class="ptc-stat" id="epstat"></div>
+      <div class="ptc-skill" id="epskill"></div>
+      <div class="ptc-cond unmet" id="epcd"></div>
+      <div class="ptc-guard">🛡 GUARDIAN</div>
+    </div>
   </div>
-  <!-- カードプレビュー -->
+
+  <!-- カードプレビュー (左中央) -->
   <div id="preview">
     <div id="pv-empty">カードに<br>ホバーで<br>詳細表示</div>
     <div id="pv-card">
@@ -342,41 +346,55 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       <div id="pv-cost"></div>
     </div>
   </div>
-  <!-- 自分プレート -->
-  <div id="left-mp">
-    <div class="pplate"><div class="pav" id="pav-m"><div class="pav-i"></div></div><div><div class="pname">自分</div><div class="ptb my" id="pm-badge">MY TURN</div></div></div>
+
+  <!-- 自分プレイヤー情報 (左下) -->
+  <div id="left-minfo">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="pav" id="pav-m"><div class="pav-i"></div></div>
+      <div><div class="pname">自分</div><div class="ptb my" id="pm-badge">MY TURN</div></div>
+    </div>
     <div class="en-row"><span class="en-lbl">EN</span><div class="en-track"><div class="en-fill" id="menfill"></div></div><span class="en-val" id="menval"></span></div>
   </div>
   <div id="left-log"><span id="loginner"></span></div>
 </div>
 
-<!-- FIELD -->
+<!-- ===== FIELD ===== -->
 <div id="field">
-  <!-- 相手プレート行 -->
-  <div class="fplate fen"><span class="fp-name">相手プレイヤー</span><span class="fp-turn" id="fturn-e"></span></div>
-  <!-- 相手手札 -->
-  <div id="e-hand"><div id="ehbcards"></div><span class="e-hcnt" id="ehbcnt"></span></div>
-  <!-- 相手 Shield行 -->
-  <div class="zone-row sh-r sh-bg">
-    <div class="dk-panel">
-      <div class="dk-card" onclick="og('e')">
-        <div class="dk-face grave-f"><div class="dk-cnt" id="egbcnt">0</div></div>
-        <div class="dk-lbl">墓地</div>
+  <!-- 相手プレート -->
+  <div class="fplate fen">
+    <span class="fp-name">相手プレイヤー</span>
+    <span class="fp-turn" id="fturn-e"></span>
+  </div>
+
+  <!-- 相手手札 (扇状) -->
+  <div class="hand-row" id="e-hand-row">
+    <div id="ehbcards"></div>
+    <span class="e-hcnt" id="ehbcnt"></span>
+  </div>
+
+  <!-- 相手 Shield行: デッキ・墓地は左端 -->
+  <div class="zone-row zone-sh zone-esh">
+    <div class="dkgv-panel left-side">
+      <!-- 相手: デッキ上・墓地下 (プレイヤーから見て) = 画面では上=デッキ,下=墓地 -->
+      <div class="dkgv-card">
+        <div class="dkgv-face dk"><div class="dkgv-num wh" id="edeckval">30</div></div>
+        <div class="dkgv-lbl">デッキ</div>
       </div>
-      <div class="dk-card">
-        <div class="dk-face deck-f"><div class="dk-num" id="edeckval">30</div></div>
-        <div class="dk-lbl">デッキ</div>
+      <div class="dkgv-card" onclick="og('e')">
+        <div class="dkgv-face gv"><div class="dkgv-num gd" id="egbcnt">0</div></div>
+        <div class="dkgv-lbl">墓地</div>
       </div>
     </div>
     <div class="card-zone">
       <div class="sh-cards" id="eshcards"></div>
     </div>
   </div>
+
   <!-- 相手 Monster行 -->
-  <div class="zone-row mn-r enemy-bg">
-    <div style="width:120px;flex-shrink:0;"></div>
+  <div class="zone-row zone-mn zone-emn">
+    <div style="width:110px;flex-shrink:0;"></div>
     <div class="card-zone">
-      <div class="mn-cards" id="emslots">
+      <div class="mn-cards">
         <div id="em-0" class="mslot es"><span class="elbl">EMPTY</span></div>
         <div id="em-1" class="mslot es"><span class="elbl">EMPTY</span></div>
         <div id="em-2" class="mslot es"><span class="elbl">EMPTY</span></div>
@@ -385,13 +403,15 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       </div>
     </div>
   </div>
+
   <!-- CENTER BAR -->
   <div id="cbar"><div id="cbar-bg"></div><div id="cbar-txt"></div></div>
+
   <!-- 自分 Monster行 -->
-  <div class="zone-row mn-r mine-bg">
-    <div style="width:120px;flex-shrink:0;"></div>
+  <div class="zone-row zone-mn zone-mmn">
+    <div style="width:110px;flex-shrink:0;"></div>
     <div class="card-zone">
-      <div class="mn-cards" id="mmslots">
+      <div class="mn-cards">
         <div id="mm-0" class="mslot"><span class="elbl">EMPTY</span></div>
         <div id="mm-1" class="mslot"><span class="elbl">EMPTY</span></div>
         <div id="mm-2" class="mslot"><span class="elbl">EMPTY</span></div>
@@ -400,54 +420,66 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
       </div>
     </div>
   </div>
-  <!-- 自分 Shield行 -->
-  <div class="zone-row sh-r sh-bg">
-    <div class="dk-panel">
-      <div class="dk-card">
-        <div class="dk-face deck-f"><div class="dk-num" id="mdeckval">30</div></div>
-        <div class="dk-lbl">デッキ</div>
-      </div>
-      <div class="dk-card" onclick="og('m')">
-        <div class="dk-face grave-f"><div class="dk-cnt" id="mgbcnt">0</div></div>
-        <div class="dk-lbl">墓地</div>
-      </div>
-    </div>
+
+  <!-- 自分 Shield行: デッキ・墓地は右端 (相手と対照) -->
+  <div class="zone-row zone-sh zone-msh">
     <div class="card-zone">
       <div class="sh-cards" id="mshcards"></div>
     </div>
+    <div class="dkgv-panel right-side">
+      <!-- 自分: デッキ下・墓地上 (プレイヤーから見て) = 画面では上=墓地,下=デッキ -->
+      <div class="dkgv-card" onclick="og('m')">
+        <div class="dkgv-face gv"><div class="dkgv-num gd" id="mgbcnt">0</div></div>
+        <div class="dkgv-lbl">墓地</div>
+      </div>
+      <div class="dkgv-card">
+        <div class="dkgv-face dk"><div class="dkgv-num wh" id="mdeckval">30</div></div>
+        <div class="dkgv-lbl">デッキ</div>
+      </div>
+    </div>
   </div>
-  <!-- 自分プレート行 -->
-  <div class="fplate fmn"><span class="fp-name">自分</span><span class="fp-turn" id="fturn-m"></span></div>
+
+  <!-- 自分プレート -->
+  <div class="fplate fmn">
+    <span class="fp-name">自分</span>
+    <span class="fp-turn" id="fturn-m"></span>
+  </div>
 
   <!-- 手札 + abar -->
   <div id="hand-area"><div id="hrow"></div></div>
   <div id="abar">
-    <div id="abar-log">手札クリック→召喚 / Battle→攻撃先選択</div>
+    <div id="abar-msg">手札クリック→召喚先 / Battle→攻撃対象</div>
     <button class="abtn abtn-b" id="btnB2" onclick="goBattle()">⚔ Battle</button>
     <button class="abtn abtn-e" id="btnE2" onclick="endTurn()">✓ End Turn</button>
   </div>
 </div>
 
-<!-- RIGHT -->
+<!-- ===== RIGHT: 相手情報 / フェイズ / 自分パートナー ===== -->
 <div id="right">
-  <div id="right-ep">
-    <div class="pt-lbl">Partner — 相手</div>
-    <div class="ptc" id="epc" onmouseenter="pvPt('e')" onmouseleave="pvClear()">
-      <div class="ptc-art"></div>
-      <div class="ptc-name" id="epname"></div>
-      <div class="ptc-stat" id="epstat"></div>
-      <div class="ptc-skill" id="epskill"></div>
-      <div class="ptc-cond unmet" id="epcd"></div>
-      <div class="ptc-guard">🛡 GUARDIAN</div>
+  <!-- 相手プレイヤー情報 (右上) -->
+  <div id="right-einfo">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="pav" id="pav-e"><div class="pav-i"></div></div>
+      <div><div class="pname">相手プレイヤー</div><div class="ptb wait" id="pe-badge">待機中</div></div>
     </div>
+    <div class="en-row"><span class="en-lbl">EN</span><div class="en-track"><div class="en-fill" id="eenfill"></div></div><span class="en-val" id="eenval"></span></div>
   </div>
+
+  <!-- フェイズ/ボタン (右中央) -->
   <div id="right-sys">
-    <div id="sys-phase"><div class="pp off" id="pd">Draw</div><div class="pp mon" id="pm">Main</div><div class="pp off" id="pb">Battle</div><div class="pp off" id="pe">End</div></div>
+    <div id="sys-phase">
+      <div class="pp off" id="pd">Draw</div>
+      <div class="pp mon" id="pm">Main</div>
+      <div class="pp off" id="pb">Battle</div>
+      <div class="pp off" id="pe">End</div>
+    </div>
     <div id="sys-turn"></div>
-    <button class="sys-btn sys-btn-b" id="btnB" onclick="goBattle()">⚔ Battle</button>
+    <button class="sys-btn sys-btn-b" id="btnB" onclick="goBattle()">⚔ Battle Phase</button>
     <button class="sys-btn sys-btn-e" id="btnE" onclick="endTurn()">✓ End Turn</button>
   </div>
-  <div id="right-mp">
+
+  <!-- 自分パートナー (右下) -->
+  <div id="right-mpart">
     <div class="ptc" id="mpc" onmouseenter="pvPt('m')" onmouseleave="pvClear()">
       <div class="ptc-art"></div>
       <div class="ptc-name" id="mpname"></div>
@@ -460,7 +492,8 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <div class="pt-lbl">Partner — 自分</div>
   </div>
 </div>
-</div>
+
+</div><!-- /app -->
 
 <script>
 const G={
@@ -483,7 +516,7 @@ const G={
       {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃',trigger:false},
     ],
     grave:[],
-    partner:{name:'紅蓮王ヴァルド',cost:5,atk:8,hp:12,maxHp:12,skill:'突撃モンスターATK+1',condText:'1Tに2枚SH破壊(0/2)',condMet:false,summoned:false,prog:0},
+    partner:{name:'紅蓮王ヴァルド',cost:5,atk:8,hp:12,maxHp:12,skill:'突撃MON ATK+1',condText:'1Tに2枚SH破壊(0/2)',condMet:false,summoned:false,prog:0},
   },
   enemy:{en:1,enMax:1,deck:30,handCount:5,
     monsters:[
@@ -507,19 +540,19 @@ const G={
 const $=id=>document.getElementById(id);
 let ncT=null;
 
-/* PREVIEW (左パネルに表示) */
+/* PREVIEW */
 function pvShow(card){
   $('pv-empty').style.display='none';
   const pc=$('pv-card');pc.style.display='flex';
   const sp=card.type==='spell';
-  $('pv-art').style.cssText=`width:120px;height:120px;border-radius:8px;background:var(--p3);border:2px solid ${sp?'var(--orange)':'var(--blue)'};flex-shrink:0;`;
-  $('pv-name').textContent=card.name;$('pv-name').style.cssText='font-size:13px;font-weight:700;color:var(--white);text-align:center;';
-  $('pv-type').textContent=sp?'Spell'+(card.trigger?' / 鼓動':''):'Monster';$('pv-type').style.cssText='font-size:8px;color:var(--tx3);font-family:var(--mono);';
+  $('pv-art').style.cssText=`width:116px;height:116px;border-radius:8px;background:var(--p3);border:2px solid ${sp?'var(--orange)':'var(--blue)'};flex-shrink:0;`;
+  $('pv-name').textContent=card.name;$('pv-name').style.cssText='font-size:13px;font-weight:700;color:var(--white);text-align:center;display:block;';
+  $('pv-type').textContent=sp?'Spell'+(card.trigger?' / 鼓動':''):'Monster';$('pv-type').style.cssText='font-size:8px;color:var(--tx3);font-family:var(--mono);display:block;';
   if(card.atk!==undefined){$('pv-stat').innerHTML=`<span style="color:#f09060;font-family:var(--mono)">ATK${card.atk}</span> / <span style="color:#60c870;font-family:var(--mono)">LIFE${card.hp}</span>`;$('pv-stat').style.display='block';}else $('pv-stat').style.display='none';
   const kw=(card.kw&&card.kw.length)?card.kw.join(' / '):'';
-  $('pv-kw').textContent=kw;$('pv-kw').style.display=kw?'block':'none';
-  $('pv-eff').textContent=card.eff||'';$('pv-eff').style.display=card.eff?'block':'none';
-  $('pv-cost').textContent='EN '+card.cost;$('pv-cost').style.cssText='font-size:9px;color:var(--gold);font-family:var(--mono);';
+  $('pv-kw').textContent=kw;$('pv-kw').style.cssText=`font-size:9px;color:#60c870;text-align:center;display:${kw?'block':'none'};`;
+  $('pv-eff').textContent=card.eff||'';$('pv-eff').style.cssText=`font-size:9px;color:#8ab4ff;line-height:1.5;text-align:center;padding:4px 3px 2px;border-top:1px solid var(--l1);width:100%;display:${card.eff?'block':'none'};`;
+  $('pv-cost').textContent='EN '+card.cost;$('pv-cost').style.cssText='font-size:9px;color:var(--gold);font-family:var(--mono);display:block;';
 }
 function pvClear(){$('pv-empty').style.display='block';$('pv-card').style.display='none';}
 function pvPt(who){const gp=who==='e'?G.enemy.partner:G.my.partner;pvShow({name:gp.name,type:'monster',cost:gp.cost,atk:gp.atk,hp:gp.hp,kw:[],eff:'【常在】'+gp.skill+'\n【条件】'+gp.condText});}
@@ -531,18 +564,18 @@ function applyFan(cards){
   cards.forEach((c,i)=>{const a=-maxA/2+step*i,lift=Math.cos((i/(Math.max(n-1,1))-.5)*Math.PI)*12;c.style.transform=`rotate(${a}deg) translateY(${-lift}px)`;c.style.zIndex=String(i+1);});
 }
 function applyEFan(cards){
+  /* 相手手札: 扇状(上から見た逆向き) */
   const n=cards.length;if(!n)return;
-  const maxA=Math.min(3*(n-1),18),step=n>1?maxA/(n-1):0;
+  const maxA=Math.min(3*(n-1),22),step=n>1?maxA/(n-1):0;
   cards.forEach((c,i)=>{const a=-maxA/2+step*i;c.style.transform=`rotate(${a}deg)`;c.style.zIndex=String(i+1);});
 }
-/* Shield FAN: 6枚以上は重ねる */
 function applyShFan(cards,containerW){
   const n=cards.length;if(!n)return;
-  const cardW=112,gap=5;
+  const cardW=112,gap=4;
   const naturalW=cardW*n+gap*(n-1);
-  if(naturalW<=containerW){cards.forEach(c=>{c.style.marginLeft='';c.style.marginRight='2px';});return;}
+  if(naturalW<=containerW){cards.forEach((c,i)=>{c.style.marginLeft=i===0?'0':gap+'px';c.style.zIndex=String(i+1);});return;}
   const overlap=(naturalW-containerW)/(n-1);
-  cards.forEach((c,i)=>{c.style.marginRight='';c.style.marginLeft=i===0?'0':`-${Math.round(overlap)}px`;c.style.zIndex=String(i+1);});
+  cards.forEach((c,i)=>{c.style.marginLeft=i===0?'0':`-${Math.round(overlap-gap)}px`;c.style.zIndex=String(i+1);});
 }
 
 function nc(msg,col){clearTimeout(ncT);$('nc-msg').textContent=msg;$('nc-msg').style.color=col||'var(--white)';$('nc').classList.add('show');ncT=setTimeout(()=>$('nc').classList.remove('show'),1400);}
@@ -559,8 +592,10 @@ function rEN(who){
 }
 function rHB(){
   const c=$('ehbcards'),cnt=$('ehbcnt');c.innerHTML='';
-  const n=Math.min(G.enemy.handCount,12);for(let i=0;i<n;i++){const d=document.createElement('div');d.className='hbc';c.appendChild(d);}
-  cnt.textContent=G.enemy.handCount+'枚';applyEFan(Array.from(c.children));
+  const n=Math.min(G.enemy.handCount,13);
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='ehbc';c.appendChild(d);}
+  cnt.textContent=G.enemy.handCount+'枚';
+  applyEFan(Array.from(c.children));
 }
 function rSh(who){
   const gd=who==='e'?G.enemy:G.my;
@@ -569,9 +604,9 @@ function rSh(who){
     const el=document.createElement('div');el.className='shc'+(s?'':' broken');
     el.id=(who==='e'?'esh-':'msh-')+i;c.appendChild(el);
   });
-  // fan
-  const containerW=c.closest('.card-zone').offsetWidth||760;
-  applyShFan(Array.from(c.children).filter(el=>!el.classList.contains('broken')),containerW);
+  const alive=Array.from(c.children).filter(el=>!el.classList.contains('broken'));
+  const containerW=c.closest('.card-zone')?.offsetWidth||700;
+  applyShFan(alive,containerW);
 }
 function rPt(who){
   const gp=who==='e'?G.enemy.partner:G.my.partner;
@@ -587,9 +622,7 @@ function rPt(who){
   if(who==='m'){const btn=$('mpbtn');if(gp.summoned){btn.textContent='召喚済';btn.disabled=true;}else if(gp.condMet){btn.textContent='召喚！';btn.disabled=false;}else{btn.textContent='召喚不可';btn.disabled=true;}}
 }
 function rMon(who){
-  const slots=$(who==='e'?'emslots':'mmslots');
   G[who==='e'?'enemy':'my'].monsters.forEach((m,i)=>{
-    const slot=$(who==='e'?'em-':'mm-'+i)||slots.children[i];
     const el=$((who==='e'?'em-':'mm-')+i);if(!el)return;
     if(m){
       const hp=m.hp/m.maxHp*100,hpc=hp>50?'full':hp>25?'half':'low';
@@ -745,7 +778,6 @@ function sumP(){
   if(ei>=0)G.my.monsters[ei]={name:p.name,type:'monster',cost:p.cost,atk:p.atk,hp:p.hp,maxHp:p.maxHp,kw:[],eff:p.skill,canAttack:true,used:false,isPartner:true};
   nc('⚡ '+p.name+' 召喚！','var(--gold)');ra();
 }
-// DEMO
 function dBreak(){
   const idx=findAlive('e');if(idx<0){nc('Shieldなし');return;}
   G.my.partner.prog=(G.my.partner.prog||0)+1;
@@ -754,11 +786,10 @@ function dBreak(){
   brkSh('e',idx);ra();
 }
 function dAddSh(){
-  // 相手のShieldを1枚追加(最大10枚)
   if(G.enemy.shields.length>=10){nc('Shield最大(10枚)');return;}
   G.enemy.shields.push(true);
   G.enemy.shCards.push({name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス',trigger:false});
-  nc('相手Shield追加 ('+G.enemy.shields.length+'枚)');rSh('e');
+  nc('相手SH追加 ('+G.enemy.shields.length+'枚)');rSh('e');
 }
 function dTrig(){const idx=findAlive('m');if(idx<0){nc('Shieldなし');return;}G.my.shCards[idx]={name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true};brkSh('m',idx);}
 function dReady(){G.my.partner.condMet=true;G.my.partner.condText='達成済み';$('dbrdy').classList.add('active');nc('⚡ 条件達成！','var(--gold)');ra();}
@@ -800,7 +831,6 @@ function showNotif(msg){const b=$('notif');b.textContent=msg;b.classList.add('sh
 function showCfm(msg,cb){G.pendCfm=cb;$('cfmsg').textContent=msg;$('cfmov').classList.add('show');}
 function cfmY(){$('cfmov').classList.remove('show');if(G.pendCfm){G.pendCfm();G.pendCfm=null;}}
 function cfmN(){$('cfmov').classList.remove('show');G.pendCfm=null;clrSel();}
-
 addLog('>','T1 My Turn','ptn');ra();
 </script>
 </body>
