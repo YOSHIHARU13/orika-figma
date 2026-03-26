@@ -342,6 +342,16 @@ body::after{
   background:rgba(39,201,106,.2);border:1px solid rgba(39,201,106,.4);
   border-radius:3px;padding:1px 3px;font-family:var(--mono);
 }
+/* 盤面モンスターのENコストバッジ（右上） */
+.men-badge{
+  position:absolute;top:3px;right:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:#000;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  border:1.5px solid rgba(0,0,0,.5);font-family:var(--mono);z-index:10;
+  pointer-events:none;
+}
 .elbl{font-size:9px;color:var(--tx3);font-family:var(--mono);margin:auto;}
 
 /* dmg popup */
@@ -402,7 +412,7 @@ body::after{
 .hcard.spell.playable{border-color:rgba(39,201,106,.5);}
 .hcard.hastrig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
 .ccost{
-  position:absolute;top:3px;left:3px;
+  position:absolute;top:3px;right:3px;
   width:22px;height:22px;border-radius:50%;
   background:linear-gradient(135deg,var(--gold2),var(--gold));
   color:#000;font-size:13px;font-weight:900;
@@ -435,7 +445,7 @@ body::after{
 .abtn-b:hover:not(:disabled){filter:brightness(1.15);}
 .abtn-e{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;}
 .abtn-e:hover:not(:disabled){filter:brightness(1.08);}
-.abtn:disabled{opacity:.3;cursor:not-allowed;}
+.abtn:disabled{opacity:.35;cursor:not-allowed;color:rgba(255,255,255,.4)!important;}
 
 /* ── STATUS BARS ── */
 #m-status,#e-status{
@@ -619,6 +629,53 @@ body::after{
   box-shadow:0 2px 12px rgba(0,0,0,.5);
 }
 
+/* ── EFFECT ORDER SELECTOR ── */
+#effect-order-selector{
+  display:none;position:fixed;z-index:770;
+  flex-direction:column;align-items:center;gap:12px;
+  background:linear-gradient(160deg,rgba(10,8,26,.98),rgba(6,5,18,.99));
+  border:1px solid rgba(232,184,75,.4);border-radius:14px;
+  padding:18px 16px;
+  box-shadow:0 0 40px rgba(232,184,75,.15),0 10px 40px rgba(0,0,0,.8);
+  min-width:260px;max-width:340px;
+}
+#effect-order-selector.show{display:flex;}
+.eos-title{font-size:10px;font-weight:900;color:var(--gold);font-family:var(--mono);letter-spacing:.1em;text-align:center;}
+.eos-sub{font-size:9px;color:var(--tx3);font-family:var(--mono);text-align:center;}
+.eos-cards{display:flex;gap:8px;justify-content:center;width:100%;flex-wrap:wrap;}
+.eos-card{
+  flex:1;min-width:90px;max-width:130px;
+  background:rgba(14,12,30,.9);border:1.5px solid var(--l2);
+  border-radius:9px;padding:8px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  cursor:pointer;transition:all .18s;position:relative;
+}
+.eos-card:hover{border-color:var(--gold);background:rgba(28,22,55,.95);box-shadow:0 0 14px rgba(232,184,75,.2);transform:translateY(-2px);}
+.eos-card-icon{font-size:24px;}
+.eos-card-name{font-size:10px;font-weight:700;color:var(--white);text-align:center;line-height:1.2;}
+.eos-card-eff{font-size:8px;color:#8abcff;text-align:center;line-height:1.4;}
+.eos-order-badge{
+  position:absolute;top:-7px;right:-7px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--gold);color:#000;
+  font-size:11px;font-weight:900;font-family:var(--mono);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .15s;border:2px solid var(--bg);
+}
+.eos-card.ordered .eos-order-badge{opacity:1;}
+.eos-card.ordered{border-color:var(--gold);background:rgba(28,22,50,.95);}
+.eos-hint{font-size:9px;color:var(--tx3);font-family:var(--mono);text-align:center;}
+.eos-confirm{
+  width:100%;padding:8px;
+  background:linear-gradient(90deg,rgba(39,201,106,.25),rgba(39,201,106,.1));
+  border:1px solid rgba(39,201,106,.4);border-radius:7px;
+  color:var(--green);font-size:11px;font-weight:700;
+  cursor:pointer;font-family:var(--display);letter-spacing:.06em;
+  transition:all .15s;
+}
+.eos-confirm:hover:not(:disabled){background:linear-gradient(90deg,rgba(39,201,106,.4),rgba(39,201,106,.2));color:#fff;}
+.eos-confirm:disabled{opacity:.3;cursor:not-allowed;}
+
 /* ── TRIGGER CHOICE BOX ── */
 #trig-choice{
   display:none;position:fixed;z-index:760;
@@ -660,6 +717,15 @@ body::after{
 <div id="atk-hint"></div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
+
+<!-- EFFECT ORDER SELECTOR -->
+<div id="effect-order-selector">
+  <div class="eos-title">⚡ 効果の発動順を選択</div>
+  <div class="eos-sub" id="eos-sub"></div>
+  <div class="eos-cards" id="eos-cards"></div>
+  <div class="eos-hint">クリックした順にチェーンに積まれます</div>
+  <button class="eos-confirm" id="eos-confirm" disabled onclick="eosConfirm()">確定して積む</button>
+</div>
 
 <!-- TRIG CHOICE -->
 <div id="trig-choice">
@@ -1178,6 +1244,7 @@ function rMon(w){
       if(fg)el.classList.add('fg');
       el.innerHTML=(m.used?'<div class="ubadge">済</div>':'')
         +(fg?'<div class="fg-tag">前衛</div>':'')
+        +`<div class="men-badge">${m.cost}</div>`
         +`<div class="mart ${monArtClass(m)}">${m.icon||civIcon(m.civ)||''}</div>`
         +`<div class="msa"><div class="mnm">${m.name}</div>`
         +`<div class="mst"><span class="ma">${m.atk}</span><span class="msl">/</span><span class="mh">${m.hp}</span></div>`
@@ -1383,19 +1450,24 @@ function doAtk(asi,dsi){
   drawAtkLine('mm-'+asi,'em-'+dsi,'var(--fire)');
   d.hp-=aAtk;a.hp-=dAtk;
   setTimeout(()=>{
+    // HP増減は常に表示
     showDmgPop('em-'+dsi,aAtk,'var(--red)');
-    showDmgPop('mm-'+asi,dAtk,'#5ba4f5');
-    $('cbar-txt').innerHTML=`<span style="color:var(--fire)">${a.name}</span><span style="color:var(--tx2)"> ATK${aAtk} ⚔ </span><span style="color:var(--water)">${d.name}</span><span style="color:var(--tx2)"> ATK${dAtk}</span>`;
-    setTimeout(()=>$('cbar-txt').innerHTML='',2500);
-    if(d.hp<=0&&a.hp<=0){
-      destroyM('e',dsi);destroyM('m',asi);
-      nc('相打ち！','var(--orange)');addLog('!','相打ち','dmg');
-    }else if(d.hp<=0){
-      destroyM('e',dsi,()=>ra());nc(d.name+' 破壊！','var(--orange)');addLog('!',d.name+' 破壊','dmg');return;
-    }else if(a.hp<=0){
-      destroyM('m',asi,()=>ra());nc(a.name+' 撃破','var(--red)');addLog('x',a.name+' 撃破','dmg');return;
-    }else{nc('⚔ '+a.name+' vs '+d.name);}
-    ra();
+    if(dAtk>0)showDmgPop('mm-'+asi,dAtk,'#5ba4f5');
+    $('cbar-txt').innerHTML=`<span style="color:var(--fire)">${a.name}</span><span style="color:var(--tx2)"> ATK${aAtk} ⚔ </span><span style="color:var(--water)">${d.name}</span><span style="color:var(--tx2)"> ATK${dAtk} / HP残: <span style="color:#ff8055">${Math.max(0,d.hp)}</span> vs <span style="color:#50d880">${Math.max(0,a.hp)}</span></span>`;
+    setTimeout(()=>$('cbar-txt').innerHTML='',3000);
+    // ポップが見えてから破壊処理（600ms後）
+    setTimeout(()=>{
+      if(d.hp<=0&&a.hp<=0){
+        destroyM('e',dsi);destroyM('m',asi);
+        nc('相打ち！','var(--orange)');addLog('!','相打ち','dmg');ra();
+      }else if(d.hp<=0){
+        destroyM('e',dsi,()=>ra());nc(d.name+' 破壊！','var(--orange)');addLog('!',d.name+' 破壊','dmg');
+      }else if(a.hp<=0){
+        destroyM('m',asi,()=>ra());nc(a.name+' 撃破','var(--red)');addLog('x',a.name+' 撃破','dmg');
+      }else{
+        nc('⚔ '+a.name+' vs '+d.name);ra();
+      }
+    },600);
   },200);
 }
 
@@ -1647,12 +1719,113 @@ const Stack={
   hide(){const panel=$('stack-panel');if(panel)panel.style.display='none';}
 };
 
-function showEffectsAndQueue(effects,done){
+/*
+  showEffectsAndQueue:
+  ① 発動タイミングが違う効果 → 自動で順番確定（早い順）
+  ② 同タイミング・同オーナーが複数 → 選択UIで順序決定
+  ③ 同タイミング・自分(m)と相手(e)が1つずつ → ターンプレイヤー先積み
+
+  呼び出し規則:
+  - effects配列はすでに「発動タイミング順」でソート済みを想定
+  - 同タイミンググループはownerでまとめてから渡す
+*/
+function showEffectsAndQueue(effects, done){
   if(!effects.length){if(done)done();return;}
-  const e=effects.shift();
-  const ownerLabel=e.owner==='m'?'自分':'相手';
-  showSpellOverlay(e.card,ownerLabel+' — '+e.label,()=>{Stack.push(e.label,e.card,e.owner,e.fn);showEffectsAndQueue(effects,done);});
+
+  // 先頭と同タイミング(同label prefix)のグループを取り出す
+  // ここでは単純に全件を「自分グループ」「相手グループ」に分類
+  const myEffects    = effects.filter(e=>e.owner==='m');
+  const enemyEffects = effects.filter(e=>e.owner==='e');
+
+  // ターンプレイヤー先積み: 自分ターンなら自分→相手、相手ターンなら相手→自分
+  const first  = G.myTurn ? myEffects    : enemyEffects;
+  const second = G.myTurn ? enemyEffects : myEffects;
+
+  // 自分ターンプレイヤー側が複数効果を持つ場合 → 選択UI
+  if(first.length > 1){
+    showEffectOrderSelector(first, (orderedFirst)=>{
+      // orderedFirstの順に積んだあとsecondを積む
+      const allOrdered = [...orderedFirst, ...second];
+      _queueOneByOne(allOrdered, done);
+    });
+  } else {
+    const allOrdered = [...first, ...second];
+    _queueOneByOne(allOrdered, done);
+  }
 }
+
+// 1件ずつスペルオーバーレイで見せてからStackに積む
+function _queueOneByOne(effects, done){
+  if(!effects.length){if(done)done();return;}
+  const e = effects.shift();
+  const ownerLabel = e.owner==='m'?'自分':'相手';
+  showSpellOverlay(e.card, ownerLabel+' — '+e.label, ()=>{
+    Stack.push(e.label, e.card, e.owner, e.fn);
+    _queueOneByOne(effects, done);
+  });
+}
+
+// 複数効果の順序選択UI
+let _eosCb = null;
+function showEffectOrderSelector(effects, cb){
+  _eosCb = cb;
+  const sel = $('effect-order-selector');
+  const cardsEl = $('eos-cards');
+  const sub = $('eos-sub');
+  const confirm = $('eos-confirm');
+  if(!sel||!cardsEl)return;
+
+  sub.textContent = '同タイミングで'+effects.length+'つの効果が発動 — 積む順にクリック';
+  cardsEl.innerHTML = '';
+  confirm.disabled = true;
+  confirm._effects = effects;
+  confirm._order   = [];
+
+  effects.forEach((eff, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'eos-card';
+    const icon = eff.card ? (eff.card.icon||civIcon(eff.card.civ)||'✨') : '✨';
+    card.innerHTML =
+      `<div class="eos-order-badge" id="eos-badge-${idx}"></div>`+
+      `<div class="eos-card-icon">${icon}</div>`+
+      `<div class="eos-card-name">${eff.card?eff.card.name:eff.label}</div>`+
+      `<div class="eos-card-eff">${eff.label}</div>`;
+    card.onmouseenter = ()=>{ if(eff.card) pvShow(eff.card); };
+    card.onmouseleave = ()=>pvClear();
+    card.onclick = ()=>{
+      const order = confirm._order;
+      if(order.includes(idx)) return;
+      order.push(idx);
+      card.classList.add('ordered');
+      $('eos-badge-'+idx).textContent = order.length;
+      if(order.length === effects.length) confirm.disabled = false;
+    };
+    cardsEl.appendChild(card);
+  });
+
+  const field = $('field');
+  if(field){
+    const fr = field.getBoundingClientRect();
+    sel.style.left = (fr.left+(fr.width-300)/2)+'px';
+    sel.style.top  = (fr.top+(fr.height-300)/2)+'px';
+  }
+  sel.classList.add('show');
+  G.stackLocked = true;
+}
+
+function eosConfirm(){
+  const sel = $('effect-order-selector');
+  const confirm = $('eos-confirm');
+  const effects = confirm._effects;
+  const order   = confirm._order;
+  if(!effects||!order||order.length!==effects.length) return;
+  sel.classList.remove('show');
+  pvClear();
+  const ordered = order.map(i=>effects[i]);
+  const cb = _eosCb; _eosCb = null;
+  if(cb) cb(ordered);
+}
+
 
 /* ============================================================
    LOG
