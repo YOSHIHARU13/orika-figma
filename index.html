@@ -520,6 +520,46 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 #grave-hover-panel .gc-eff{font-size:9px;color:#8ab4ff;margin-top:3px;line-height:1.4;}
 #grave-hover-panel .gc-empty{font-size:11px;color:var(--tx3);text-align:center;padding:16px 0;}
 
+
+/* cbar内墓地ボタン */
+.grave-cbar-btn{transition:all .15s;
+  position:relative;z-index:10;
+  display:flex;align-items:center;gap:4px;
+  background:rgba(0,0,0,.4);border:1px solid var(--l2);
+  border-radius:5px;padding:3px 10px;
+  cursor:pointer;font-family:var(--mono);
+  transition:border-color .15s,background .15s;
+  color:var(--tx2);
+}
+.grave-cbar-btn:hover{border-color:var(--gold);background:rgba(212,168,67,.1);}
+.grave-cbar-btn.has-cards{border-color:var(--l3);color:var(--tx);}
+.grave-cbar-btn.has-cards .gcb-num{color:var(--gold);}
+.gcb-ico{font-size:14px;line-height:1;}
+.gcb-num{font-size:13px;font-weight:900;min-width:16px;text-align:center;}
+/* cbarレイアウト調整 */
+#cbar{justify-content:space-between;gap:8px;}
+#cbar-txt{flex:1;text-align:center;}
+
+
+/* cbar内墓地マーカー */
+.grave-btn{
+  position:absolute;top:50%;transform:translateY(-50%);
+  display:flex;align-items:center;gap:5px;
+  cursor:pointer;padding:3px 10px;
+  border-radius:5px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  transition:all .15s;z-index:10;
+}
+.grave-btn:hover{background:rgba(212,168,67,.12);border-color:rgba(212,168,67,.3);}
+.grave-btn.active{border-color:rgba(212,168,67,.4);}
+#m-grave-btn{left:8px;}
+#e-grave-btn{right:8px;}
+.grave-ico{font-size:15px;line-height:1;}
+.grave-num{font-size:14px;font-weight:900;color:rgba(255,255,255,.5);font-family:var(--mono);transition:color .15s;}
+.grave-btn.active .grave-num{color:var(--gold);}
+.grave-btn:hover .grave-num{color:var(--gold);}
+
 </style>
 </head>
 <body>
@@ -620,7 +660,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <div id="ehb-inner">
       <div id="ehbcards"></div>
     </div>
-    <span class="e-hcnt" id="ehbcnt"></span>
+    <span class="e-hcnt" id="ehbcnt" style="display:none;"></span>
   </div>
 
   <!-- 相手 Shield -->
@@ -642,7 +682,20 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   </div>
 
   <!-- CENTER BAR 36px -->
-  <div id="cbar"><div id="cbar-bg"></div><div id="cbar-txt"></div></div>
+  <div id="cbar">
+    <div id="cbar-bg"></div>
+    <!-- 自分墓地ボタン: cbar左端 -->
+    <button id="m-grave-btn" class="grave-cbar-btn" onclick="og('m')" onmouseenter="showGrave('m')" onmouseleave="hideGrave()" title="自分の墓地">
+      <span class="gcb-ico">⚰</span>
+      <span class="gcb-num" id="cbar-mgrave">0</span>
+    </button>
+    <div id="cbar-txt"></div>
+    <!-- 相手墓地ボタン: cbar右端 -->
+    <button id="e-grave-btn" class="grave-cbar-btn" onclick="og('e')" onmouseenter="showGrave('e')" onmouseleave="hideGrave()" title="相手の墓地">
+      <span class="gcb-num" id="st-egrave">0</span>
+      <span class="gcb-ico">⚰</span>
+    </button>
+  </div>
 
   <!-- 自分 Monster 120px -->
   <div class="zone-row zone-mn zone-mmn">
@@ -689,7 +742,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">📚</span><span class="sval" id="st-mdeck">30</span>
     <span class="sdv">|</span>
-    <span class="sico sgrave" id="mgrave-btn" onmouseenter="showGrave('m')" onmouseleave="hideGrave()">💀</span><span class="sval sgrave" onmouseenter="showGrave('m')" onmouseleave="hideGrave()" id="st-mgrave">0</span>
+    <span class="sico" style="opacity:.4">💀</span><span class="sval" id="cbar-mgrave">0</span>
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-men">1/1</span>
   </div>
@@ -699,7 +752,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">📚</span><span class="sval" id="st-edeck">30</span>
     <span class="sdv">|</span>
-    <span class="sico sgrave" id="egrave-btn" onmouseenter="showGrave('e')" onmouseleave="hideGrave()">💀</span><span class="sval sgrave" onmouseenter="showGrave('e')" onmouseleave="hideGrave()" id="st-egrave">0</span>
+    <span class="sico" style="opacity:.4">💀</span><span class="sval" id="st-egrave">0</span>
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-een">1/1</span>
   </div>
@@ -907,7 +960,7 @@ function rStatus(){
     const ms=fe('m-status'),es=fe('e-status');
     const halfW=fr.width/2;
     if(ms){ms.style.left=(fr.left+4)+'px';ms.style.bottom=(window.innerHeight-fr.bottom+36)+'px';ms.style.maxWidth=(halfW-8)+'px';}
-    if(es){es.style.left=(fr.left+halfW+4)+'px';es.style.top=(fr.top+4)+'px';es.style.maxWidth=(halfW-8)+'px';}
+    if(es){es.style.left='auto';es.style.right=(window.innerWidth-fr.right+4)+'px';es.style.top=(fr.top+4)+'px';es.style.maxWidth=(halfW-8)+'px';}
     // デッキ/墓地をfieldの右端に固定
     const mdk=fe('m-dkgv'),edk=fe('e-dkgv');
     if(mdk){mdk.style.right=(window.innerWidth-fr.right+4)+'px';mdk.style.bottom=(window.innerHeight-fr.bottom+36)+'px';}
@@ -917,10 +970,24 @@ function rStatus(){
   fe('st-mdeck')&&(fe('st-mdeck').textContent=G.my.deck);
   const mgn=G.my.grave.length,egn=G.enemy.grave.length;
   fe('st-mgrave')&&(fe('st-mgrave').textContent=mgn);
+  fe('cbar-mgrave')&&(fe('cbar-mgrave').textContent=mgn);
   fe('st-egrave')&&(fe('st-egrave').textContent=egn);
+  fe('cbar-egrave')&&(fe('cbar-egrave').textContent=egn);
   // 墓地あるとき金色強調
-  ['mgrave-btn','st-mgrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',mgn>0);el.style.opacity=mgn>0?'1':'.45';}});
-  ['egrave-btn','st-egrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',egn>0);el.style.opacity=egn>0?'1':'.45';}});
+  ['m-grave-btn','st-mgrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',mgn>0);el.style.opacity=mgn>0?'1':'.45';}});
+  const cmg=fe('cbar-mgrave'),ceg=fe('cbar-egrave');
+  if(cmg)cmg.textContent=mgn;if(ceg)ceg.textContent=egn;
+  const mgBtn=fe('m-grave-btn'),egBtn=fe('e-grave-btn');
+  if(mgBtn)mgBtn.classList.toggle('active',mgn>0);
+  if(egBtn)egBtn.classList.toggle('active',egn>0);
+  ['e-grave-btn','st-egrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',egn>0);el.style.opacity=egn>0?'1':'.45';}});
+  // cbar墓地ボタン更新
+  const gcbm=fe('gcb-m'),gcbe=fe('gcb-e');
+  const mgbtn=fe('m-grave-btn'),egbtn=fe('e-grave-btn');
+  if(gcbm)gcbm.textContent=mgn;
+  if(gcbe)gcbe.textContent=egn;
+  if(mgbtn)mgbtn.classList.toggle('has-cards',mgn>0);
+  if(egbtn)egbtn.classList.toggle('has-cards',egn>0);
   fe('st-men')&&(fe('st-men').textContent=G.my.en+'/'+G.my.enMax);
   fe('st-ehand')&&(fe('st-ehand').textContent=G.enemy.handCount);
   fe('st-edeck')&&(fe('st-edeck').textContent=G.enemy.deck);
@@ -935,7 +1002,7 @@ function rHB(){
   const c=$('ehbcards'),cnt=$('ehbcnt');c.innerHTML='';
   const n=Math.min(G.enemy.handCount,10);
   for(let i=0;i<n;i++){const d=document.createElement('div');d.className='ehbc';c.appendChild(d);}
-  cnt.textContent=G.enemy.handCount+'枚';
+  cnt.textContent='';
   applyEFan(Array.from(c.children));
 }
 function rSh(w){
@@ -1061,20 +1128,25 @@ function showGrave(w){
   }
   panel.innerHTML=inner;
   // パネルの位置をUIバーに合わせる
-  const btn=document.getElementById(w==='m'?'mgrave-btn':'egrave-btn');
+  const btn=document.getElementById(w==='m'?'m-grave-btn':'e-grave-btn');
   if(btn){
     const r=btn.getBoundingClientRect();
-    panel.style.left=r.left+'px';
+    // 自分(m)→パネルはcbarの上、相手(e)→cbarの下
     if(w==='m'){
       panel.style.bottom=(window.innerHeight-r.top+6)+'px';
       panel.style.top='auto';
+      panel.style.left=r.left+'px';
     } else {
       panel.style.top=(r.bottom+6)+'px';
       panel.style.bottom='auto';
+      panel.style.right=(window.innerWidth-r.right)+'px';
+      panel.style.left='auto';
     }
-    // 画面右端のはみ出し防止
     const pw=260;
-    if(r.left+pw>window.innerWidth) panel.style.left=(window.innerWidth-pw-8)+'px';
+    const pr=parseFloat(panel.style.right||'auto');
+    if(!isNaN(pr) && pr<0) panel.style.right='4px';
+    const pl=parseFloat(panel.style.left||'auto');
+    if(!isNaN(pl) && pl+pw>window.innerWidth) panel.style.left=(window.innerWidth-pw-8)+'px';
   }
   panel.classList.add('show');
 }
