@@ -1455,7 +1455,13 @@ function selAtk(si){
     else s.classList.add('atgt-dim');
   });
   if(!hasEMon){
-    G.enemy.shields.forEach((alive,i)=>{if(!alive)return;const sh=$('esh-'+i);if(!sh)return;sh.classList.add('atk-tgt');sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};});
+    const aliveShields=G.enemy.shields.filter(s=>s).length;
+    if(aliveShields===0){
+      // シールドもモンスターも0 → ダイレクトアタック
+      showDirectTarget(si);
+    }else{
+      G.enemy.shields.forEach((alive,i)=>{if(!alive)return;const sh=$('esh-'+i);if(!sh)return;sh.classList.add('atk-tgt');sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};});
+    }
   }else if(!hasFront){
     G.enemy.shields.forEach((alive,i)=>{if(!alive)return;const sh=$('esh-'+i);if(!sh)return;sh.classList.add('atk-tgt');sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};});
   }else{
@@ -1465,15 +1471,18 @@ function selAtk(si){
   if(hint){
     const fr=$('field').getBoundingClientRect();
     hint.style.left=(fr.left+8)+'px';hint.style.top=(fr.top+fr.height/2-40)+'px';
-    hint.innerHTML=hasFront?'⚠️ 前衛を先に倒す必要があります':hasEMon?'相手MON または シールドを選択':'シールドを攻撃';
+    const aliveShields=G.enemy.shields.filter(s=>s).length;
+    hint.innerHTML=hasFront?'⚠️ 前衛を先に倒す必要があります':hasEMon?'相手MON または シールドを選択':aliveShields===0?'⚔ ダイレクトアタック！':'シールドを攻撃';
     hint.style.display='block';
   }
-  $('cbar-txt').innerHTML=`<span style="color:var(--gold);font-weight:900;">${m.name}</span> <span style="color:var(--tx2);">攻撃宣言${hasFront?' — 前衛優先':''}</span>`;
+  const aliveShields2=G.enemy.shields.filter(s=>s).length;
+  $('cbar-txt').innerHTML=`<span style="color:var(--gold);font-weight:900;">${m.name}</span> <span style="color:var(--tx2);">攻撃宣言${hasFront?' — 前衛優先':aliveShields2===0&&!hasEMon?' — ⚔ ダイレクトアタック可能':''}</span>`;
 }
 function clrAtkUI(){
   document.querySelectorAll('.asel,.atgt,.atgt-dim,.atk-tgt,.atk-dim').forEach(s=>{
     s.classList.remove('asel','atgt','atgt-dim','atk-tgt','atk-dim');s.onclick=null;
   });
+  const btn=$('direct-target-btn');if(btn)btn.remove();
   const hint=$('atk-hint');if(hint)hint.style.display='none';
   $('cbar-txt').innerHTML='';
 }
@@ -1505,6 +1514,56 @@ function doAtk(asi,dsi){
       }
     },600);
   },200);
+}
+
+function showDirectTarget(asi){
+  // フィールド上に「プレイヤーを攻撃」ボタンを表示
+  const field=$('field');if(!field)return;
+  const fr=field.getBoundingClientRect();
+  let btn=$('direct-target-btn');
+  if(!btn){
+    btn=document.createElement('div');
+    btn.id='direct-target-btn';
+    btn.style.cssText=`position:fixed;z-index:480;
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      cursor:crosshair;`;
+    document.body.appendChild(btn);
+  }
+  btn.innerHTML=`
+    <div style="
+      width:90px;height:90px;border-radius:50%;
+      background:radial-gradient(circle,rgba(232,69,69,.3),rgba(232,69,69,.1));
+      border:3px solid var(--red);
+      display:flex;align-items:center;justify-content:center;
+      font-size:32px;
+      animation:atgtPulse .9s infinite alternate;
+      box-shadow:0 0 24px var(--rglow);
+    ">👤</div>
+    <div style="font-size:10px;font-weight:900;color:var(--red);font-family:var(--mono);letter-spacing:.08em;">DIRECT ATTACK</div>`;
+  // 相手プレイヤーエリア（フィールド上部中央）に配置
+  btn.style.left=(fr.left+fr.width/2-45)+'px';
+  btn.style.top=(fr.top+20)+'px';
+  btn.onclick=()=>doDirectKill(asi);
+}
+
+function doDirectKill(asi){
+  const a=G.my.monsters[asi];if(!a)return;
+  clrAtkUI();clrAtk(false);a.used=true;
+  // ボタン除去
+  const btn=$('direct-target-btn');if(btn)btn.remove();
+  // 演出
+  drawAtkLine('mm-'+asi,'pav-e','var(--gold)');
+  const df=$('direct-flash');df.classList.add('show');
+  setTimeout(()=>df.classList.remove('show'),400);
+  $('cbar-txt').innerHTML=`<span style="color:var(--gold);font-weight:900;">⚔ DIRECT ATTACK!</span><span style="color:var(--red);"> ${a.name} が相手プレイヤーに直接攻撃！</span>`;
+  addLog('!','ダイレクトアタック！','atk');
+  nc('⚔ ダイレクトアタック！','var(--gold)');
+  setTimeout(()=>{
+    $('cbar-txt').innerHTML='';
+    ra();
+    // 勝利
+    setTimeout(()=>showResult(true),400);
+  },1200);
 }
 
 function doDirect(asi,shi){
@@ -1662,7 +1721,18 @@ function drawAtkLine(fromId,toId,col){
    END TURN
    ============================================================ */
 function addToHand(card){
-  if(G.my.hand.length>=10){G.my.grave.push({...card});nc(card.name+' → 墓地（上限）','var(--tx3)');return false;}
+  if(G.my.hand.length>=10){
+    G.my.grave.push({...card});
+    // cbarに通知
+    const cb=$('cbar-txt');
+    if(cb){
+      cb.innerHTML=`<span style="color:var(--tx3)">📤 </span><span style="color:var(--white);font-weight:900;">${card.name}</span><span style="color:var(--tx3)"> → 墓地（手札上限10枚）</span>`;
+      setTimeout(()=>{if(cb.innerHTML.includes('手札上限'))cb.innerHTML='';},2500);
+    }
+    nc(card.name+' → 墓地（手札上限）','var(--tx3)');
+    rGrave('m');rStatus();
+    return false;
+  }
   G.my.hand.push(card);return true;
 }
 function endTurn(){
@@ -1670,19 +1740,111 @@ function endTurn(){
   if(!G.myTurn)return;
   G.phase='enemy';G.myTurn=false;G.selCard=null;G.selAtk=null;clrHL();
   nc('Enemy Turn...','var(--blue)');addLog('>','Enemy Turn','');rPhase();updBtn();
+
+  // 相手ターン処理（簡易AI）
+  setTimeout(()=>enemyTurnAI(),800);
+}
+
+function enemyTurnAI(){
+  // EN回復
+  G.enemy.enMax=Math.min(10,G.enemy.enMax+1);G.enemy.en=G.enemy.enMax;
+  rEN('e');
+
+  // ① 召喚: 空きスロットにランダムMONを出す
+  const emptySlot=G.enemy.monsters.findIndex(m=>m===null);
+  const eMons=[
+    {name:'波濤の剣士',type:'monster',cost:3,atk:4,hp:7,maxHp:7,kw:[],eff:'召喚時:1ドロー',civ:'water',icon:'⚔'},
+    {name:'氷盾の番兵',type:'monster',cost:2,atk:2,hp:8,maxHp:8,kw:['前衛'],eff:'前衛',civ:'water',icon:'🛡'},
+    {name:'深海の術士',type:'monster',cost:4,atk:5,hp:6,maxHp:6,kw:[],eff:'攻撃時:相手MONに2ダメ',civ:'water',icon:'🧙'},
+  ];
+  let summoned=null;
+  if(emptySlot>=0&&G.enemy.en>=2){
+    summoned=eMons[G.turn%eMons.length];
+    G.enemy.monsters[emptySlot]={...summoned,canAttack:false,used:false,id:Date.now()};
+    G.enemy.handCount=Math.max(0,G.enemy.handCount-1);
+    G.enemy.en-=summoned.cost||3;
+    addLog('+','相手: '+summoned.name+' 召喚','');
+    nc('相手: '+summoned.name+' 召喚','var(--purple)');
+    rMon('e');rEN('e');
+  }
+
+  // ② 攻撃: 相手MONが自分MON or シールドを攻撃
   setTimeout(()=>{
-    const ei=G.enemy.monsters.findIndex(m=>m===null);
-    if(ei>=0){G.enemy.monsters[ei]={name:'波濤の剣士',type:'monster',cost:4,atk:4,hp:7,maxHp:7,kw:[],eff:'召喚時:1ドロー',canAttack:false,used:false,civ:'water',icon:'⚔'}; G.enemy.handCount=Math.max(0,G.enemy.handCount-1);}
-    G.turn++;G.myTurn=true;G.phase='main';
-    G.my.enMax=Math.min(10,G.my.enMax+1);G.my.en=G.my.enMax;
-    G.enemy.enMax=Math.min(10,G.enemy.enMax+1);G.enemy.en=G.enemy.enMax;
-    G.my.partner.prog=0;if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊(0/2)';
-    G.my.monsters.forEach(m=>{if(m){m.canAttack=true;m.used=false;}});
-    G.enemy.monsters.forEach(m=>{if(m)m.canAttack=false;});
-    addToHand({name:'灼熱突撃兵',type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃',civ:'fire',icon:'⚔'});
-    G.my.deck=Math.max(0,G.my.deck-1);
-    nc('T'+G.turn+' MY TURN','var(--gold)');addLog('>','T'+G.turn+' My Turn','ptn');ra();
-  },1400);
+    const attackers=G.enemy.monsters.filter(m=>m&&!m.used);
+    if(!attackers.length){enemyTurnEnd();return;}
+
+    let atkIdx=0;
+    function doNextAtk(){
+      if(atkIdx>=attackers.length){enemyTurnEnd();return;}
+      const attacker=attackers[atkIdx++];
+      const asi=G.enemy.monsters.indexOf(attacker);
+      if(asi<0){doNextAtk();return;}
+
+      const myMons=G.my.monsters.filter(m=>m);
+      const myFront=G.my.monsters.filter(m=>m&&m.kw&&m.kw.includes('前衛'));
+      const targets=myFront.length?myFront:myMons;
+
+      if(targets.length){
+        // MONを攻撃
+        const tgt=targets[0];
+        const dsi=G.my.monsters.indexOf(tgt);
+        addLog('>','相手: '+attacker.name+' → '+tgt.name,'atk');
+        drawAtkLine('em-'+asi,'mm-'+dsi,'var(--water)');
+        setTimeout(()=>{
+          const aAtk=attacker.atk,dAtk=tgt.atk;
+          tgt.hp-=aAtk;attacker.hp-=dAtk;
+          attacker.used=true;
+          showDmgPop('mm-'+dsi,aAtk,'var(--red)');
+          if(dAtk>0)showDmgPop('em-'+asi,dAtk,'#5ba4f5');
+          nc('相手: '+attacker.name+' ⚔ '+tgt.name,'var(--purple)');
+          if(tgt.hp<=0){G.my.monsters[dsi]=null;addLog('x',tgt.name+' 破壊','dmg');}
+          if(attacker.hp<=0){G.enemy.monsters[asi]=null;addLog('x',attacker.name+' 撃破','dmg');}
+          rMon('m');rMon('e');
+          setTimeout(doNextAtk,600);
+        },300);
+      }else{
+        // シールドを攻撃
+        const shi=findAlive('m');
+        if(shi>=0){
+          drawAtkLine('em-'+asi,'msh-'+shi,'var(--water)');
+          attacker.used=true;
+          addLog('>','相手: '+attacker.name+' → 自分SH','atk');
+          setTimeout(()=>{
+            nc('相手: 自分シールドを攻撃！','var(--red)');
+            brkSh('m',shi);
+            setTimeout(doNextAtk,800);
+          },300);
+        }else{
+          // シールド0 → ダイレクトアタックで敗北
+          attacker.used=true;
+          drawAtkLine('em-'+asi,'pav-m','var(--red)');
+          nc('⚔ 相手のダイレクトアタック！','var(--red)');
+          addLog('!','相手ダイレクトアタック！','dmg');
+          setTimeout(()=>showResult(false),800);
+          return;
+        }
+      }
+    }
+    doNextAtk();
+  },900);
+}
+
+function enemyTurnEnd(){
+  G.turn++;G.myTurn=true;G.phase='main';
+  G.my.enMax=Math.min(10,G.my.enMax+1);G.my.en=G.my.enMax;
+  G.my.partner.prog=0;if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊(0/2)';
+  G.my.monsters.forEach(m=>{if(m){m.canAttack=true;m.used=false;}});
+  G.enemy.monsters.forEach(m=>{if(m)m.canAttack=false;});
+  // ドロー
+  const drawCards=[
+    {name:'灼熱突撃兵',type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃',civ:'fire',icon:'⚔'},
+    {name:'炎の加護',type:'spell',cost:1,eff:'ATK+3',trigger:true,civ:'fire',icon:'🔥'},
+    {name:'烈火の斬撃',type:'spell',cost:2,eff:'相手MON1体に3ダメ',trigger:true,civ:'fire',icon:'⚡'},
+    {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃',civ:'fire',icon:'🦊'},
+  ];
+  addToHand({...drawCards[G.turn%drawCards.length]});
+  G.my.deck=Math.max(0,G.my.deck-1);
+  nc('T'+G.turn+' MY TURN','var(--gold)');addLog('>','T'+G.turn+' My Turn','ptn');ra();
 }
 function sumP(){
   if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
