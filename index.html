@@ -91,11 +91,12 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
   width:180px;flex-shrink:0;height:688px;
   display:grid;
   grid-template-rows:auto 1fr auto;
+  grid-template-columns:100%;
   background:var(--p1);border-left:1px solid var(--l2);
-  overflow:hidden;
+  overflow:visible;
 }
 /* 相手プレイヤー情報 (右上) */
-#r-einfo{padding:10px;border-bottom:1px solid var(--l2);}
+#r-einfo{padding:10px;border-bottom:1px solid var(--l2);width:100%;box-sizing:border-box;grid-row:1;}
 #r-dkgv{
   display:flex;gap:8px;padding:8px;
   border-bottom:1px solid var(--l2);
@@ -108,9 +109,10 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
   padding:10px 8px;
   background:rgba(0,0,0,.3);
   border-bottom:1px solid var(--l2);
+  grid-row:2;
 }
 /* 自分PT (右下) */
-#r-mpt{padding:7px;border-top:1px solid var(--l2);}
+#r-mpt{padding:7px;border-top:1px solid var(--l2);width:100%;box-sizing:border-box;grid-row:3;}
 
 /* 共通: プレイヤー情報 */
 .prow{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
@@ -146,6 +148,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
   background:rgba(10,10,20,.9);
   display:flex;flex-direction:column;align-items:center;
   padding:7px 6px;gap:4px;cursor:pointer;
+  width:100%;box-sizing:border-box;
 }
 .ptc:hover{box-shadow:0 0 10px rgba(212,168,67,.15);}
 .ptc.ready{box-shadow:0 0 12px rgba(212,168,67,.22);}
@@ -833,13 +836,10 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     </div>
   </div>
 
-  <!-- デッキ・墓地 -->
-  <div id="r-dkgv">
-    <div style="display:none;">
-      <span id="_edeckval_r">30</span><span id="_egbcnt_r">0</span>
-    </div>
-    <div style="flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;">
-      
+  <!-- デッキ・墓地 (非表示ID保持のみ) -->
+  <div id="r-dkgv" style="display:none;">
+    <span id="_edeckval_r">30</span><span id="_egbcnt_r">0</span>
+  </div>
 
   <!-- フェイズ/ボタン (右中央 = 1fr + justify-content:center) -->
   <div id="r-sys">
