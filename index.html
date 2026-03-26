@@ -22,7 +22,7 @@
   --MH:112px;   /* Monster高さ */
   --HH:110px;    /* 手札カード高さ */
 }
-html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;}
+html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;}
 
 /* ============================================================
    ルートレイアウト: 左180 / フィールド920 / 右180
@@ -92,7 +92,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   display:grid;
   grid-template-rows:auto 1fr auto;
   background:var(--p1);border-left:1px solid var(--l2);
-  overflow:hidden;z-index:1;
+  overflow:hidden;
 }
 /* 相手プレイヤー情報 (右上) */
 #r-einfo{padding:10px;border-bottom:1px solid var(--l2);}
@@ -169,10 +169,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
    flex-direction:column, 各行高さ固定
    ============================================================ */
 #field{
-  flex:1;height:688px;
+  width:920px;flex-shrink:1;flex-grow:0;height:688px;
   display:flex;flex-direction:column;
   position:relative;overflow:hidden;
-  transform:translateZ(0); /* create stacking context */
+  transform:translateZ(0);
 }
 
 /* プレート行 32px */
@@ -561,19 +561,18 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .grave-btn:hover .grave-num{color:var(--gold);}
 
 
-/* フィールド内墓地ボタン */
+/* 墓地ボタン fixed配置 */
 .grave-field-btn{
-  position:absolute;bottom:4px;left:4px;
+  position:fixed;
   display:flex;flex-direction:column;align-items:center;gap:3px;
   cursor:pointer;padding:5px 8px;
   background:rgba(8,8,20,.85);
   border:1px solid var(--l2);border-radius:7px;
-  z-index:110;transition:all .15s;
-  width:64px;
+  z-index:510;transition:all .15s;
+  width:68px;
 }
 .grave-field-btn:hover{border-color:var(--gold);background:rgba(20,15,40,.95);}
 .grave-field-btn.active{border-color:rgba(212,168,67,.5);}
-.grave-field-btn.egrave{left:auto;right:4px;bottom:4px;}
 /* カードスタック */
 .gfb-stack{position:relative;width:36px;height:50px;flex-shrink:0;}
 .gfb-card{
@@ -595,6 +594,17 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 </head>
 <body>
 <div id="grave-hover-panel"></div>
+<!-- 墓地ボタン fixed配置 -->
+<div class="gfb-card gfb-c2"></div>
+    <div class="gfb-card gfb-c1"></div>
+  </div>
+  <div class="gfb-label">墓地 <span id="cbar-mgrave">0</span></div>
+</div>
+<div class="gfb-card gfb-c2"></div>
+    <div class="gfb-card gfb-c1"></div>
+  </div>
+  <div class="gfb-label">墓地 <span id="cbar-egrave">0</span></div>
+</div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
 <div class="ov" id="tov" onclick="hideTrig()">
@@ -615,8 +625,6 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 <div class="ov modal-bg" id="modal-eg"><div class="mbox"><div class="mhdr"><span class="mttl">相手の墓地<span id="egc"></span></span><button class="mx" onclick="cm('modal-eg')">✕</button></div><div id="egl"></div></div></div>
 <div class="ov modal-bg" id="modal-mg"><div class="mbox"><div class="mhdr"><span class="mttl">自分の墓地<span id="mgc"></span></span><button class="mx" onclick="cm('modal-mg')">✕</button></div><div id="mgl"></div></div></div>
 
-<div id="app">
-
 <div id="dbar">
     <button class="dbtn" onclick="dBreak()">SH破壊</button>
     <button class="dbtn" onclick="dAddSh()">相手SH追加</button>
@@ -631,6 +639,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <button class="dbtn" onclick="dMdraw()">自分ドロー</button>
     <button class="dbtn" onclick="location.reload()">Reset</button>
 </div>
+<div id="app">
 
 <!-- ===== LEFT ===== -->
 <div id="left">
@@ -696,15 +705,6 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
   <!-- 相手 Shield -->
   <div class="zone-row zone-sh zone-esh">
-    <!-- 相手墓地ボタン: 右上 -->
-    <div id="e-grave-btn" class="grave-field-btn egrave" onclick="og('e')">
-      <div class="gfb-stack">
-        <div class="gfb-card gfb-c3"></div>
-        <div class="gfb-card gfb-c2"></div>
-        <div class="gfb-card gfb-c1"></div>
-      </div>
-      <div class="gfb-label">墓地 <span id="cbar-egrave">0</span></div>
-    </div>
     <div class="czwrap"><div class="sh-row" id="eshcards"></div></div>
   </div>
 
@@ -748,15 +748,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   <!-- 自分 Shield -->
   <div class="zone-row zone-sh zone-msh">
     <div class="czwrap"><div class="sh-row" id="mshcards"></div></div>
-    <!-- 自分墓地ボタン: 左上 -->
-    <div id="m-grave-btn" class="grave-field-btn" onclick="og('m')">
-      <div class="gfb-stack">
-        <div class="gfb-card gfb-c3"></div>
-        <div class="gfb-card gfb-c2"></div>
-        <div class="gfb-card gfb-c1"></div>
-      </div>
-      <div class="gfb-label">墓地 <span id="cbar-mgrave">0</span></div>
-    </div>
+
   </div>
 
   <!-- 自分プレート 32px -->
@@ -800,6 +792,24 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-een">1/1</span>
   </div>
+  <!-- 自分墓地ボタン: cbar直下・左 -->
+  <div id="m-grave-btn" class="grave-field-btn" onclick="og('m')">
+    <div class="gfb-stack">
+      <div class="gfb-card gfb-c3"></div>
+      <div class="gfb-card gfb-c2"></div>
+      <div class="gfb-card gfb-c1"></div>
+    </div>
+    <div class="gfb-label">墓地 <span id="cbar-mgrave">0</span></div>
+  </div>
+  <!-- 相手墓地ボタン: cbar直下・右 -->
+  <div id="e-grave-btn" class="grave-field-btn egrave" onclick="og('e')">
+    <div class="gfb-stack">
+      <div class="gfb-card gfb-c3"></div>
+      <div class="gfb-card gfb-c2"></div>
+      <div class="gfb-card gfb-c1"></div>
+    </div>
+    <div class="gfb-label">墓地 <span id="cbar-egrave">0</span></div>
+  </div>
   <!-- 自分手札 + abar (absolute) -->
   <div id="hand-area"><div id="hrow"></div></div>
   <div id="abar">
@@ -811,7 +821,6 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
 <!-- ===== RIGHT ===== -->
 <div id="right">
-  <!-- 相手プレイヤー情報 (右上 = auto) -->
   <div id="r-einfo">
     <div class="prow">
       <div class="pav" id="pav-e"><div class="pav-i"></div></div>
@@ -1006,9 +1015,16 @@ function rStatus(){
     if(ms){ms.style.left=(fr.left+4)+'px';ms.style.bottom=(window.innerHeight-fr.bottom+36)+'px';ms.style.maxWidth=(halfW-8)+'px';}
     if(es){es.style.left='auto';es.style.right=(window.innerWidth-fr.right+4)+'px';es.style.top=(fr.top+4)+'px';es.style.maxWidth=(halfW-8)+'px';}
     // デッキ/墓地をfieldの右端に固定
-    const mdk=fe('m-dkgv'),edk=fe('e-dkgv');
-    if(mdk){mdk.style.right=(window.innerWidth-fr.right+4)+'px';mdk.style.bottom=(window.innerHeight-fr.bottom+36)+'px';}
-    if(edk){edk.style.left=(fr.left+4)+'px';edk.style.top=(fr.top+80)+'px';edk.style.right='auto';}
+    // 墓地ボタン座標設定 (cbar基準)
+    const cbar=document.getElementById('cbar');
+    if(cbar){
+      const cr=cbar.getBoundingClientRect();
+      const mgb=fe('m-grave-btn'),egb=fe('e-grave-btn');
+      // 自分墓地: cbar下の左端
+      if(mgb){mgb.style.left=(fr.left+8)+'px';mgb.style.top=(cr.bottom+4)+'px';}
+      // 相手墓地: cbar上の右端
+      if(egb){egb.style.right=(window.innerWidth-fr.right+8)+'px';egb.style.bottom=(window.innerHeight-cr.top+4)+'px';}
+    }
   }
   fe('st-mhand')&&(fe('st-mhand').textContent=G.my.hand.length);
   fe('st-mdeck')&&(fe('st-mdeck').textContent=G.my.deck);
@@ -1396,6 +1412,14 @@ function showNotif(msg){const b=$('notif');b.textContent=msg;b.classList.add('sh
 function showCfm(msg,cb){G.pendCfm=cb;$('cfmsg').textContent=msg;$('cfmov').classList.add('show');}
 function cfmY(){$('cfmov').classList.remove('show');if(G.pendCfm){G.pendCfm();G.pendCfm=null;}}
 function cfmN(){$('cfmov').classList.remove('show');G.pendCfm=null;clrSel();}
+// rightをappの中に移動(HTML構造修正)
+(function(){
+  const app=document.getElementById('app');
+  const right=document.getElementById('right');
+  if(right && right.parentElement !== app){
+    app.appendChild(right);
+  }
+})();
 addLog('>','T1 My Turn','ptn');ra();
 </script>
 </body>
