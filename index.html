@@ -973,6 +973,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
 
 <script>
 const G={
+  stackLocked:false,
   phase:'main',myTurn:true,turn:1,selCard:null,selAtk:null,pendCfm:null,
   my:{en:1,enMax:1,deck:30,
     hand:[
@@ -1336,6 +1337,8 @@ function addLog(icon,text,cls){
   logs.forEach(e=>{const el=document.createElement('span');el.className='le '+(e.cls||'');el.innerHTML=`<span class="li">${e.icon}</span><span class="lt">${e.text}</span>`;li.appendChild(el);});
 }
 function selCard(i){
+  if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
+
   if(!G.myTurn||G.phase!=='main')return;
   if(G.selCard===i){clrSel();return;}
   G.selCard=i;clrAtk();clrHL();
@@ -1374,36 +1377,35 @@ function placeM(hi,si){
   G.my.hand.splice(hi,1);G.selCard=null;clrHL();
   addLog('+',mc.name+' 召喚','');
 
-  // スタックに積む: 自分の「場に出た時」効果
+
+  // 発動する効果を収集
+  const _effects=[];
   if(mc.onPlay==='draw1'){
-    Stack.push('場に出た時: 1枚ドロー', mc, 'm', ()=>{
-      nc(mc.name+' → 1枚ドロー！','var(--green)');
-      dMdraw();
+    _effects.push({label:'場に出た時: 1枚ドロー', card:mc, owner:'m',
+      fn:()=>{nc(mc.name+' → 1ドロー！','var(--green)');dMdraw();}
     });
   }
-  // スタックに積む: 相手フィールドの「相手モンスターが出た時」効果
   G.enemy.monsters.forEach((em,ei)=>{
-    if(!em) return;
-    if(em.onEnemy==='deal2'){
-      const _si=si; // closureのため
-      Stack.push('相手モンスターが出た時: 2ダメ', em, 'e', ()=>{
-        const target=G.my.monsters[_si];
-        if(target){
-          target.hp-=2;
-          nc(em.name+' → '+mc.name+' に2ダメ！','var(--red)');
-          if(target.hp<=0){nc(mc.name+' 破壊！','var(--orange)');G.my.monsters[_si]=null;}
-        } else {
-          nc(em.name+': 対象消滅 — でも効果は解決済み','var(--tx3)');
-        }
-      });
-    }
+    if(!em||em.onEnemy!=='deal2') return;
+    const _si=si;
+    _effects.push({label:'相手モンスター出た時: 2ダメ', card:em, owner:'e',
+      fn:()=>{
+        const t=G.my.monsters[_si];
+        if(t){t.hp-=2;nc(em.name+' → '+mc.name+' 2ダメ！','var(--red)');
+          if(t.hp<=0){nc(mc.name+' 破壊！','var(--orange)');G.my.monsters[_si]=null;}}
+        else nc(em.name+': 対象消滅 — 効果は解決済み','var(--tx3)');
+      }
+    });
   });
 
-  if(Stack.items.length>0){
-    nc(mc.name+' 召喚 — スタックを確認して▶処理を押してください');
-    Stack.render();rStatus();
+  if(_effects.length){
+    // 各効果を1枚ずつ表示してからスタックへ積む
+    showEffectsAndQueue([..._effects], ()=>{
+      Stack.render(); rStatus();
+      nc('スタック確認 → ▶処理を押してください');
+    });
   } else {
-    nc(mc.name+' 召喚！','var(--green)');ra();
+    nc(mc.name+' 召喚！','var(--green)'); ra();
   }
 }
 function castSpell(hi){
@@ -1422,7 +1424,9 @@ function castSpellOn(hi,ti){
     ra();
   });
 }
-function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');addLog('>','Battle Phase','atk');ra();}
+function goBattle(){
+  if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
+if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');addLog('>','Battle Phase','atk');ra();}
 function selAtk(si){
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
@@ -1549,6 +1553,8 @@ function trigCancel(){
 function hideTrig(){ra();}
 function destroyM(w,si){const m=G[w==='e'?'enemy':'my'].monsters;const c=m[si];if(!c)return;G[w==='e'?'enemy':'my'].grave.push({...c});m[si]=null;}
 function endTurn(){
+  if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
+
   if(!G.myTurn)return;G.phase='enemy';G.myTurn=false;G.selCard=null;G.selAtk=null;clrHL();
   document.querySelectorAll('#hrow .hcard').forEach(c=>{c.style.opacity='.3';c.style.pointerEvents='none';});
   nc('Enemy Turn...','var(--blue)');addLog('>','Enemy Turn','');rPhase();updBtn();
@@ -1565,6 +1571,8 @@ function endTurn(){
   },1500);
 }
 function sumP(){
+  if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
+
   const p=G.my.partner;if(p.summoned||!p.condMet)return;p.summoned=true;
   const ei=G.my.monsters.findIndex(m=>m===null);
   if(ei>=0)G.my.monsters[ei]={name:p.name,type:'monster',cost:p.cost,atk:p.atk,hp:p.hp,maxHp:p.maxHp,kw:[],eff:p.skill,canAttack:true,used:false,isPartner:true};
@@ -1649,9 +1657,7 @@ function showSpellOverlay(card, labelText, callback){
   box.onmouseenter=()=>pvShow(card);
   box.onmouseleave=()=>pvClear();
   _spellCallback=callback;
-  // 4秒後に自動進行
-  if(_spellTimer)clearTimeout(_spellTimer);
-  _spellTimer=setTimeout(resolveSpellOverlay,4000);
+  // タイマーなし: クリックのみで進む
 }
 function resolveSpellOverlay(){
   if(_spellTimer){clearTimeout(_spellTimer);_spellTimer=null;}
@@ -1673,20 +1679,22 @@ const Stack = {
   // エフェクトをスタックに積む
   push(label, card, owner, fn){
     this.items.push({label, card, owner, fn});
+    G.stackLocked=true;  // 積んだ時点でロック
     this.render();
   },
 
-  // スタックを逆順に処理
   resolve(){
     if(this.resolving) return;
     if(!this.items.length){this.hide();return;}
     this.resolving=true;
+    G.stackLocked=true;
     this._next();
   },
 
   _next(){
     if(!this.items.length){
       this.resolving=false;
+      G.stackLocked=false;
       this.hide();
       ra();
       return;
@@ -1751,6 +1759,31 @@ const Stack = {
     this.hide();
   }
 };
+
+
+// 効果発動通知 → クリックでスタックに積む
+function showEffectThenPush(label, card, owner, fn, afterAll){
+  // スペルオーバーレイを流用
+  const ownerLabel = owner==='m' ? '自分' : '相手';
+  const dispLabel = ownerLabel + ' — ' + label;
+  showSpellOverlay(card, dispLabel, ()=>{
+    Stack.push(label, card, owner, fn);
+    // afterAll: 全部積んだら処理待ち状態にする
+    if(afterAll) afterAll();
+  });
+}
+
+// 複数効果を順番に見せてからスタックに積む
+// effects: [{label, card, owner, fn}]
+function showEffectsAndQueue(effects, done){
+  if(!effects.length){if(done)done();return;}
+  const e=effects.shift();
+  const ownerLabel=e.owner==='m'?'自分':'相手';
+  showSpellOverlay(e.card, ownerLabel+' — '+e.label, ()=>{
+    Stack.push(e.label, e.card, e.owner, e.fn);
+    showEffectsAndQueue(effects, done);
+  });
+}
 
 function showResult(win){
   const lbl=document.getElementById('result-label');
