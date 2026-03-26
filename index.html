@@ -346,11 +346,12 @@ body::after{
 .men-badge{
   position:absolute;top:3px;right:3px;
   width:20px;height:20px;border-radius:50%;
-  background:linear-gradient(135deg,var(--gold2),var(--gold));
-  color:#000;font-size:11px;font-weight:900;
+  background:linear-gradient(135deg,#8a6000,var(--gold2));
+  color:var(--white);font-size:11px;font-weight:900;
   display:flex;align-items:center;justify-content:center;
-  border:1.5px solid rgba(0,0,0,.5);font-family:var(--mono);z-index:10;
+  border:1.5px solid rgba(232,184,75,.6);font-family:var(--mono);z-index:10;
   pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.8);
 }
 .elbl{font-size:9px;color:var(--tx3);font-family:var(--mono);margin:auto;}
 
@@ -414,12 +415,13 @@ body::after{
 .ccost{
   position:absolute;top:3px;right:3px;
   width:22px;height:22px;border-radius:50%;
-  background:linear-gradient(135deg,var(--gold2),var(--gold));
-  color:#000;font-size:13px;font-weight:900;
+  background:linear-gradient(135deg,#7a5500,var(--gold2));
+  color:var(--white);font-size:13px;font-weight:900;
   display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(0,0,0,.5);font-family:var(--mono);z-index:10;
+  border:2px solid rgba(232,184,75,.5);font-family:var(--mono);z-index:10;
+  text-shadow:0 1px 3px rgba(0,0,0,.9);
 }
-.ccost.cant{background:rgba(30,30,50,.9);color:var(--tx3);border-color:var(--l2);}
+.ccost.cant{background:rgba(30,30,50,.9);color:var(--tx3);border-color:var(--l2);text-shadow:none;}
 .cart-h{
   width:100%;flex:1;min-height:0;border-radius:5px;
   display:flex;align-items:center;justify-content:center;
@@ -805,7 +807,8 @@ body::after{
   <button class="dbtn" onclick="dEdraw()">相手ドロー</button>
   <button class="dbtn" onclick="dMdraw()">自分ドロー</button>
   <button class="dbtn" onclick="dGrave10()">墓地+10</button>
-  <button class="dbtn" onclick="dStackDemo()">スタック</button>
+  <button class="dbtn" onclick="dStackDemo()">スタック(2効果)</button>
+  <button class="dbtn" onclick="dStackDemo4()">スタック(4効果)</button>
   <button class="dbtn" onclick="showResult(true)">自分勝利</button>
   <button class="dbtn" onclick="showResult(false)">自分敗北</button>
   <button class="dbtn" onclick="location.reload()">Reset</button>
@@ -1357,19 +1360,48 @@ function placeM(hi,si){
   G.my.hand.splice(hi,1);G.selCard=null;clrHL();
   addLog('+',mc.name+' 召喚','');
   const _effects=[];
+  // ① 召喚したMON自身の場に出た時効果
   if(mc.onPlay==='draw1'){
-    _effects.push({label:'場に出た時: 1枚ドロー',card:mc,owner:'m',fn:()=>{nc(mc.name+' → 1ドロー！','var(--green)');dMdraw();}});
+    _effects.push({label:'場に出た時: 1枚ドロー',card:mc,owner:'m',
+      fn:()=>{nc(mc.name+' → 1ドロー！','var(--green)');dMdraw();}});
   }
+  // ② 自分フィールドの「味方MONが出た時」効果
+  G.my.monsters.forEach((am,ai)=>{
+    if(!am||am.id===mc.id)return; // 自分自身は除く
+    if(am.onAlly==='buff_hp2'){
+      _effects.push({label:'味方MONが出た時: HP+2',card:am,owner:'m',
+        fn:()=>{
+          const t=G.my.monsters[si];
+          if(t){t.hp=Math.min(t.maxHp+2,t.hp+2);t.maxHp+=2;
+            nc(am.name+' → '+mc.name+' HP+2','var(--green)');}
+        }});
+    }
+    if(am.onAlly==='draw1'){
+      _effects.push({label:'味方MONが出た時: 1枚ドロー',card:am,owner:'m',
+        fn:()=>{nc(am.name+' → 1ドロー！','var(--green)');dMdraw();}});
+    }
+  });
+  // ③ 相手フィールドの「相手MONが出た時」効果
   G.enemy.monsters.forEach((em,ei)=>{
-    if(!em||em.onEnemy!=='deal2')return;
-    _effects.push({label:'相手MONが出た時: 2ダメ',card:em,owner:'e',fn:()=>{
-      const t=G.my.monsters[si];
-      if(t){t.hp-=2;
-        showDmgPop('mm-'+si,2,'var(--red)');
-        if(t.hp<=0){G.my.monsters[si]=null;nc(mc.name+' 破壊！','var(--orange)');}
-        else nc(em.name+' → '+mc.name+' 2ダメ！','var(--red)');
-      }
-    }});
+    if(!em)return;
+    if(em.onEnemy==='deal2'){
+      _effects.push({label:'相手MONが出た時: 2ダメ',card:em,owner:'e',
+        fn:()=>{
+          const t=G.my.monsters[si];
+          if(t){t.hp-=2;showDmgPop('mm-'+si,2,'var(--red)');
+            if(t.hp<=0){G.my.monsters[si]=null;nc(mc.name+' 破壊！','var(--orange)');}
+            else nc(em.name+' → '+mc.name+' 2ダメ！','var(--red)');}
+        }});
+    }
+    if(em.onEnemy==='debuff_atk1'){
+      _effects.push({label:'相手MONが出た時: ATK-1',card:em,owner:'e',
+        fn:()=>{
+          const t=G.my.monsters[si];
+          if(t){t.atk=Math.max(0,t.atk-1);
+            nc(em.name+' → '+mc.name+' ATK-1','var(--purple)');
+            rMon('m');}
+        }});
+    }
   });
   rMon('m');rHand();rEN('m');rStatus();
   if(_effects.length){
@@ -1755,10 +1787,25 @@ function showEffectsAndQueue(effects, done){
 }
 
 // 1件ずつスペルオーバーレイで見せてからStackに積む
+// 効果が1件しかない場合はスタック不使用で直接発動
 function _queueOneByOne(effects, done){
   if(!effects.length){if(done)done();return;}
-  const e = effects.shift();
-  const ownerLabel = e.owner==='m'?'自分':'相手';
+
+  // 合計1件 かつ スタックが空 → スタック不使用で直接発動
+  if(effects.length===1 && Stack.items.length===0){
+    const e=effects[0];
+    const ownerLabel=e.owner==='m'?'自分':'相手';
+    showSpellOverlay(e.card, ownerLabel+' — '+e.label, ()=>{
+      e.fn();
+      rMon('m');rMon('e');rHand();rEN('m');rEN('e');rGrave('m');rGrave('e');rStatus();updBtn();
+      if(done)done();
+    });
+    return;
+  }
+
+  // 複数件 → スタックに積んで逆順処理
+  const e=effects.shift();
+  const ownerLabel=e.owner==='m'?'自分':'相手';
   showSpellOverlay(e.card, ownerLabel+' — '+e.label, ()=>{
     Stack.push(e.label, e.card, e.owner, e.fn);
     _queueOneByOne(effects, done);
@@ -1950,6 +1997,48 @@ function dGrave10(){
   cards.forEach(c=>G.my.grave.push({...c}));
   nc('墓地+10枚');rGrave('m');rStatus();
 }
+function dStackDemo4(){
+  // フィールドリセット
+  G.my.monsters=[null,null,null,null,null];
+  G.enemy.monsters=[null,null,null,null,null];
+
+  // 相手フィールド: MONが出た時に効果発動するカード2体
+  G.enemy.monsters[1]={
+    name:'監視の番人',type:'monster',cost:3,atk:3,hp:8,maxHp:8,kw:[],
+    eff:'相手のMONが出た時: そのMONに2ダメージ',
+    onEnemy:'deal2',civ:'water',icon:'👁'
+  };
+  G.enemy.monsters[3]={
+    name:'呪詛の術士',type:'monster',cost:4,atk:2,hp:7,maxHp:7,kw:[],
+    eff:'相手のMONが出た時: そのMONのATK-1',
+    onEnemy:'debuff_atk1',civ:'dark',icon:'🧙'
+  };
+
+  // 自分フィールド: 味方MONが出た時に効果発動するカード2体
+  G.my.monsters[0]={
+    name:'応援の精霊',type:'monster',cost:2,atk:1,hp:4,maxHp:4,kw:[],
+    eff:'味方MONが出た時: そのMONのHP+2',
+    onAlly:'buff_hp2',canAttack:true,used:false,civ:'wind',icon:'🌟'
+  };
+  G.my.monsters[4]={
+    name:'戦場の旗手',type:'monster',cost:3,atk:2,hp:6,maxHp:6,kw:[],
+    eff:'味方MONが出た時: 1枚ドロー',
+    onAlly:'draw1',canAttack:true,used:false,civ:'fire',icon:'🚩'
+  };
+
+  // 手札: 召喚するカード（自身も「場に出た時」効果持ち）
+  G.my.hand=[];
+  G.my.hand.push({
+    name:'霊感の使徒',type:'monster',cost:2,atk:1,hp:2,maxHp:2,kw:[],
+    eff:'場に出た時: 1枚ドロー',
+    onPlay:'draw1',civ:'wind',icon:'✨'
+  });
+
+  G.my.en=8;G.my.enMax=8;
+  nc('4効果デモ: 「霊感の使徒」を召喚 → 4つの効果が同タイミングで発動','var(--gold)');
+  ra();
+}
+
 function dStackDemo(){
   G.my.monsters=[null,null,null,null,null];
   G.enemy.monsters=[null,null,null,null,null];
@@ -1957,7 +2046,7 @@ function dStackDemo(){
   G.my.hand=[];
   G.my.hand.push({name:'霊感の使徒',type:'monster',cost:2,atk:1,hp:2,maxHp:2,kw:[],eff:'場に出た時: 1枚ドロー',onPlay:'draw1',civ:'wind',icon:'✨'});
   G.my.en=5;G.my.enMax=5;
-  nc('スタックデモ: 「霊感の使徒」を召喚 → チェーン2個積まれます','var(--gold)');ra();
+  nc('スタック(2効果)デモ: 「霊感の使徒」を召喚 → 自分1+相手1でスタックに積まれます','var(--gold)');ra();
 }
 
 /* ============================================================
