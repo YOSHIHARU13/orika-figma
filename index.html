@@ -1792,10 +1792,10 @@ function dStackDemo(){
    ============================================================ */
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('modal-bg'))e.target.classList.remove('show');
+  const gp=$('grave-panel');
   if(gp&&gp.classList.contains('open')&&!gp.contains(e.target)){
-    // 墓地ボタン・UIバー髑髏クリックは除外
     const ids=['m-grave-btn','e-grave-btn','st-mgrave','st-egrave'];
-    if(!ids.some(id=>e.target.id===id||e.target.closest('#'+id)))closeGravePanel();
+    if(!ids.some(id=>e.target.id===id||e.target.closest&&e.target.closest('#'+id)))closeGravePanel();
   }
 });
 
