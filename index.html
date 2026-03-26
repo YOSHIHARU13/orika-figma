@@ -385,7 +385,8 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
 .tov-cnm{font-size:1rem;font-weight:700;color:var(--gold);}
 .tov-ceff{font-size:.9rem;color:var(--tx);max-width:280px;text-align:center;}
 .tov-hint{font-size:10px;color:var(--tx3);}
-#cfmov{background:rgba(0,0,0,.8);}
+#cfmov{background:rgba(0,0,0,.0);pointer-events:none;}
+.cfmbox{pointer-events:all;}
 .cfmbox{background:var(--p2);border:1px solid var(--l2);border-radius:10px;padding:22px;max-width:280px;text-align:center;}
 .cfmmsg{font-size:12px;line-height:1.7;margin-bottom:16px;white-space:pre-wrap;}
 .cfmbtns{display:flex;gap:8px;justify-content:center;}
@@ -1280,15 +1281,30 @@ function selCard(i){
   if(G.selCard===i){clrSel();return;}
   G.selCard=i;clrAtk();clrHL();
   const c=G.my.hand[i];
-  if(c.type==='spell'){if(c.eff&&(c.eff.includes('1体')||c.eff.includes('1枚'))){hlETgt();nc(c.name+' — 対象を選択');}else showCfm('「'+c.name+'」を発動しますか？\n'+c.eff,()=>castSpell(i));}
-  else{hlMSlots();nc(c.name+' — 召喚先を選択');}
+  if(c.type==='spell'){
+    if(c.eff&&(c.eff.includes('1体')||c.eff.includes('1枚'))){
+      // 対象選択型: 対象をクリックで確認
+      hlETgt();nc(c.name+' — 対象を選択（ESCキャンセル）');
+    } else {
+      showCfm('「'+c.name+'」を発動しますか？\n'+c.eff,()=>castSpell(i));
+    }
+  } else {
+    // モンスター: スロット選択後に確認
+    hlMSlots();nc(c.name+' — 召喚先を選択（再クリックでキャンセル）');
+  }
   rHand();
 }
 function clrSel(){G.selCard=null;clrHL();rHand();}
 function clrHL(){document.querySelectorAll('.stgt').forEach(s=>s.classList.remove('stgt'));document.querySelectorAll('.atgt').forEach(s=>{s.classList.remove('atgt');s.onclick=null;});rSh('e');}
 function hlMSlots(){G.my.monsters.forEach((m,i)=>{if(!m){const s=$('mm-'+i);if(s)s.classList.add('stgt');}});}
 function hlETgt(){G.enemy.monsters.forEach((m,i)=>{if(m){const s=$('em-'+i);if(s){s.classList.add('atgt');s.onclick=()=>castSpellOn(G.selCard,i);}}});}
-function tryPlace(si){if(G.selCard===null)return;const c=G.my.hand[G.selCard];if(!c||c.type!=='monster'||G.my.monsters[si]!==null)return;placeM(G.selCard,si);}
+function tryPlace(si){
+  if(G.selCard===null)return;
+  const c=G.my.hand[G.selCard];
+  if(!c||c.type!=='monster'||G.my.monsters[si]!==null)return;
+  const hi=G.selCard;
+  showCfm('「'+c.name+'」を召喚しますか？\nEN'+c.cost+' / ATK'+c.atk+' HP'+c.hp,()=>placeM(hi,si));
+}
 function placeM(hi,si){
   const c=G.my.hand[hi];if(c.cost>G.my.en){nc('EN不足','var(--red)');return;}
   G.my.en-=c.cost;G.my.monsters[si]={name:c.name,type:c.type,cost:c.cost,atk:c.atk,hp:c.hp,maxHp:c.hp,kw:c.kw||[],eff:c.eff||'',canAttack:(c.kw||[]).includes('突撃'),used:false};
@@ -1296,11 +1312,16 @@ function placeM(hi,si){
 }
 function castSpell(hi){
   const c=G.my.hand[hi];if(!c||c.cost>G.my.en)return;
-  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();nc(c.name+' 発動');addLog('*',c.name+' 発動','');ra();
+  G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
+  const _cb=$('cbar-txt');
+  if(_cb){_cb.innerHTML=`<span style="color:#d4820a;font-weight:900;font-size:12px;margin-right:8px;">スペル発動</span><div style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(212,130,10,.12);border:1px solid rgba(212,130,10,.4);border-radius:6px;cursor:pointer;margin-right:8px;" onmouseenter="pvShow(${JSON.stringify(c).replace(/"/g,'&quot;')})" onmouseleave="pvClear()"><div style="width:16px;height:22px;border-radius:2px;background:rgba(212,130,10,.2);border:1px solid var(--orange);flex-shrink:0;"></div><span style="color:var(--gold);font-weight:700;font-size:11px;">${c.name}</span></div>`;setTimeout(()=>{if(_cb)_cb.innerHTML='';},3000);}
+  nc(c.name+' 発動');addLog('*',c.name+' 発動','');ra();
 }
 function castSpellOn(hi,ti){
   const c=G.my.hand[hi],t=G.enemy.monsters[ti];if(!c||!t||c.cost>G.my.en)return;
   const dmg=parseInt(c.eff.match(/\d+/)?.[0]||0);G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
+  const _cb=$('cbar-txt');
+  if(_cb){_cb.innerHTML=`<span style="color:#d4820a;font-weight:900;font-size:12px;margin-right:8px;">スペル発動</span><div style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(212,130,10,.12);border:1px solid rgba(212,130,10,.4);border-radius:6px;cursor:pointer;" onmouseenter="pvShow(${JSON.stringify(c).replace(/"/g,'&quot;')})" onmouseleave="pvClear()"><div style="width:16px;height:22px;border-radius:2px;background:rgba(212,130,10,.2);border:1px solid var(--orange);flex-shrink:0;"></div><span style="color:var(--gold);font-weight:700;font-size:11px;">${c.name}</span></div>`;setTimeout(()=>{if(_cb)_cb.innerHTML='';},3000);}
   t.hp-=dmg;if(t.hp<=0){nc(t.name+' 破壊！','var(--orange)');destroyM('e',ti);}else nc(c.name+' -'+dmg);ra();
 }
 function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');addLog('>','Battle Phase','atk');ra();}
@@ -1596,6 +1617,14 @@ function cfmN(){$('cfmov').classList.remove('show');G.pendCfm=null;clrSel();}
   }
 })();
 addLog('>','T1 My Turn','ptn');ra();
+// フィールドクリックで墓地パネルを閉じる
+document.getElementById('field')&&document.getElementById('field').addEventListener('click',function(e){
+  const panel=document.getElementById('grave-panel');
+  if(panel&&panel.style.display!=='none'){
+    // クリックが墓地パネル外なら閉じる
+    if(!panel.contains(e.target))closeGravePanel();
+  }
+});
 </script>
 </body>
 </html>
