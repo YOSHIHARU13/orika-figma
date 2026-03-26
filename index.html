@@ -630,6 +630,31 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
 .stack-res-label{font-size:9px;color:var(--gold);font-family:var(--mono);}
 .stack-res-name{font-size:10px;font-weight:700;color:var(--white);}
 
+
+/* 攻撃対象UI強化 */
+.atgt-dim{opacity:.3;filter:grayscale(.5);pointer-events:none!important;}
+.atgt-dim *{pointer-events:none!important;}
+.atgt{box-shadow:0 0 0 2px var(--red),0 0 12px rgba(220,60,60,.35)!important;cursor:crosshair!important;}
+.mcard.atgt{box-shadow:0 0 0 2px var(--red),0 0 14px rgba(220,60,60,.4)!important;}
+.shc.atgt{box-shadow:0 0 0 2px var(--red),0 0 14px rgba(220,60,60,.4)!important;}
+/* 攻撃宣言モンスター */
+.asel{box-shadow:0 0 0 2px var(--gold),0 0 14px rgba(212,168,67,.5)!important;}
+/* 前衛ラベル強化 */
+.front-tag{
+  position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+  font-size:8px;font-weight:900;color:var(--white);
+  background:rgba(74,144,226,.7);border-radius:3px;padding:1px 4px;
+  font-family:var(--mono);white-space:nowrap;
+}
+/* 攻撃できない理由ラベル */
+#atk-hint{
+  position:fixed;z-index:600;
+  background:rgba(8,8,20,.9);border:1px solid var(--l2);
+  border-radius:5px;padding:5px 10px;
+  font-size:11px;color:var(--tx2);font-family:var(--mono);
+  pointer-events:none;display:none;
+}
+
 </style>
 </head>
 <body>
@@ -700,6 +725,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
   </div>
 </div>
 
+<div id="atk-hint"></div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
 <div class="ov" id="tov" onclick="hideTrig()" style="display:none!important;">
@@ -1398,12 +1424,16 @@ function placeM(hi,si){
     });
   });
 
+  // まずフィールドを更新してモンスターを表示
+  rMon('m'); rHand(); rEN('m'); rStatus();
   if(_effects.length){
-    // 各効果を1枚ずつ表示してからスタックへ積む
-    showEffectsAndQueue([..._effects], ()=>{
-      Stack.render(); rStatus();
-      nc('スタック確認 → ▶処理を押してください');
-    });
+    // 召喚後にフィールドを見せてから効果通知
+    setTimeout(()=>{
+      showEffectsAndQueue([..._effects], ()=>{
+        Stack.render(); rStatus();
+        nc('▶処理ボタンでスタックを解決してください');
+      });
+    }, 400);
   } else {
     nc(mc.name+' 召喚！','var(--green)'); ra();
   }
@@ -1428,21 +1458,84 @@ function goBattle(){
   if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
 if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');addLog('>','Battle Phase','atk');ra();}
 function selAtk(si){
+  if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
-  if(G.selAtk===si){document.querySelectorAll('.asel,.atgt').forEach(s=>{s.classList.remove('asel','atgt');s.onclick=null;});G.selAtk=null;return;}
-  G.selAtk=si;document.querySelectorAll('.asel,.atgt').forEach(s=>{s.classList.remove('asel','atgt');s.onclick=null;});
+  // 選択解除
+  if(G.selAtk===si){clrAtkUI();G.selAtk=null;return;}
+  G.selAtk=si;clrAtkUI();
   const sel=$('mm-'+si);if(sel)sel.classList.add('asel');
   const hasFront=G.enemy.monsters.some(em=>em&&em.kw&&em.kw.includes('前衛'));
-  G.enemy.monsters.forEach((em,i)=>{if(!em)return;if(hasFront&&!(em.kw&&em.kw.includes('前衛')))return;const s=$('em-'+i);if(s){s.classList.add('atgt');s.onclick=()=>doAtk(si,i);}});
-  if(!hasFront){G.enemy.shields.forEach((alive,i)=>{if(!alive)return;const sh=$('esh-'+i);if(sh){sh.classList.add('atgt');sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};}});}
-  nc(m.name+' 攻撃宣言');addLog('>',m.name+' 攻撃宣言','atk');
+  const hasEMon=G.enemy.monsters.some(em=>em);
+
+  // 攻撃できる対象: atgt / できない対象: atgt-dim
+  G.enemy.monsters.forEach((em,i)=>{
+    if(!em)return;
+    const s=$('em-'+i);if(!s)return;
+    const canTarget=!hasFront||(em.kw&&em.kw.includes('前衛'));
+    if(canTarget){s.classList.add('atgt');s.onclick=()=>doAtk(si,i);}
+    else{s.classList.add('atgt-dim');}
+  });
+
+  // シールド攻撃: 相手モンスターがいる場合はdim（前衛優先）
+  if(!hasEMon){
+    // モンスターがいない → シールドのみ攻撃可
+    G.enemy.shields.forEach((alive,i)=>{
+      if(!alive)return;
+      const sh=$('esh-'+i);if(!sh)return;
+      sh.classList.add('atgt');
+      sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};
+    });
+  } else if(!hasFront){
+    // モンスターいる・前衛なし → モンスターかシールド選べる
+    G.enemy.shields.forEach((alive,i)=>{
+      if(!alive)return;
+      const sh=$('esh-'+i);if(!sh)return;
+      sh.classList.add('atgt');
+      sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};
+    });
+  } else {
+    // 前衛あり → シールドはdim
+    G.enemy.shields.forEach((alive,i)=>{
+      if(!alive)return;
+      const sh=$('esh-'+i);if(sh)sh.classList.add('atgt-dim');
+    });
+  }
+
+  // hintを表示
+  const hint=$('atk-hint');
+  if(hint){
+    const fr=document.getElementById('field').getBoundingClientRect();
+    hint.style.left=(fr.left+8)+'px';
+    hint.style.top=(fr.top+fr.height/2-40)+'px';
+    if(hasFront) hint.innerHTML='⚠️ 前衛モンスターを先に倒す必要があります';
+    else if(hasEMon) hint.innerHTML='相手モンスター または シールドを選択';
+    else hint.innerHTML='シールドを攻撃（ダイレクトアタック）';
+    hint.style.display='block';
+  }
+  const cb=$('cbar-txt');
+  if(cb) cb.innerHTML=`<span style="color:var(--gold);font-weight:900;">${m.name}</span> <span style="color:var(--tx2);">攻撃宣言${hasFront?' — 前衛必須':''}`;
+  addLog('>',m.name+' 攻撃宣言','atk');
+}
+
+function clrAtkUI(){
+  document.querySelectorAll('.asel,.atgt,.atgt-dim').forEach(s=>{
+    s.classList.remove('asel','atgt','atgt-dim');s.onclick=null;
+  });
+  const hint=$('atk-hint');if(hint)hint.style.display='none';
+  const cb=$('cbar-txt');if(cb)cb.innerHTML='';
 }
 function clrAtk(r=true){G.selAtk=null;document.querySelectorAll('.asel,.atgt').forEach(s=>{s.classList.remove('asel','atgt');s.onclick=null;});if(r)rSh('e');}
 function doAtk(asi,dsi){
   const a=G.my.monsters[asi],d=G.enemy.monsters[dsi];if(!a||!d)return;
-  clrAtk(false);a.used=true;d.hp-=a.atk;a.hp-=d.atk;
-  if(d.hp<=0&&a.hp<=0){destroyM('e',dsi);destroyM('m',asi);nc('相打ち！');addLog('!','相打ち','dmg');}
+  clrAtk(false);a.used=true;
+  const aAtk=a.atk,dAtk=d.atk;
+  d.hp-=aAtk;a.hp-=dAtk;
+  // 攻撃結果をcbarに表示
+  const cb=$('cbar-txt');
+  if(cb) cb.innerHTML=`<span style="color:var(--gold)">${a.name}</span><span style="color:var(--tx3)"> (ATK${aAtk}) ⚔ </span><span style="color:var(--red)">${d.name}</span><span style="color:var(--tx3)"> (ATK${dAtk})</span>`;
+  setTimeout(()=>{if(cb)cb.innerHTML='';},2500);
+  if(d.hp<=0&&a.hp<=0){destroyM('e',dsi);destroyM('m',asi);nc('相打ち！ — '+a.name+' & '+d.name+' 破壊');addLog('!','相打ち','dmg');}
   else if(d.hp<=0){destroyM('e',dsi);nc(d.name+' 破壊！','var(--orange)');addLog('!',d.name+' 破壊','dmg');}
   else if(a.hp<=0){destroyM('m',asi);nc(a.name+' 撃破','var(--red)');addLog('x',a.name+' 撃破','dmg');}
   else{nc('⚔ '+a.name+' vs '+d.name);addLog('!',a.name+' ⚔ '+d.name,'atk');}
@@ -1696,7 +1789,9 @@ const Stack = {
       this.resolving=false;
       G.stackLocked=false;
       this.hide();
-      ra();
+      // スタック完了後は盤面だけ更新（フェイズはそのまま）
+      rMon('m');rMon('e');rHand();rEN('m');rEN('e');rGrave('m');rGrave('e');rStatus();updBtn();
+      nc('スタック処理完了','var(--green)');
       return;
     }
     // 一番上(末尾)を取り出して処理
@@ -1734,18 +1829,23 @@ const Stack = {
   },
 
   highlightTop(item, cb){
-    const panel=document.getElementById('stack-panel');
     const list=document.getElementById('stack-list');
-    if(!list){cb();return;}
-    // 処理中表示
-    const resolving=document.createElement('div');
-    resolving.className='stack-resolving';
-    resolving.innerHTML=`
-      <div class="stack-res-label">▶ 解決中</div>
-      <div class="stack-res-name">${item.label}${item.card?' — '+item.card.name:''}</div>`;
-    list.prepend(resolving);
-    if(item.card) pvShow(item.card);
-    setTimeout(()=>{resolving.remove();pvClear();cb();}, 900);
+    // 処理中をスタックパネルに表示
+    if(list){
+      const resolving=document.createElement('div');
+      resolving.className='stack-resolving';
+      resolving.innerHTML=`
+        <div class="stack-res-label">▶ 解決中</div>
+        <div class="stack-res-name">${item.label}${item.card?' — '+item.card.name:''}</div>`;
+      list.prepend(resolving);
+      setTimeout(()=>resolving.remove(), 1200);
+    }
+    // オーバーレイで「この効果を解決します」を表示 → クリックで解決
+    const ownerLabel=item.owner==='m'?'自分':'相手';
+    showSpellOverlay(item.card||{name:item.label,eff:'',type:'spell'},
+      ownerLabel+' — 効果解決: '+item.label,
+      ()=>{if(item.card)pvClear(); cb();}
+    );
   },
 
   hide(){
@@ -1810,7 +1910,8 @@ function dStackDemo(){
     eff:'場に出た時: 1枚ドロー',
     onPlay: 'draw1'  // カスタムフラグ
   });
-  nc('スタックデモ準備完了。「霊感の使徒」を召喚してください。');
+  G.my.en=5;G.my.enMax=5;
+  nc('スタックデモ準備完了。「霊感の使徒」を召喚してください。（EN5設定済み）');
   ra();
 }
 
