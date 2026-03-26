@@ -392,7 +392,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
 .cfy{padding:6px 18px;background:var(--red);color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 .cfn{padding:6px 14px;background:transparent;color:var(--tx2);border:1px solid var(--l2);border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit;}
 .modal-bg{background:rgba(0,0,0,.7);backdrop-filter:blur(2px);}
-.mbox{background:var(--p2);border:1px solid var(--l2);border-radius:10px;padding:20px;max-width:380px;width:90%;max-height:70vh;overflow-y:auto;}
+.mbox{background:var(--p2);border:1px solid var(--l2);border-radius:10px;padding:20px;max-width:380px;width:90%;max-height:70vh;overflow-y:auto;pointer-events:all;box-shadow:0 4px 32px rgba(0,0,0,.9);}
 .mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .mttl{font-size:13px;font-weight:700;color:var(--gold);}
 .mx{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px;}.mx:hover{color:var(--tx);}
@@ -610,7 +610,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
 </div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
-<div class="ov" id="tov" onclick="hideTrig()">
+<div class="ov" id="tov" onclick="hideTrig()" style="display:none!important;">
   <div class="tov-lbl">Shield Trigger</div>
   <div class="tov-ttl">TRIGGER!</div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
@@ -781,6 +781,8 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">📚</span><span class="sval" id="st-mdeck">30</span>
     <span class="sdv">|</span>
+    <span class="sico">🛡</span><span class="sval" id="st-mshield">5</span>
+    <span class="sdv">|</span>
     <span class="sico" style="opacity:.4">💀</span><span class="sval" id="cbar-mgrave">0</span>
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-men">1/1</span>
@@ -790,6 +792,8 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     <span class="sico">🃏</span><span class="sval" id="st-ehand">5</span>
     <span class="sdv">|</span>
     <span class="sico">📚</span><span class="sval" id="st-edeck">30</span>
+    <span class="sdv">|</span>
+    <span class="sico">🛡</span><span class="sval" id="st-eshield">5</span>
     <span class="sdv">|</span>
     <span class="sico" style="opacity:.4">💀</span><span class="sval" id="st-egrave">0</span>
     <span class="sdv">|</span>
@@ -1026,7 +1030,12 @@ function rStatus(){
       if(egb){egb.style.right=(window.innerWidth-fr.right+8)+'px';egb.style.bottom=(window.innerHeight-cr.top+4)+'px';}
     }
   }
+  // シールド枚数(生存分)
+  fe('st-msh')&&(fe('st-msh').textContent=G.my.shields.filter(s=>s).length);
+  fe('st-esh')&&(fe('st-esh').textContent=G.enemy.shields.filter(s=>s).length);
   fe('st-mhand')&&(fe('st-mhand').textContent=G.my.hand.length);
+  fe('st-mshield')&&(fe('st-mshield').textContent=G.my.shields.filter(s=>s).length);
+  fe('st-eshield')&&(fe('st-eshield').textContent=G.enemy.shields.filter(s=>s).length);
   fe('st-mdeck')&&(fe('st-mdeck').textContent=G.my.deck);
   const mgn=G.my.grave.length,egn=G.enemy.grave.length;
   fe('st-mgrave')&&(fe('st-mgrave').textContent=mgn);
@@ -1072,12 +1081,9 @@ function rSh(w){
     const el=document.createElement('div');
     el.className='shc'+(s?'':' broken');
     el.id=(w==='e'?'esh-':'msh-')+i;
-    // 鼓動カードはホバーで効果表示
-    if(s && gd.shCards[i]){
-      const card=gd.shCards[i];
-      el.addEventListener('mouseenter',()=>pvShow(card));
-      el.addEventListener('mouseleave',pvClear);
-      if(card.trigger) el.style.boxShadow='inset 0 0 0 2px rgba(212,168,67,.4)';
+    // 鼓動カードは金色の枠で示すが詳細は非公開
+    if(s && gd.shCards[i] && gd.shCards[i].trigger){
+      el.style.boxShadow='inset 0 0 0 2px rgba(212,168,67,.4)';
     }
     c.appendChild(el);
   });
@@ -1304,8 +1310,18 @@ function brkSh(w,idx){
     else{G.enemy.handCount--;nc('相手SH破壊','var(--orange)');addLog('>','相手SH破壊','atk');}}
   else{nc('SH破壊');addLog('>','SH破壊','atk');}ra();
 }
-function showTrig(card,w){$('tn').textContent=card.name;$('te').textContent=card.eff||'';$('tov').classList.add('show');nc('TRIGGER: '+card.name,'var(--gold)');addLog('!!','TRIGGER: '+card.name,'trig');if(w==='m')G.my.hand.push({...card,trigger:false});}
-function hideTrig(){$('tov').classList.remove('show');ra();}
+function showTrig(card,w){
+  // cbarに「鼓動発動 / カード名」のみ表示
+  const cb=$('cbar-txt');
+  if(cb){cb.innerHTML='<span style="color:var(--orange);font-weight:900;letter-spacing:.05em;">鼓動発動</span>　<span style="color:var(--gold);">'+card.name+'</span>';}
+  // 左パネルにカード詳細を表示
+  pvShow(card);
+  addLog('!!','TRIGGER: '+card.name,'trig');
+  if(w==='m')G.my.hand.push({...card,trigger:false});
+  // 3秒後にクリア
+  setTimeout(()=>{if(cb)cb.textContent='';pvClear();},3000);
+}
+function hideTrig(){ra();}
 function destroyM(w,si){const m=G[w==='e'?'enemy':'my'].monsters;const c=m[si];if(!c)return;G[w==='e'?'enemy':'my'].grave.push({...c});m[si]=null;}
 function endTurn(){
   if(!G.myTurn)return;G.phase='enemy';G.myTurn=false;G.selCard=null;G.selAtk=null;clrHL();
@@ -1394,17 +1410,43 @@ function dMdraw(){
   G.my.hand.push({...c});nc('自分ドロー: '+c.name);rHand();
 }
 function og(w){
-  const isE=w==='e',grave=isE?G.enemy.grave:G.my.grave;
-  $(isE?'egc':'mgc').textContent='（'+grave.length+'枚）';
-  const list=$(isE?'egl':'mgl');list.innerHTML='';
-  if(!grave.length)list.innerHTML='<div class="empty-grave">墓地にカードはありません</div>';
-  else grave.forEach(card=>{
-    const row=document.createElement('div');row.className='grow';
-    row.innerHTML=`<div class="gth ${card.type}"><div class="gti"></div><div class="gtl">${card.type==='spell'?'SP':'MON'}</div></div><div><div class="gn">${card.name}</div><div class="gs2">${card.type==='monster'?'EN'+card.cost+' ATK'+card.atk+' LIFE'+(card.maxHp||card.hp):'EN'+card.cost}</div><div class="ge">${card.eff||''}</div></div>`;
-    row.addEventListener('mouseenter',()=>pvShow(card));row.addEventListener('mouseleave',pvClear);
-    list.appendChild(row);
-  });
-  $(isE?'modal-eg':'modal-mg').classList.add('show');
+  // 背景暗転なし: 左パネルに墓地一覧を直接表示
+  const grave=w==='e'?G.enemy.grave:G.my.grave;
+  const title=(w==='m'?'自分':'相手')+'の墓地（'+grave.length+'枚）';
+  // 左パネルのプレビュー領域を一時的に墓地一覧に置き換え
+  const pv=$('l-pv');
+  pv.innerHTML='';
+  // 閉じるボタン付きの墓地パネルを作成
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;flex-direction:column;gap:4px;width:100%;height:100%;overflow-y:auto;';
+  // ヘッダー
+  const hdr=document.createElement('div');
+  hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:0 2px 4px;border-bottom:1px solid var(--l1);flex-shrink:0;';
+  hdr.innerHTML=`<span style="font-size:11px;color:var(--gold);font-family:var(--mono);">${title}</span><button onclick="closePvGrave()" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:14px;line-height:1;">✕</button>`;
+  wrap.appendChild(hdr);
+  if(!grave.length){
+    const em=document.createElement('div');
+    em.style.cssText='font-size:10px;color:var(--tx3);text-align:center;padding:12px 0;';
+    em.textContent='墓地にカードはありません';
+    wrap.appendChild(em);
+  } else {
+    grave.forEach((card,i)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;gap:6px;align-items:flex-start;padding:5px 2px;border-bottom:1px solid var(--l1);cursor:pointer;flex-shrink:0;';
+      const sp=card.type==='spell';
+      row.innerHTML=`<div style="width:28px;height:38px;border-radius:3px;flex-shrink:0;background:${sp?'rgba(212,130,10,.15)':'var(--bdim)'};border:1px solid ${sp?'var(--orange)':'var(--blue)'};display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--tx3);">${sp?'S':'M'}</div><div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${card.name}</div><div style="font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:1px;">${card.type==='monster'?'ATK'+card.atk+' HP'+(card.maxHp||card.hp):'EN'+card.cost}</div></div>`;
+      row.addEventListener('mouseenter',()=>pvShow(card));
+      row.addEventListener('mouseleave',()=>{});// pvClearしない(パネル内なので)
+      wrap.appendChild(row);
+    });
+  }
+  pv.appendChild(wrap);
+  pv._grave_mode=true;
+}
+function closePvGrave(){
+  const pv=$('l-pv');
+  pv._grave_mode=false;
+  pv.innerHTML=`<div id="pv-empty">カードに<br>ホバーで<br>詳細表示</div><div id="pv-card" style="display:none;"></div>`;
 }
 function cm(id){$(id).classList.remove('show');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-bg'))e.target.classList.remove('show');});
