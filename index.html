@@ -921,6 +921,9 @@ const $=id=>document.getElementById(id);
 let ncT=null;
 
 function pvShow(card){
+  // 墓地モード中は上書きしない
+  const pv=$('l-pv');
+  if(pv && pv._grave_mode) return;
   $('pv-empty').style.display='none';
   const d=$('pv-card');d.style.display='flex';
   const sp=card.type==='spell';
@@ -933,7 +936,11 @@ function pvShow(card){
   $('pv-eff').textContent=card.eff||'';$('pv-eff').style.cssText=`font-size:9px;color:#8ab4ff;line-height:1.5;text-align:center;padding:4px 3px;border-top:1px solid var(--l1);width:100%;display:${card.eff?'block':'none'};`;
   $('pv-cost').textContent='EN '+card.cost;$('pv-cost').style.cssText='font-size:9px;color:var(--gold);font-family:var(--mono);display:block;';
 }
-function pvClear(){$('pv-empty').style.display='block';$('pv-card').style.display='none';}
+function pvClear(){
+  const pv=$('l-pv');
+  if(pv && pv._grave_mode) return;
+  $('pv-empty').style.display='block';$('pv-card').style.display='none';
+}
 function pvPt(who){const p=who==='e'?G.enemy.partner:G.my.partner;pvShow({name:p.name,type:'monster',cost:p.cost,atk:p.atk,hp:p.hp,kw:[],eff:'【常在】'+p.skill+'\n【条件】'+p.condText});}
 
 function applyFan(cards){
@@ -1081,10 +1088,7 @@ function rSh(w){
     const el=document.createElement('div');
     el.className='shc'+(s?'':' broken');
     el.id=(w==='e'?'esh-':'msh-')+i;
-    // 鼓動カードは金色の枠で示すが詳細は非公開
-    if(s && gd.shCards[i] && gd.shCards[i].trigger){
-      el.style.boxShadow='inset 0 0 0 2px rgba(212,168,67,.4)';
-    }
+
     c.appendChild(el);
   });
   const alive=Array.from(c.children).filter(e=>!e.classList.contains('broken') && e.style.display!=='none');
@@ -1311,15 +1315,21 @@ function brkSh(w,idx){
   else{nc('SH破壊');addLog('>','SH破壊','atk');}ra();
 }
 function showTrig(card,w){
-  // cbarに「鼓動発動 / カード名」のみ表示
+  // cbarに「鼓動発動 + カードUI」表示
   const cb=$('cbar-txt');
-  if(cb){cb.innerHTML='<span style="color:var(--orange);font-weight:900;letter-spacing:.05em;">鼓動発動</span>　<span style="color:var(--gold);">'+card.name+'</span>';}
-  // 左パネルにカード詳細を表示
-  pvShow(card);
+  if(cb){
+    const sp=card.type==='spell';
+    cb.innerHTML=`
+      <span style="color:var(--orange);font-weight:900;font-size:12px;margin-right:10px;">鼓動発動</span>
+      <div id="trig-card" style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(212,168,67,.12);border:1px solid rgba(212,168,67,.4);border-radius:6px;cursor:pointer;"
+        onmouseenter="pvShow(${JSON.stringify(card).replace(/"/g,'&quot;')})" onmouseleave="pvClear()">
+        <div style="width:18px;height:24px;border-radius:3px;background:${sp?'rgba(212,130,10,.2)':'var(--bdim)'};border:1px solid ${sp?'var(--orange)':'var(--blue)'};flex-shrink:0;"></div>
+        <span style="color:var(--gold);font-weight:700;font-size:11px;">${card.name}</span>
+      </div>`;
+  }
   addLog('!!','TRIGGER: '+card.name,'trig');
   if(w==='m')G.my.hand.push({...card,trigger:false});
-  // 3秒後にクリア
-  setTimeout(()=>{if(cb)cb.textContent='';pvClear();},3000);
+  setTimeout(()=>{if(cb)cb.innerHTML='';pvClear();},4000);
 }
 function hideTrig(){ra();}
 function destroyM(w,si){const m=G[w==='e'?'enemy':'my'].monsters;const c=m[si];if(!c)return;G[w==='e'?'enemy':'my'].grave.push({...c});m[si]=null;}
@@ -1436,10 +1446,16 @@ function og(w){
       const sp=card.type==='spell';
       row.innerHTML=`<div style="width:28px;height:38px;border-radius:3px;flex-shrink:0;background:${sp?'rgba(212,130,10,.15)':'var(--bdim)'};border:1px solid ${sp?'var(--orange)':'var(--blue)'};display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--tx3);">${sp?'S':'M'}</div><div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${card.name}</div><div style="font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:1px;">${card.type==='monster'?'ATK'+card.atk+' HP'+(card.maxHp||card.hp):'EN'+card.cost}</div></div>`;
       row.addEventListener('mouseenter',()=>pvShow(card));
-      row.addEventListener('mouseleave',()=>{});// pvClearしない(パネル内なので)
+      row.addEventListener('mouseleave',pvClear);
       wrap.appendChild(row);
     });
   }
+  wrap.addEventListener('mouseleave',pvClear);
+  // プレビューエリア追加
+  const pvArea=document.createElement('div');
+  pvArea.id='grave-pv-area';
+  pvArea.style.cssText='flex-shrink:0;min-height:60px;';
+  wrap.appendChild(pvArea);
   pv.appendChild(wrap);
   pv._grave_mode=true;
 }
