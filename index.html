@@ -612,6 +612,24 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
 }
 #result-sub{font-size:13px;color:rgba(255,255,255,.4);font-family:var(--mono);}
 
+
+#stack-panel{
+  background:rgba(8,8,20,.97);border:1px solid var(--l2);border-radius:8px;
+  width:180px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.stack-row{display:flex;gap:6px;align-items:flex-start;padding:6px 8px;border-bottom:1px solid var(--l1);cursor:pointer;transition:background .1s;}
+.stack-row:hover{background:rgba(255,255,255,.05);}
+.stack-top{background:rgba(212,168,67,.08);border-left:2px solid var(--gold);}
+.stack-num{font-size:10px;font-weight:900;color:var(--tx3);font-family:var(--mono);min-width:14px;}
+.stack-info{flex:1;min-width:0;}
+.stack-owner{font-size:9px;font-family:var(--mono);}
+.stack-lbl{font-size:10px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stack-card-name{font-size:9px;color:var(--gold);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stack-resolving{padding:6px 8px;background:rgba(212,168,67,.15);border-bottom:1px solid var(--l1);}
+.stack-res-label{font-size:9px;color:var(--gold);font-family:var(--mono);}
+.stack-res-name{font-size:10px;font-weight:700;color:var(--white);}
+
 </style>
 </head>
 <body>
@@ -646,6 +664,42 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     <div id="result-sub">クリックで閉じる</div>
   </div>
 </div>
+
+<!-- スペル/鼓動発動オーバーレイ: 背景暗転なし・中央表示 -->
+<div id="spell-overlay" style="display:none;position:fixed;z-index:750;
+  pointer-events:all;cursor:pointer;"
+  onclick="resolveSpellOverlay()">
+  <div id="spell-box" style="
+    background:rgba(10,8,22,.95);border-radius:12px;
+    padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;
+    border:1px solid rgba(212,130,10,.5);
+    box-shadow:0 0 32px rgba(212,130,10,.2);
+    min-width:180px;max-width:260px;">
+    <div id="spell-label" style="font-size:11px;font-weight:900;font-family:var(--mono);letter-spacing:.1em;"></div>
+    <div id="spell-art" style="width:80px;height:110px;border-radius:8px;border:1.5px solid var(--orange);
+      background:rgba(212,130,10,.1);display:flex;align-items:center;justify-content:center;
+      font-size:10px;color:var(--tx3);">SPELL</div>
+    <div id="spell-name" style="font-size:14px;font-weight:900;color:var(--gold);"></div>
+    <div id="spell-eff" style="font-size:10px;color:#8ab4ff;text-align:center;line-height:1.5;"></div>
+    <div style="font-size:9px;color:rgba(255,255,255,.3);font-family:var(--mono);">クリックで続ける</div>
+  </div>
+</div>
+
+
+<!-- スタックパネル: cbar右側に常駐 -->
+<div id="stack-panel" style="display:none;position:fixed;z-index:600;">
+  <div style="font-size:10px;color:var(--tx3);font-family:var(--mono);
+    padding:4px 8px;border-bottom:1px solid var(--l1);display:flex;align-items:center;gap:6px;">
+    <span style="color:var(--gold);">⚡</span>スタック
+    <span id="stack-count" style="color:var(--tx3);">0</span>
+  </div>
+  <div id="stack-list" style="overflow-y:auto;max-height:280px;"></div>
+  <div style="padding:6px;border-top:1px solid var(--l1);">
+    <button onclick="Stack.resolve()" style="width:100%;padding:5px;background:var(--green);border:none;
+      border-radius:5px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">▶ 処理</button>
+  </div>
+</div>
+
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
 <div class="ov" id="tov" onclick="hideTrig()" style="display:none!important;">
@@ -681,6 +735,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     <button class="dbtn" onclick="dGrave10()">墓地+10</button>
     <button class="dbtn" onclick="showResult(true)">自分勝利</button>
     <button class="dbtn" onclick="showResult(false)">自分敗北</button>
+    <button class="dbtn" onclick="dStackDemo()">スタック</button>
     <button class="dbtn" onclick="location.reload()">Reset</button>
 </div>
 <div id="app">
@@ -1060,6 +1115,10 @@ function rStatus(){
   const field=fe('field');
   if(field){
     const fr=field.getBoundingClientRect();
+    // スタックパネルをcbar右側に配置
+    const sp=document.getElementById('stack-panel');
+    const cb=document.getElementById('cbar');
+    if(sp&&cb){const cr=cb.getBoundingClientRect();sp.style.left=(fr.right-188)+'px';sp.style.bottom=(window.innerHeight-cr.top+4)+'px';}
     // ステータスバーをfieldの左端に固定
     const ms=fe('m-status'),es=fe('e-status');
     const halfW=fr.width/2;
@@ -1307,22 +1366,61 @@ function tryPlace(si){
 }
 function placeM(hi,si){
   const c=G.my.hand[hi];if(c.cost>G.my.en){nc('EN不足','var(--red)');return;}
-  G.my.en-=c.cost;G.my.monsters[si]={name:c.name,type:c.type,cost:c.cost,atk:c.atk,hp:c.hp,maxHp:c.hp,kw:c.kw||[],eff:c.eff||'',canAttack:(c.kw||[]).includes('突撃'),used:false};
-  G.my.hand.splice(hi,1);G.selCard=null;clrHL();nc(c.name+' 召喚！','var(--green)');addLog('+',c.name+' 召喚','');ra();
+  G.my.en-=c.cost;
+  const mc={name:c.name,type:c.type,cost:c.cost,atk:c.atk,hp:c.hp,maxHp:c.hp,
+    kw:c.kw||[],eff:c.eff||'',canAttack:(c.kw||[]).includes('突撃'),used:false,
+    onPlay:c.onPlay||null, id:Date.now()};
+  G.my.monsters[si]=mc;
+  G.my.hand.splice(hi,1);G.selCard=null;clrHL();
+  addLog('+',mc.name+' 召喚','');
+
+  // スタックに積む: 自分の「場に出た時」効果
+  if(mc.onPlay==='draw1'){
+    Stack.push('場に出た時: 1枚ドロー', mc, 'm', ()=>{
+      nc(mc.name+' → 1枚ドロー！','var(--green)');
+      dMdraw();
+    });
+  }
+  // スタックに積む: 相手フィールドの「相手モンスターが出た時」効果
+  G.enemy.monsters.forEach((em,ei)=>{
+    if(!em) return;
+    if(em.onEnemy==='deal2'){
+      const _si=si; // closureのため
+      Stack.push('相手モンスターが出た時: 2ダメ', em, 'e', ()=>{
+        const target=G.my.monsters[_si];
+        if(target){
+          target.hp-=2;
+          nc(em.name+' → '+mc.name+' に2ダメ！','var(--red)');
+          if(target.hp<=0){nc(mc.name+' 破壊！','var(--orange)');G.my.monsters[_si]=null;}
+        } else {
+          nc(em.name+': 対象消滅 — でも効果は解決済み','var(--tx3)');
+        }
+      });
+    }
+  });
+
+  if(Stack.items.length>0){
+    nc(mc.name+' 召喚 — スタックを確認して▶処理を押してください');
+    Stack.render();rStatus();
+  } else {
+    nc(mc.name+' 召喚！','var(--green)');ra();
+  }
 }
 function castSpell(hi){
   const c=G.my.hand[hi];if(!c||c.cost>G.my.en)return;
   G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
-  const _cb=$('cbar-txt');
-  if(_cb){_cb.innerHTML=`<span style="color:#d4820a;font-weight:900;font-size:12px;margin-right:8px;">スペル発動</span><div style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(212,130,10,.12);border:1px solid rgba(212,130,10,.4);border-radius:6px;cursor:pointer;margin-right:8px;" onmouseenter="pvShow(${JSON.stringify(c).replace(/"/g,'&quot;')})" onmouseleave="pvClear()"><div style="width:16px;height:22px;border-radius:2px;background:rgba(212,130,10,.2);border:1px solid var(--orange);flex-shrink:0;"></div><span style="color:var(--gold);font-weight:700;font-size:11px;">${c.name}</span></div>`;setTimeout(()=>{if(_cb)_cb.innerHTML='';},3000);}
-  nc(c.name+' 発動');addLog('*',c.name+' 発動','');ra();
+  addLog('*',c.name+' 発動','');
+  showSpellOverlay(c,'⚡ スペル発動',()=>{ra();});
 }
 function castSpellOn(hi,ti){
   const c=G.my.hand[hi],t=G.enemy.monsters[ti];if(!c||!t||c.cost>G.my.en)return;
   const dmg=parseInt(c.eff.match(/\d+/)?.[0]||0);G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
-  const _cb=$('cbar-txt');
-  if(_cb){_cb.innerHTML=`<span style="color:#d4820a;font-weight:900;font-size:12px;margin-right:8px;">スペル発動</span><div style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(212,130,10,.12);border:1px solid rgba(212,130,10,.4);border-radius:6px;cursor:pointer;" onmouseenter="pvShow(${JSON.stringify(c).replace(/"/g,'&quot;')})" onmouseleave="pvClear()"><div style="width:16px;height:22px;border-radius:2px;background:rgba(212,130,10,.2);border:1px solid var(--orange);flex-shrink:0;"></div><span style="color:var(--gold);font-weight:700;font-size:11px;">${c.name}</span></div>`;setTimeout(()=>{if(_cb)_cb.innerHTML='';},3000);}
-  t.hp-=dmg;if(t.hp<=0){nc(t.name+' 破壊！','var(--orange)');destroyM('e',ti);}else nc(c.name+' -'+dmg);ra();
+  addLog('*',c.name+' 発動','');
+  showSpellOverlay(c,'⚡ スペル発動',()=>{
+    t.hp-=dmg;
+    if(t.hp<=0){nc(t.name+' 破壊！','var(--orange)');destroyM('e',ti);}else nc(c.name+' -'+dmg);
+    ra();
+  });
 }
 function goBattle(){if(!G.myTurn||G.phase!=='main')return;G.phase='battle';G.selCard=null;clrHL();nc('⚔ Battle Phase','var(--red)');addLog('>','Battle Phase','atk');ra();}
 function selAtk(si){
@@ -1433,10 +1531,10 @@ function trigActivate(){
   window._pendingTrig=null;
   const cb=$('cbar-txt');if(cb)cb.innerHTML='';
   pvClear();
-  // 発動: 手札に追加（Sトリガー効果はとりあえず手札追加で表現）
-  addToHand({...t.card,trigger:false});
-  nc(t.card.name+' 発動！','var(--gold)');
-  ra();
+  showSpellOverlay(t.card,'🔔 鼓動発動',()=>{
+    addToHand({...t.card,trigger:false});
+    ra();
+  });
 }
 function trigCancel(){
   const t=window._pendingTrig;if(!t)return;
@@ -1525,6 +1623,135 @@ function dMons(){
   G.my.enMax=Math.min(10,G.my.enMax+4);G.my.en=G.my.enMax;nc('MON追加');ra();
 }
 
+
+let _spellCallback=null, _spellTimer=null;
+function showSpellOverlay(card, labelText, callback){
+  const ov=document.getElementById('spell-overlay');
+  const field=document.getElementById('field');
+  if(!ov||!field)return;
+  // 位置をフィールド中央に
+  const fr=field.getBoundingClientRect();
+  ov.style.left=(fr.left+(fr.width-260)/2)+'px';
+  ov.style.top=(fr.top+(fr.height-280)/2)+'px';
+  // ラベル
+  const isSpell=card.type==='spell';
+  document.getElementById('spell-label').textContent=labelText;
+  document.getElementById('spell-label').style.color=isSpell?'var(--orange)':'var(--gold)';
+  document.getElementById('spell-art').style.borderColor=isSpell?'var(--orange)':'var(--gold)';
+  document.getElementById('spell-art').style.background=isSpell?'rgba(212,130,10,.1)':'rgba(212,168,67,.08)';
+  document.getElementById('spell-art').textContent=isSpell?'SPELL':'TRIGGER';
+  document.getElementById('spell-name').textContent=card.name;
+  document.getElementById('spell-name').style.color=isSpell?'var(--gold)':'var(--gold)';
+  document.getElementById('spell-eff').textContent=card.eff||'';
+  ov.style.display='block';
+  // ホバーで左パネルに詳細
+  const box=document.getElementById('spell-box');
+  box.onmouseenter=()=>pvShow(card);
+  box.onmouseleave=()=>pvClear();
+  _spellCallback=callback;
+  // 4秒後に自動進行
+  if(_spellTimer)clearTimeout(_spellTimer);
+  _spellTimer=setTimeout(resolveSpellOverlay,4000);
+}
+function resolveSpellOverlay(){
+  if(_spellTimer){clearTimeout(_spellTimer);_spellTimer=null;}
+  const ov=document.getElementById('spell-overlay');
+  if(ov) ov.style.display='none';
+  pvClear();
+  const cb=_spellCallback;_spellCallback=null;
+  if(cb)cb();
+}
+
+
+// ============================================================
+// STACK ENGINE - 逆順処理
+// ============================================================
+const Stack = {
+  items: [],   // [{label, card, fn, owner}]
+  resolving: false,
+
+  // エフェクトをスタックに積む
+  push(label, card, owner, fn){
+    this.items.push({label, card, owner, fn});
+    this.render();
+  },
+
+  // スタックを逆順に処理
+  resolve(){
+    if(this.resolving) return;
+    if(!this.items.length){this.hide();return;}
+    this.resolving=true;
+    this._next();
+  },
+
+  _next(){
+    if(!this.items.length){
+      this.resolving=false;
+      this.hide();
+      ra();
+      return;
+    }
+    // 一番上(末尾)を取り出して処理
+    const item=this.items.pop();
+    this.render();
+    this.highlightTop(item, ()=>{
+      item.fn();
+      setTimeout(()=>this._next(), 600);
+    });
+  },
+
+  render(){
+    const panel=document.getElementById('stack-panel');
+    const list=document.getElementById('stack-list');
+    if(!panel||!list) return;
+    if(!this.items.length && !this.resolving){this.hide();return;}
+    panel.style.display='block';
+    list.innerHTML='';
+    [...this.items].reverse().forEach((item,i)=>{
+      const row=document.createElement('div');
+      const isTop=(i===0);
+      row.className='stack-row'+(isTop?' stack-top':'');
+      row.id='stack-row-'+i;
+      row.innerHTML=`
+        <div class="stack-num">${this.items.length-i}</div>
+        <div class="stack-info">
+          <div class="stack-owner" style="color:${item.owner==='m'?'var(--green)':'var(--red)'}">${item.owner==='m'?'自分':'相手'}</div>
+          <div class="stack-lbl">${item.label}</div>
+          ${item.card?`<div class="stack-card-name">${item.card.name}</div>`:''}
+        </div>`;
+      row.onmouseenter=()=>{if(item.card)pvShow(item.card);};
+      row.onmouseleave=()=>pvClear();
+      list.appendChild(row);
+    });
+  },
+
+  highlightTop(item, cb){
+    const panel=document.getElementById('stack-panel');
+    const list=document.getElementById('stack-list');
+    if(!list){cb();return;}
+    // 処理中表示
+    const resolving=document.createElement('div');
+    resolving.className='stack-resolving';
+    resolving.innerHTML=`
+      <div class="stack-res-label">▶ 解決中</div>
+      <div class="stack-res-name">${item.label}${item.card?' — '+item.card.name:''}</div>`;
+    list.prepend(resolving);
+    if(item.card) pvShow(item.card);
+    setTimeout(()=>{resolving.remove();pvClear();cb();}, 900);
+  },
+
+  hide(){
+    const panel=document.getElementById('stack-panel');
+    if(panel) panel.style.display='none';
+  },
+
+  clear(){
+    this.items=[];
+    this.resolving=false;
+    this.hide();
+  }
+};
+
 function showResult(win){
   const lbl=document.getElementById('result-label');
   if(!lbl)return;
@@ -1532,6 +1759,28 @@ function showResult(win){
   else{lbl.textContent='敗北';lbl.style.color='#c05050';}
   document.getElementById('result-overlay').classList.add('show');
 }
+
+function dStackDemo(){
+  // フィールドをクリア
+  G.my.monsters=[null,null,null,null,null];
+  G.enemy.monsters=[null,null,null,null,null];
+  // 相手に「相手モンスターが出た時2ダメ」モンスターを配置
+  G.enemy.monsters[2]={
+    name:'監視の番人', type:'monster', cost:3, atk:3, hp:8, maxHp:8, kw:[], id:Date.now(),
+    eff:'相手のモンスターが出た時: そのモンスターに2ダメージ',
+    onEnemy: 'deal2'  // カスタムフラグ
+  };
+  // 自分手札に「出た時1ドロー LIFE2」モンスターを追加
+  G.my.hand=[];
+  G.my.hand.push({
+    name:'霊感の使徒', type:'monster', cost:2, atk:1, hp:2, maxHp:2, kw:[], 
+    eff:'場に出た時: 1枚ドロー',
+    onPlay: 'draw1'  // カスタムフラグ
+  });
+  nc('スタックデモ準備完了。「霊感の使徒」を召喚してください。');
+  ra();
+}
+
 function dGrave10(){
   const cards=[
     {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃'},
