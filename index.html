@@ -137,9 +137,9 @@ body::after{
 .sbtn{width:100%;padding:6px 0;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;letter-spacing:.03em;}
 .sbtn-b{background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 2px 8px rgba(231,76,60,.3);}
 .sbtn-b:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 3px 14px rgba(231,76,60,.5);}
-.sbtn-e{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#000;box-shadow:0 2px 8px rgba(232,184,75,.3);}
+.sbtn-e{background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--bg);box-shadow:0 2px 8px rgba(232,184,75,.3);font-weight:900;}
 .sbtn-e:hover:not(:disabled){filter:brightness(1.05);box-shadow:0 3px 14px rgba(232,184,75,.5);}
-.sbtn:disabled{opacity:.3;cursor:not-allowed;filter:none!important;box-shadow:none!important;}
+.sbtn:disabled{opacity:.35;cursor:not-allowed;filter:none!important;box-shadow:none!important;color:rgba(180,180,180,.5)!important;}
 
 /* ── PARTNER CARD ── */
 .ptc{
@@ -807,6 +807,7 @@ body::after{
   <button class="dbtn" onclick="dEdraw()">相手ドロー</button>
   <button class="dbtn" onclick="dMdraw()">自分ドロー</button>
   <button class="dbtn" onclick="dGrave10()">墓地+10</button>
+  <button class="dbtn" onclick="dDirectDemo()">直接攻撃</button>
   <button class="dbtn" onclick="dStackDemo()">スタック(2効果)</button>
   <button class="dbtn" onclick="dStackDemo4()">スタック(4効果)</button>
   <button class="dbtn" onclick="showResult(true)">自分勝利</button>
@@ -988,6 +989,7 @@ body::after{
    ============================================================ */
 const G={
   stackLocked:false,
+  trigPending:false,  // 鼓動選択中フラグ
   phase:'main',myTurn:true,turn:1,selCard:null,selAtk:null,pendCfm:null,
   my:{en:1,enMax:1,deck:30,
     hand:[
@@ -1612,6 +1614,7 @@ function brkSh(w,idx){
 function showTrig(card,w){
   if(card.trigger&&w==='m'){
     window._pendingTrig={card,w};
+    G.trigPending=true;  // 敵AIブロック
     // 専用の鼓動ダイアログを表示
     const tc=$('trig-choice');
     $('trig-card-name').textContent=card.name;
@@ -1634,12 +1637,14 @@ function showTrig(card,w){
 function trigActivate(){
   const t=window._pendingTrig;if(!t)return;
   window._pendingTrig=null;
+  G.trigPending=false;
   $('trig-choice').classList.remove('show');
   showSpellOverlay(t.card,'🔔 鼓動発動',()=>{addToHand({...t.card,trigger:false});ra();});
 }
 function trigCancel(){
   const t=window._pendingTrig;if(!t)return;
   window._pendingTrig=null;
+  G.trigPending=false;
   $('trig-choice').classList.remove('show');
   addToHand({...t.card,trigger:false});
   nc('鼓動スキップ');ra();
@@ -1770,11 +1775,16 @@ function enemyTurnAI(){
 
   // ② 攻撃: 相手MONが自分MON or シールドを攻撃
   setTimeout(()=>{
-    const attackers=G.enemy.monsters.filter(m=>m&&!m.used);
+    // 鼓動選択中なら待機してからスタート
+    function waitAndAttack(){
+      if(G.trigPending){setTimeout(waitAndAttack,300);return;}
+      const attackers=G.enemy.monsters.filter(m=>m&&!m.used);
     if(!attackers.length){enemyTurnEnd();return;}
 
     let atkIdx=0;
     function doNextAtk(){
+      // 鼓動選択中は待機
+      if(G.trigPending){setTimeout(doNextAtk,300);return;}
       if(atkIdx>=attackers.length){enemyTurnEnd();return;}
       const attacker=attackers[atkIdx++];
       const asi=G.enemy.monsters.indexOf(attacker);
@@ -1826,6 +1836,8 @@ function enemyTurnAI(){
       }
     }
     doNextAtk();
+    }
+    waitAndAttack();
   },900);
 }
 
@@ -2270,6 +2282,21 @@ function dStackDemo4(){
 
   G.my.en=8;G.my.enMax=8;
   nc('4効果デモ: 「霊感の使徒」を召喚 → 自分3+相手2のスタック。監視の番人に2ダメが入ると爆炎の殉教者の破壊時効果も発火','var(--gold)');
+  ra();
+}
+
+function dDirectDemo(){
+  // 相手シールド・モンスターを全消し、自分フィールドに攻撃可能MONを配置
+  G.enemy.shields=[false,false,false,false,false];
+  G.enemy.monsters=[null,null,null,null,null];
+  if(!G.my.monsters.some(m=>m)){
+    G.my.monsters[2]={name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,
+      kw:['突撃'],eff:'突撃',canAttack:true,used:false,civ:'fire',icon:'🦊'};
+  }else{
+    G.my.monsters.forEach(m=>{if(m){m.canAttack=true;m.used=false;}});
+  }
+  G.phase='battle';G.myTurn=true;
+  nc('直接攻撃デモ: Battleフェイズ中。自分MONを選択してください','var(--gold)');
   ra();
 }
 
