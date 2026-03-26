@@ -27,7 +27,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 /* ============================================================
    ルートレイアウト: 左180 / フィールド920 / 右180
    ============================================================ */
-#app{width:1280px;height:720px;display:flex;overflow:hidden;margin-top:32px;}
+#app{width:1280px;height:688px;display:flex;overflow:hidden;position:fixed;top:32px;left:0;}
 
 /* ============================================================
    LEFT 180px
@@ -218,10 +218,10 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .zone-row{flex-shrink:0;display:flex;align-items:stretch;position:relative;}
 .zone-sh{height:120px;position:relative;}
 .zone-mn{height:120px;}
-.zone-esh{background:rgba(74,144,226,.022);z-index:100;}
+.zone-esh{background:rgba(74,144,226,.022);z-index:100;position:relative;}
 .zone-emn{background:rgba(153,102,221,.018);}
 .zone-mmn{background:rgba(255,255,255,.004);}
-.zone-msh{background:rgba(74,144,226,.022);z-index:120;}
+.zone-msh{background:rgba(74,144,226,.022);z-index:120;position:relative;}
 
 /* デッキ/墓地バー */
 
@@ -560,6 +560,37 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 .grave-btn.active .grave-num{color:var(--gold);}
 .grave-btn:hover .grave-num{color:var(--gold);}
 
+
+/* フィールド内墓地ボタン */
+.grave-field-btn{
+  position:absolute;bottom:4px;left:4px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;padding:5px 8px;
+  background:rgba(8,8,20,.85);
+  border:1px solid var(--l2);border-radius:7px;
+  z-index:110;transition:all .15s;
+  width:64px;
+}
+.grave-field-btn:hover{border-color:var(--gold);background:rgba(20,15,40,.95);}
+.grave-field-btn.active{border-color:rgba(212,168,67,.5);}
+.grave-field-btn.egrave{left:auto;right:4px;bottom:4px;}
+/* カードスタック */
+.gfb-stack{position:relative;width:36px;height:50px;flex-shrink:0;}
+.gfb-card{
+  position:absolute;width:32px;height:44px;
+  border-radius:4px;
+  background:rgba(30,25,50,.9);
+  border:1px solid var(--l3);
+}
+.gfb-c3{top:0;left:0;transform:rotate(-5deg);background:rgba(25,20,45,.7);}
+.gfb-c2{top:2px;left:2px;transform:rotate(-2deg);background:rgba(28,22,48,.85);}
+.gfb-c1{top:4px;left:4px;background:rgba(40,30,70,.9);border-color:var(--l2);}
+.grave-field-btn.active .gfb-c1{border-color:rgba(212,168,67,.5);background:rgba(50,35,80,.9);}
+.grave-field-btn:hover .gfb-c1{border-color:var(--gold);}
+.gfb-label{font-size:10px;font-family:var(--mono);color:var(--tx2);text-align:center;}
+.grave-field-btn.active .gfb-label{color:var(--gold);}
+.grave-field-btn:hover .gfb-label{color:var(--gold);}
+
 </style>
 </head>
 <body>
@@ -665,6 +696,15 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
 
   <!-- 相手 Shield -->
   <div class="zone-row zone-sh zone-esh">
+    <!-- 相手墓地ボタン: 右上 -->
+    <div id="e-grave-btn" class="grave-field-btn egrave" onclick="og('e')">
+      <div class="gfb-stack">
+        <div class="gfb-card gfb-c3"></div>
+        <div class="gfb-card gfb-c2"></div>
+        <div class="gfb-card gfb-c1"></div>
+      </div>
+      <div class="gfb-label">墓地 <span id="cbar-egrave">0</span></div>
+    </div>
     <div class="czwrap"><div class="sh-row" id="eshcards"></div></div>
   </div>
 
@@ -684,17 +724,12 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   <!-- CENTER BAR 36px -->
   <div id="cbar">
     <div id="cbar-bg"></div>
-    <!-- 自分墓地ボタン: cbar左端 -->
-    <button id="m-grave-btn" class="grave-cbar-btn" onclick="og('m')" onmouseenter="showGrave('m')" onmouseleave="hideGrave()" title="自分の墓地">
-      <span class="gcb-ico">⚰</span>
-      <span class="gcb-num" id="cbar-mgrave">0</span>
-    </button>
+    <div id="cbar-txt"></div>
+    <!-- ID holders for JS (hidden) -->
+    <span id="cbar-mgrave" style="display:none;">0</span>
+    <span id="cbar-egrave" style="display:none;">0</span>
     <div id="cbar-txt"></div>
     <!-- 相手墓地ボタン: cbar右端 -->
-    <button id="e-grave-btn" class="grave-cbar-btn" onclick="og('e')" onmouseenter="showGrave('e')" onmouseleave="hideGrave()" title="相手の墓地">
-      <span class="gcb-num" id="st-egrave">0</span>
-      <span class="gcb-ico">⚰</span>
-    </button>
   </div>
 
   <!-- 自分 Monster 120px -->
@@ -713,6 +748,15 @@ html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg);color:v
   <!-- 自分 Shield -->
   <div class="zone-row zone-sh zone-msh">
     <div class="czwrap"><div class="sh-row" id="mshcards"></div></div>
+    <!-- 自分墓地ボタン: 左上 -->
+    <div id="m-grave-btn" class="grave-field-btn" onclick="og('m')">
+      <div class="gfb-stack">
+        <div class="gfb-card gfb-c3"></div>
+        <div class="gfb-card gfb-c2"></div>
+        <div class="gfb-card gfb-c1"></div>
+      </div>
+      <div class="gfb-label">墓地 <span id="cbar-mgrave">0</span></div>
+    </div>
   </div>
 
   <!-- 自分プレート 32px -->
