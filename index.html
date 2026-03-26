@@ -1137,9 +1137,17 @@ function applyShFan(cards,cw){
   const totalW=Math.min(nat,cw-8);
   const step=n>1?(totalW-W)/(n-1):0;
   const gap=step-W;
-  const row=cards[0].parentElement;
-  if(row){row.style.width=totalW+'px';row.style.maxWidth=(cw-8)+'px';}
-  cards.forEach((c,i)=>{c.style.marginLeft=i===0?'0':gap+'px';c.style.zIndex=String(i+1);c.style.flexShrink='0';});
+  // sh-rowコンテナを直接特定（parentElementが異なるコンテナに誤参照しないよう）
+  const shRow=cards[0].parentElement;
+  if(shRow&&shRow.classList.contains('sh-row')){
+    shRow.style.width=totalW+'px';
+    shRow.style.maxWidth=(cw-8)+'px';
+  }
+  cards.forEach((c,i)=>{
+    c.style.marginLeft=i===0?'0':gap+'px';
+    c.style.zIndex=String(i+1);
+    c.style.flexShrink='0';
+  });
 }
 
 /* ============================================================
@@ -1202,10 +1210,6 @@ function rSh(w){
     const el=document.createElement('div');
     el.className='shc'+(s?'':' broken');
     el.id=(w==='e'?'esh-':'msh-')+i;
-    if(s){
-      const num=document.createElement('div');num.className='sh-num';num.textContent=(i+1)+'';
-      el.appendChild(num);
-    }
     c.appendChild(el);
   });
   const alive=Array.from(c.children).filter(e=>!e.classList.contains('broken'));
@@ -1589,11 +1593,26 @@ function destroyM(w,si,cb){
   const monsters=G[w==='e'?'enemy':'my'].monsters;
   const c=monsters[si];if(!c)return;
   G[w==='e'?'enemy':'my'].grave.push({...c});
+  // 破壊時効果をスタック解決後キューに登録
+  if(c.onDestroy==='draw1'){
+    Stack.pushAfter('破壊時: 1枚ドロー',c,w,()=>{
+      nc(c.name+' 破壊時 → 1ドロー！','var(--green)');dMdraw();
+    });
+  }
+  if(c.onDestroy==='deal1_all'){
+    Stack.pushAfter('破壊時: 全モンスターに1ダメ',c,w,()=>{
+      nc(c.name+' 爆発！ 全MONに1ダメ','var(--orange)');
+      G.my.monsters.forEach((m,i)=>{if(m){m.hp-=1;showDmgPop('mm-'+i,1,'var(--orange)');if(m.hp<=0)G.my.monsters[i]=null;}});
+      G.enemy.monsters.forEach((m,i)=>{if(m){m.hp-=1;showDmgPop('em-'+i,1,'var(--orange)');if(m.hp<=0)G.enemy.monsters[i]=null;}});
+      rMon('m');rMon('e');
+    });
+  }
+  monsters[si]=null;
   const el=$((w==='e'?'em-':'mm-')+si);
   if(el){
     el.classList.add('destroying');
-    setTimeout(()=>{monsters[si]=null;el.classList.remove('destroying');if(cb)cb();else ra();},500);
-  }else{monsters[si]=null;if(cb)cb();}
+    setTimeout(()=>{el.classList.remove('destroying');if(cb)cb();else ra();},500);
+  }else{if(cb)cb();}
 }
 
 /* ============================================================
@@ -1707,8 +1726,13 @@ function resolveSpellOverlay(){
    ============================================================ */
 const Stack={
   items:[],resolving:false,
+  pendingAfter:[], // スタック解決後に発火する効果キュー
   push(label,card,owner,fn){
     this.items.push({label,card,owner,fn});G.stackLocked=true;this.render();
+  },
+  // スタック解決後トリガー登録
+  pushAfter(label,card,owner,fn){
+    this.pendingAfter.push({label,card,owner,fn});
   },
   resolve(){
     if(this.resolving)return;
@@ -1719,7 +1743,19 @@ const Stack={
     if(!this.items.length){
       this.resolving=false;G.stackLocked=false;this.hide();
       rMon('m');rMon('e');rHand();rEN('m');rEN('e');rGrave('m');rGrave('e');rStatus();updBtn();
-      nc('チェーン処理完了','var(--green)');return;
+      nc('チェーン処理完了','var(--green)');
+      // 後発効果があれば続けて処理
+      if(this.pendingAfter.length){
+        const after=[...this.pendingAfter];this.pendingAfter=[];
+        setTimeout(()=>{
+          nc('▶ 破壊トリガー発火','var(--orange)');
+          showEffectsAndQueue(after,()=>{
+            if(Stack.items.length>0)Stack.render();
+            else{rMon('m');rMon('e');rStatus();}
+          });
+        },400);
+      }
+      return;
     }
     const item=this.items.pop();this.render();
     const ownerLabel=item.owner==='m'?'自分':'相手';
@@ -1747,6 +1783,13 @@ const Stack={
       row.onmouseenter=()=>{if(item.card)pvShow(item.card);};row.onmouseleave=()=>pvClear();
       list.appendChild(row);
     });
+    // pendingAfterがある場合は予告表示
+    if(this.pendingAfter.length){
+      const sep=document.createElement('div');
+      sep.style.cssText='padding:4px 8px;font-size:8px;color:var(--orange);font-family:var(--mono);border-top:1px solid rgba(245,166,35,.2);';
+      sep.textContent='↓ 解決後トリガー: '+this.pendingAfter.length+'件';
+      list.appendChild(sep);
+    }
   },
   hide(){const panel=$('stack-panel');if(panel)panel.style.display='none';}
 };
@@ -1946,8 +1989,32 @@ function dBreak(){
   else if(!G.my.partner.condMet)G.my.partner.condText='1Tに2枚SH破壊('+G.my.partner.prog+'/2)';
   brkSh('e',idx);
 }
-function dAddSh(){if(G.enemy.shields.length>=10){nc('SH最大');return;}G.enemy.shields.push(true);G.enemy.shCards.push({name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス',trigger:false,civ:'water',icon:'🌊'});nc('相手SH追加');rSh('e');}
-function dAddMySh(){if(G.my.shields.length>=10){nc('SH最大');return;}G.my.shields.push(true);G.my.shCards.push({name:'炎の加護',type:'spell',cost:1,eff:'ATK+3',trigger:true,civ:'fire',icon:'🔥'});nc('自分SH追加');rSh('m');}
+function dAddSh(){
+  // 生存シールドが10枚なら追加不可
+  if(G.enemy.shields.filter(s=>s).length>=10){nc('相手SH最大(10枚)');return;}
+  // 破壊済み(false)スロットがあれば再利用、なければpush
+  const dead=G.enemy.shields.indexOf(false);
+  if(dead>=0){
+    G.enemy.shields[dead]=true;
+    G.enemy.shCards[dead]={name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス',trigger:false,civ:'water',icon:'🌊'};
+  }else{
+    G.enemy.shields.push(true);
+    G.enemy.shCards.push({name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス',trigger:false,civ:'water',icon:'🌊'});
+  }
+  nc('相手SH追加 ('+G.enemy.shields.filter(s=>s).length+'枚)');rSh('e');rStatus();
+}
+function dAddMySh(){
+  if(G.my.shields.filter(s=>s).length>=10){nc('自分SH最大(10枚)');return;}
+  const dead=G.my.shields.indexOf(false);
+  if(dead>=0){
+    G.my.shields[dead]=true;
+    G.my.shCards[dead]={name:'炎の加護',type:'spell',cost:1,eff:'ATK+3',trigger:true,civ:'fire',icon:'🔥'};
+  }else{
+    G.my.shields.push(true);
+    G.my.shCards.push({name:'炎の加護',type:'spell',cost:1,eff:'ATK+3',trigger:true,civ:'fire',icon:'🔥'});
+  }
+  nc('自分SH追加 ('+G.my.shields.filter(s=>s).length+'枚)');rSh('m');rStatus();
+}
 function dBreakMySh(){const idx=findAlive('m');if(idx<0){nc('SHなし');return;}brkSh('m',idx);}
 function dTrig(){const idx=findAlive('m');if(idx<0){nc('SHなし');return;}G.my.shCards[idx]={name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true,civ:'fire',icon:'🔥'};brkSh('m',idx);}
 function dReady(){G.my.partner.condMet=true;G.my.partner.condText='達成済み';$('dbrdy').classList.add('act');nc('⚡ 条件達成！','var(--gold)');ra();}
@@ -2014,11 +2081,16 @@ function dStackDemo4(){
     onEnemy:'debuff_atk1',civ:'dark',icon:'🧙'
   };
 
-  // 自分フィールド: 味方MONが出た時に効果発動するカード2体
+  // 自分フィールド: 味方MONが出た時2体 + 破壊時効果1体
   G.my.monsters[0]={
     name:'応援の精霊',type:'monster',cost:2,atk:1,hp:4,maxHp:4,kw:[],
     eff:'味方MONが出た時: そのMONのHP+2',
     onAlly:'buff_hp2',canAttack:true,used:false,civ:'wind',icon:'🌟'
+  };
+  G.my.monsters[3]={
+    name:'爆炎の殉教者',type:'monster',cost:3,atk:3,hp:3,maxHp:3,kw:[],
+    eff:'破壊された時: 全MONに1ダメージ',
+    onDestroy:'deal1_all',canAttack:true,used:false,civ:'fire',icon:'💥'
   };
   G.my.monsters[4]={
     name:'戦場の旗手',type:'monster',cost:3,atk:2,hp:6,maxHp:6,kw:[],
@@ -2035,7 +2107,7 @@ function dStackDemo4(){
   });
 
   G.my.en=8;G.my.enMax=8;
-  nc('4効果デモ: 「霊感の使徒」を召喚 → 4つの効果が同タイミングで発動','var(--gold)');
+  nc('4効果デモ: 「霊感の使徒」を召喚 → 自分3+相手2のスタック。監視の番人に2ダメが入ると爆炎の殉教者の破壊時効果も発火','var(--gold)');
   ra();
 }
 
