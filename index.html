@@ -608,6 +608,18 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
   </div>
   <div class="gfb-label">墓地 <span id="cbar-egrave">0</span></div>
 </div>
+
+<div id="grave-panel" style="display:none;position:fixed;z-index:800;
+  background:rgba(10,10,22,.97);border:1px solid var(--l2);border-radius:10px;
+  overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);
+  width:340px;max-height:480px;flex-direction:column;">
+  <div style="display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px;background:rgba(0,0,0,.3);border-bottom:1px solid var(--l2);flex-shrink:0;">
+    <span id="grave-panel-title" style="font-size:12px;font-weight:700;color:var(--gold);font-family:var(--mono);"></span>
+    <button onclick="closeGravePanel()" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;">✕</button>
+  </div>
+  <div id="grave-panel-list" style="overflow-y:auto;flex:1;padding:6px 8px;"></div>
+</div>
 <div id="nc"><div id="nc-msg"></div></div>
 <div id="notif"></div>
 <div class="ov" id="tov" onclick="hideTrig()" style="display:none!important;">
@@ -640,6 +652,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     <button class="dbtn" onclick="dLowEN()">EN0</button>
     <button class="dbtn" onclick="dEdraw()">相手ドロー</button>
     <button class="dbtn" onclick="dMdraw()">自分ドロー</button>
+    <button class="dbtn" onclick="dGrave10()">墓地+10</button>
     <button class="dbtn" onclick="location.reload()">Reset</button>
 </div>
 <div id="app">
@@ -937,9 +950,8 @@ function pvShow(card){
   $('pv-cost').textContent='EN '+card.cost;$('pv-cost').style.cssText='font-size:9px;color:var(--gold);font-family:var(--mono);display:block;';
 }
 function pvClear(){
-  const pv=$('l-pv');
-  if(pv && pv._grave_mode) return;
-  $('pv-empty').style.display='block';$('pv-card').style.display='none';
+  $('pv-empty')&&($('pv-empty').style.display='block');
+  $('pv-card')&&($('pv-card').style.display='none');
 }
 function pvPt(who){const p=who==='e'?G.enemy.partner:G.my.partner;pvShow({name:p.name,type:'monster',cost:p.cost,atk:p.atk,hp:p.hp,kw:[],eff:'【常在】'+p.skill+'\n【条件】'+p.condText});}
 
@@ -1407,6 +1419,22 @@ function dMons(){
   ][i];});
   G.my.enMax=Math.min(10,G.my.enMax+4);G.my.en=G.my.enMax;nc('MON追加');ra();
 }
+function dGrave10(){
+  const cards=[
+    {name:'炎獣ファング',type:'monster',cost:3,atk:4,hp:6,maxHp:6,kw:['突撃'],eff:'突撃'},
+    {name:'紅蓮の戦士',type:'monster',cost:5,atk:6,hp:8,maxHp:8,kw:[],eff:'攻撃時:相手2ダメ'},
+    {name:'ファイアボール',type:'spell',cost:3,eff:'相手モンスター1体に5ダメ'},
+    {name:'烈火の斬撃',type:'spell',cost:2,eff:'相手モンスター1体に3ダメ',trigger:true},
+    {name:'炎の守護者',type:'monster',cost:3,atk:3,hp:8,maxHp:8,kw:['前衛'],eff:'前衛'},
+    {name:'灼熱突撃兵',type:'monster',cost:2,atk:3,hp:5,maxHp:5,kw:['突撃'],eff:'突撃'},
+    {name:'炎の加護',type:'spell',cost:1,eff:'ATK+3（このターン）',trigger:true},
+    {name:'深海の剣士',type:'monster',cost:4,atk:4,hp:7,maxHp:7,kw:[],eff:'召喚時:1ドロー'},
+    {name:'大波',type:'spell',cost:3,eff:'モンスター1体バウンス'},
+    {name:'水の守護者',type:'monster',cost:3,atk:2,hp:8,maxHp:8,kw:['前衛'],eff:'前衛'},
+  ];
+  cards.forEach(c=>G.my.grave.push({...c}));
+  nc('墓地+10枚');rGrave('m');rStatus();
+}
 function dLowEN(){G.my.en=0;nc('EN=0','var(--red)');rEN('m');rHand();}
 function dEdraw(){if(G.enemy.handCount>=10){nc('相手手札上限(10枚)','var(--red)');return;}G.enemy.handCount++;nc('相手ドロー ('+G.enemy.handCount+'枚)');rHB();}
 function dMdraw(){
@@ -1420,44 +1448,41 @@ function dMdraw(){
   G.my.hand.push({...c});nc('自分ドロー: '+c.name);rHand();
 }
 function og(w){
-  // 背景暗転なし: 左パネルに墓地一覧を直接表示
   const grave=w==='e'?G.enemy.grave:G.my.grave;
   const title=(w==='m'?'自分':'相手')+'の墓地（'+grave.length+'枚）';
-  // 左パネルのプレビュー領域を一時的に墓地一覧に置き換え
-  const pv=$('l-pv');
-  pv.innerHTML='';
-  // 閉じるボタン付きの墓地パネルを作成
-  const wrap=document.createElement('div');
-  wrap.style.cssText='display:flex;flex-direction:column;gap:4px;width:100%;height:100%;overflow-y:auto;';
-  // ヘッダー
-  const hdr=document.createElement('div');
-  hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:0 2px 4px;border-bottom:1px solid var(--l1);flex-shrink:0;';
-  hdr.innerHTML=`<span style="font-size:11px;color:var(--gold);font-family:var(--mono);">${title}</span><button onclick="closePvGrave()" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:14px;line-height:1;">✕</button>`;
-  wrap.appendChild(hdr);
+  const panel=document.getElementById('grave-panel');
+  const list=document.getElementById('grave-panel-list');
+  const titleEl=document.getElementById('grave-panel-title');
+  if(!panel||!list){return;}
+  titleEl.textContent=title;
+  list.innerHTML='';
   if(!grave.length){
-    const em=document.createElement('div');
-    em.style.cssText='font-size:10px;color:var(--tx3);text-align:center;padding:12px 0;';
-    em.textContent='墓地にカードはありません';
-    wrap.appendChild(em);
+    list.innerHTML='<div style="color:var(--tx3);font-size:11px;text-align:center;padding:20px;">墓地にカードはありません</div>';
   } else {
-    grave.forEach((card,i)=>{
-      const row=document.createElement('div');
-      row.style.cssText='display:flex;gap:6px;align-items:flex-start;padding:5px 2px;border-bottom:1px solid var(--l1);cursor:pointer;flex-shrink:0;';
+    grave.slice().reverse().forEach(card=>{
       const sp=card.type==='spell';
-      row.innerHTML=`<div style="width:28px;height:38px;border-radius:3px;flex-shrink:0;background:${sp?'rgba(212,130,10,.15)':'var(--bdim)'};border:1px solid ${sp?'var(--orange)':'var(--blue)'};display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--tx3);">${sp?'S':'M'}</div><div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${card.name}</div><div style="font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:1px;">${card.type==='monster'?'ATK'+card.atk+' HP'+(card.maxHp||card.hp):'EN'+card.cost}</div></div>`;
-      row.addEventListener('mouseenter',()=>pvShow(card));
-      row.addEventListener('mouseleave',pvClear);
-      wrap.appendChild(row);
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;gap:8px;align-items:flex-start;padding:6px 4px;border-bottom:1px solid var(--l1);cursor:pointer;border-radius:4px;transition:background .1s;';
+      row.innerHTML=`<div style="width:32px;height:44px;border-radius:4px;flex-shrink:0;background:${sp?'rgba(212,130,10,.15)':'var(--bdim)'};border:1px solid ${sp?'var(--orange)':'var(--blue)'};display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--tx3);">${sp?'S':'M'}</div><div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:700;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${card.name}</div><div style="font-size:9px;color:var(--tx3);font-family:var(--mono);margin-top:2px;">${card.type==='monster'?'EN'+card.cost+' ATK'+card.atk+' HP'+(card.maxHp||card.hp):'EN'+card.cost}</div>${card.eff?`<div style="font-size:9px;color:#8ab4ff;margin-top:2px;line-height:1.4;">${card.eff}</div>`:''}</div>`;
+      row.addEventListener('mouseenter',()=>{row.style.background='rgba(255,255,255,.04)';pvShow(card);});
+      row.addEventListener('mouseleave',()=>{row.style.background='';pvClear();});
+      list.appendChild(row);
     });
   }
-  wrap.addEventListener('mouseleave',pvClear);
-  // プレビューエリア追加
-  const pvArea=document.createElement('div');
-  pvArea.id='grave-pv-area';
-  pvArea.style.cssText='flex-shrink:0;min-height:60px;';
-  wrap.appendChild(pvArea);
-  pv.appendChild(wrap);
-  pv._grave_mode=true;
+  // フィールド中央に配置
+  const field=document.getElementById('field');
+  if(field){
+    const fr=field.getBoundingClientRect();
+    panel.style.left=(fr.left+(fr.width-340)/2)+'px';
+    panel.style.top=Math.max(40,(fr.top+(fr.height-Math.min(480,grave.length*60+80))/2))+'px';
+  }
+  panel.style.display='flex';
+}
+
+function closeGravePanel(){
+  const panel=document.getElementById('grave-panel');
+  if(panel) panel.style.display='none';
+  pvClear();
 }
 function closePvGrave(){
   const pv=$('l-pv');
