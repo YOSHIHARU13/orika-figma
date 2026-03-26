@@ -796,7 +796,7 @@ html,body{width:1280px;height:752px;overflow:hidden;background:var(--bg);color:v
     <span class="sdv">|</span>
     <span class="sico">🛡</span><span class="sval" id="st-mshield">5</span>
     <span class="sdv">|</span>
-    <span class="sico" style="opacity:.4">💀</span><span class="sval" id="cbar-mgrave">0</span>
+    <span class="sico" style="opacity:.4">💀</span><span class="sval" id="st-mgrave">0</span>
     <span class="sdv">|</span>
     <span class="sico">⚡</span><span class="sval" id="st-men">1/1</span>
   </div>
@@ -1057,14 +1057,12 @@ function rStatus(){
   fe('st-eshield')&&(fe('st-eshield').textContent=G.enemy.shields.filter(s=>s).length);
   fe('st-mdeck')&&(fe('st-mdeck').textContent=G.my.deck);
   const mgn=G.my.grave.length,egn=G.enemy.grave.length;
-  fe('st-mgrave')&&(fe('st-mgrave').textContent=mgn);
-  fe('cbar-mgrave')&&(fe('cbar-mgrave').textContent=mgn);
-  fe('st-egrave')&&(fe('st-egrave').textContent=egn);
-  fe('cbar-egrave')&&(fe('cbar-egrave').textContent=egn);
+  // 重複IDも含め全て更新
+  ['st-mgrave','cbar-mgrave','mgbcnt'].forEach(id=>document.querySelectorAll('[id="'+id+'"]').forEach(el=>el.textContent=mgn));
+  ['st-egrave','cbar-egrave','egbcnt'].forEach(id=>document.querySelectorAll('[id="'+id+'"]').forEach(el=>el.textContent=egn));
   // 墓地あるとき金色強調
   ['m-grave-btn','st-mgrave'].forEach(id=>{const el=fe(id);if(el){el.classList.toggle('active',mgn>0);el.style.opacity=mgn>0?'1':'.45';}});
-  const cmg=fe('cbar-mgrave'),ceg=fe('cbar-egrave');
-  if(cmg)cmg.textContent=mgn;if(ceg)ceg.textContent=egn;
+
   const mgBtn=fe('m-grave-btn'),egBtn=fe('e-grave-btn');
   if(mgBtn)mgBtn.classList.toggle('active',mgn>0);
   if(egBtn)egBtn.classList.toggle('active',egn>0);
@@ -1161,7 +1159,11 @@ function rHand(){
 }
 function rGrave(w){
   const n=w==='e'?G.enemy.grave.length:G.my.grave.length;
-  $(w==='e'?'egbcnt':'mgbcnt').textContent=n;
+  // 同じIDが複数ある場合も全て更新
+  const ids=w==='e'?['egbcnt','cbar-egrave','st-egrave']:['mgbcnt','cbar-mgrave','st-mgrave'];
+  ids.forEach(id=>{
+    document.querySelectorAll('[id="'+id+'"]').forEach(el=>{el.textContent=n;});
+  });
 }
 function rPhase(){
   const ib=G.phase==='battle',ie=!G.myTurn;
