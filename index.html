@@ -444,7 +444,7 @@ body::after{
   background:rgba(5,5,14,.92);border:1px solid var(--l2);
   border-radius:6px;padding:5px 12px;z-index:60;
   font-size:12px;font-family:var(--mono);white-space:nowrap;
-  pointer-events:none;backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
 }
 .sico{font-size:13px;line-height:1;}
 .sval{font-weight:700;color:var(--white);font-size:12px;}
@@ -580,9 +580,11 @@ body::after{
   display:none;position:fixed;z-index:800;
   background:rgba(8,8,22,.97);border:1px solid var(--l2);border-radius:12px;
   overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.8);
-  width:340px;max-height:480px;flex-direction:column;
+  width:340px;max-height:480px;
   backdrop-filter:blur(8px);
+  flex-direction:column;
 }
+#grave-panel.open{display:flex;}
 #grave-panel-header{
   display:flex;justify-content:space-between;align-items:center;
   padding:10px 14px;background:rgba(0,0,0,.3);border-bottom:1px solid var(--l2);flex-shrink:0;
@@ -838,7 +840,7 @@ body::after{
   <span class="sdv">|</span>
   <span class="sico">🛡</span><span class="sval" id="st-mshield">5</span>
   <span class="sdv">|</span>
-  <span class="sico" style="opacity:.4">💀</span><span class="sval" id="st-mgrave">0</span>
+  <span class="sico" style="opacity:.7;cursor:pointer;" onclick="og('m')">💀</span><span class="sval" id="st-mgrave" style="cursor:pointer;" onclick="og('m')">0</span>
   <span class="sdv">|</span>
   <span class="sico">⚡</span><span class="sval" id="st-men">1/1</span>
 </div>
@@ -849,7 +851,7 @@ body::after{
   <span class="sdv">|</span>
   <span class="sico">🛡</span><span class="sval" id="st-eshield">5</span>
   <span class="sdv">|</span>
-  <span class="sico" style="opacity:.4">💀</span><span class="sval" id="st-egrave">0</span>
+  <span class="sico" style="opacity:.7;cursor:pointer;" onclick="og('e')">💀</span><span class="sval" id="st-egrave" style="cursor:pointer;" onclick="og('e')">0</span>
   <span class="sdv">|</span>
   <span class="sico">⚡</span><span class="sval" id="st-een">1/1</span>
 </div>
@@ -1690,10 +1692,19 @@ function og(w){
     });
   }
   const field=$('field');
-  if(field){const fr=field.getBoundingClientRect();panel.style.left=(fr.left+(fr.width-340)/2)+'px';panel.style.top=Math.max(40,(fr.top+(fr.height-Math.min(480,grave.length*62+80))/2))+'px';}
-  panel.style.display='flex';
+  if(field){
+    const fr=field.getBoundingClientRect();
+    panel.style.left=(fr.left+(fr.width-340)/2)+'px';
+    panel.style.top=Math.max(44,(fr.top+(fr.height-Math.min(480,grave.length*62+90))/2))+'px';
+  }
+  panel.classList.add('open');
+  panel._who=w;
 }
-function closeGravePanel(){$('grave-panel').style.display='none';pvClear();}
+function closeGravePanel(){
+  const p=$('grave-panel');
+  if(p){p.classList.remove('open');p.style.display='';}
+  pvClear();
+}
 
 /* ============================================================
    RESULT
@@ -1781,8 +1792,11 @@ function dStackDemo(){
    ============================================================ */
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('modal-bg'))e.target.classList.remove('show');
-  const gp=$('grave-panel');
-  if(gp&&gp.style.display!=='none'&&!gp.contains(e.target)&&e.target.id!=='m-grave-btn'&&e.target.id!=='e-grave-btn')closeGravePanel();
+  if(gp&&gp.classList.contains('open')&&!gp.contains(e.target)){
+    // 墓地ボタン・UIバー髑髏クリックは除外
+    const ids=['m-grave-btn','e-grave-btn','st-mgrave','st-egrave'];
+    if(!ids.some(id=>e.target.id===id||e.target.closest('#'+id)))closeGravePanel();
+  }
 });
 
 /* ============================================================
