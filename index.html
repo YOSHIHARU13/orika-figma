@@ -1366,14 +1366,14 @@ function placeM(hi,si){
   const _effects=[];
   // ① 召喚したMON自身の場に出た時効果
   if(mc.onPlay==='draw1'){
-    _effects.push({label:'場に出た時: 1枚ドロー',card:mc,owner:'m',
+    _effects.push({label:'場に出た時: 1枚ドロー',card:mc,owner:'m',slotId:'mm-'+si,
       fn:()=>{nc(mc.name+' → 1ドロー！','var(--green)');dMdraw();}});
   }
   // ② 自分フィールドの「味方MONが出た時」効果
   G.my.monsters.forEach((am,ai)=>{
     if(!am||am.id===mc.id)return; // 自分自身は除く
     if(am.onAlly==='buff_hp2'){
-      _effects.push({label:'味方MONが出た時: HP+2',card:am,owner:'m',
+      _effects.push({label:'味方MONが出た時: HP+2',card:am,owner:'m',slotId:'mm-'+ai,
         fn:()=>{
           const t=G.my.monsters[si];
           if(t){t.hp=Math.min(t.maxHp+2,t.hp+2);t.maxHp+=2;
@@ -1381,7 +1381,7 @@ function placeM(hi,si){
         }});
     }
     if(am.onAlly==='draw1'){
-      _effects.push({label:'味方MONが出た時: 1枚ドロー',card:am,owner:'m',
+      _effects.push({label:'味方MONが出た時: 1枚ドロー',card:am,owner:'m',slotId:'mm-'+ai,
         fn:()=>{nc(am.name+' → 1ドロー！','var(--green)');dMdraw();}});
     }
   });
@@ -1389,7 +1389,7 @@ function placeM(hi,si){
   G.enemy.monsters.forEach((em,ei)=>{
     if(!em)return;
     if(em.onEnemy==='deal2'){
-      _effects.push({label:'相手MONが出た時: 2ダメ',card:em,owner:'e',
+      _effects.push({label:'相手MONが出た時: 2ダメ',card:em,owner:'e',slotId:'em-'+ei,
         fn:()=>{
           const t=G.my.monsters[si];
           if(t){t.hp-=2;showDmgPop('mm-'+si,2,'var(--red)');
@@ -1398,7 +1398,7 @@ function placeM(hi,si){
         }});
     }
     if(em.onEnemy==='debuff_atk1'){
-      _effects.push({label:'相手MONが出た時: ATK-1',card:em,owner:'e',
+      _effects.push({label:'相手MONが出た時: ATK-1',card:em,owner:'e',slotId:'em-'+ei,
         fn:()=>{
           const t=G.my.monsters[si];
           if(t){t.atk=Math.max(0,t.atk-1);
@@ -1416,6 +1416,9 @@ function castSpell(hi){
   const c=G.my.hand[hi];if(!c||c.cost>G.my.en)return;
   G.my.en-=c.cost;G.my.grave.push({...c});G.my.hand.splice(hi,1);G.selCard=null;clrHL();
   addLog('*',c.name+' 発動','');
+  // 手札発動なのでフィールドスロットはないがcbarに表示
+  const cb=$('cbar-txt');
+  if(cb){cb.innerHTML=`<span style="color:var(--green)">自分</span> <span style="color:var(--gold);font-weight:900;">${c.name}</span> <span style="color:var(--orange);font-size:10px;">SPELL発動</span>`;clearTimeout(cb._t);cb._t=setTimeout(()=>{cb.innerHTML='';},2000);}
   showSpellOverlay(c,'⚡ SPELL',()=>{ra();});
 }
 function castSpellOn(hi,ti){
@@ -1635,7 +1638,10 @@ function trigActivate(){
   window._pendingTrig=null;
   G.trigPending=false;
   $('trig-choice').classList.remove('show');
-  showSpellOverlay(t.card,'🔔 鼓動発動',()=>{addToHand({...t.card,trigger:false});ra();});
+  // 鼓動発動：オーバーレイなし、手札エリアをグロー
+  nc('🔔 鼓動発動: '+t.card.name,'var(--orange)');
+  addToHand({...t.card,trigger:false});
+  ra();
 }
 function trigCancel(){
   const t=window._pendingTrig;if(!t)return;
@@ -1863,6 +1869,29 @@ function sumP(){
 }
 
 /* ============================================================
+   GLOW EFFECT — 発動元スロットを光らせる
+   ============================================================ */
+function glowSlot(slotId, col, ms=800){
+  const el=document.getElementById(slotId);
+  if(!el)return;
+  const prev=el.style.boxShadow||'';
+  const prevTransition=el.style.transition||'';
+  el.style.transition='box-shadow .1s';
+  el.style.boxShadow=`0 0 0 3px ${col}, 0 0 24px ${col}, 0 0 50px ${col}`;
+  setTimeout(()=>{
+    el.style.transition='box-shadow .4s';
+    el.style.boxShadow=prev;
+    setTimeout(()=>{el.style.transition=prevTransition;},400);
+  },ms);
+}
+// カード種別から文明カラーを返す
+function civGlowColor(card){
+  if(!card)return'rgba(232,184,75,.8)';
+  const m={fire:'rgba(255,101,53,.9)',water:'rgba(45,212,240,.9)',wind:'rgba(82,224,138,.9)',dark:'rgba(166,126,255,.9)',earth:'rgba(160,133,74,.9)'};
+  return m[card.civ]||'rgba(232,184,75,.8)';
+}
+
+/* ============================================================
    SPELL OVERLAY
    ============================================================ */
 let _spellCb=null;
@@ -1897,12 +1926,12 @@ function resolveSpellOverlay(){
 const Stack={
   items:[],resolving:false,
   pendingAfter:[], // スタック解決後に発火する効果キュー
-  push(label,card,owner,fn){
-    this.items.push({label,card,owner,fn});G.stackLocked=true;this.render();
+  push(label,card,owner,fn,slotId){
+    this.items.push({label,card,owner,fn,slotId});G.stackLocked=true;this.render();
   },
   // スタック解決後トリガー登録
-  pushAfter(label,card,owner,fn){
-    this.pendingAfter.push({label,card,owner,fn});
+  pushAfter(label,card,owner,fn,slotId){
+    this.pendingAfter.push({label,card,owner,fn,slotId});
   },
   resolve(){
     if(this.resolving)return;
@@ -1928,11 +1957,17 @@ const Stack={
       return;
     }
     const item=this.items.pop();this.render();
-    const ownerLabel=item.owner==='m'?'自分':'相手';
-    showSpellOverlay(item.card||{name:item.label,eff:'',type:'spell'},
-      ownerLabel+' — チェーン'+(this.items.length+1)+'解決',
-      ()=>{item.fn();setTimeout(()=>this._next(),500);}
-    );
+    // 解決時：オーバーレイなし、発動元グロー→fn実行
+    if(item.slotId) glowSlot(item.slotId, civGlowColor(item.card), 600);
+    const cb=$('cbar-txt');
+    if(cb){
+      const oc=item.owner==='m'?'var(--green)':'var(--red)';
+      const on=item.owner==='m'?'自分':'相手';
+      const nm=item.card?item.card.name:'';
+      cb.innerHTML=`<span style="color:var(--tx3);font-size:10px;">▶解決</span> <span style="color:${oc}">${on}</span> <span style="color:var(--gold);font-weight:900;">${nm}</span> <span style="color:var(--tx2);font-size:10px;">${item.label}</span>`;
+      clearTimeout(cb._t);cb._t=setTimeout(()=>{cb.innerHTML='';},1800);
+    }
+    setTimeout(()=>{item.fn();setTimeout(()=>this._next(),400);},300);
   },
   render(){
     const panel=$('stack-panel');const list=$('stack-list');if(!panel||!list)return;
@@ -2004,25 +2039,38 @@ function showEffectsAndQueue(effects, done){
 function _queueOneByOne(effects, done){
   if(!effects.length){if(done)done();return;}
 
-  // 合計1件 かつ スタックが空 → スタック不使用で直接発動
+  // 1件かつスタック空 → 直接発動（グローのみ、オーバーレイなし）
   if(effects.length===1 && Stack.items.length===0){
     const e=effects[0];
-    const ownerLabel=e.owner==='m'?'自分':'相手';
-    showSpellOverlay(e.card, ownerLabel+' — '+e.label, ()=>{
+    if(e.slotId) glowSlot(e.slotId, civGlowColor(e.card), 700);
+    cbarEffect(e);
+    setTimeout(()=>{
       e.fn();
       rMon('m');rMon('e');rHand();rEN('m');rEN('e');rGrave('m');rGrave('e');rStatus();updBtn();
       if(done)done();
-    });
+    },300);
     return;
   }
 
-  // 複数件 → スタックに積んで逆順処理
+  // 複数件 → グロー→スタックへ積む（オーバーレイなし）
   const e=effects.shift();
-  const ownerLabel=e.owner==='m'?'自分':'相手';
-  showSpellOverlay(e.card, ownerLabel+' — '+e.label, ()=>{
-    Stack.push(e.label, e.card, e.owner, e.fn);
+  if(e.slotId) glowSlot(e.slotId, civGlowColor(e.card), 600);
+  cbarEffect(e);
+  setTimeout(()=>{
+    Stack.push(e.label, e.card, e.owner, e.fn, e.slotId);
     _queueOneByOne(effects, done);
-  });
+  },200);
+}
+
+// cbarに発動情報を短時間表示
+function cbarEffect(e){
+  const cb=$('cbar-txt');if(!cb)return;
+  const oc=e.owner==='m'?'var(--green)':'var(--red)';
+  const on=e.owner==='m'?'自分':'相手';
+  const nm=e.card?e.card.name:'';
+  cb.innerHTML=`<span style="color:${oc}">${on}</span> <span style="color:var(--gold);font-weight:900;">${nm}</span> <span style="color:var(--tx2);font-size:10px;">${e.label}</span>`;
+  clearTimeout(cb._t);
+  cb._t=setTimeout(()=>{cb.innerHTML='';},2000);
 }
 
 // 複数効果の順序選択UI
