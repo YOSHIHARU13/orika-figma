@@ -393,13 +393,14 @@ body::after{
 }
 #hrow{display:flex;align-items:flex-end;justify-content:center;pointer-events:all;overflow:visible;}
 .hcard{
-  width:76px;height:var(--HH);flex-shrink:0;
+  width:80px;height:var(--HH);flex-shrink:0;
   border-radius:9px;border:2px solid var(--l2);
   background:linear-gradient(160deg,var(--p2),var(--p1));
-  cursor:pointer;display:flex;flex-direction:column;align-items:center;
-  padding:4px;gap:2px;position:relative;overflow:visible;
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:stretch;
+  position:relative;overflow:hidden;
   transform-origin:bottom center;margin:0 -10px;
-  transition:transform .2s,box-shadow .2s,border-color .2s,z-index 0s;
+  transition:transform .2s,box-shadow .2s,border-color .2s;
   box-shadow:0 4px 14px rgba(0,0,0,.5);
 }
 .hcard.playable{border-color:rgba(39,201,106,.5);box-shadow:0 0 10px rgba(39,201,106,.2),0 4px 14px rgba(0,0,0,.5);}
@@ -413,29 +414,63 @@ body::after{
 .hcard.no-en{opacity:.5;filter:grayscale(.5);}
 .hcard.spell{border-color:rgba(232,152,10,.3);}
 .hcard.spell.playable{border-color:rgba(39,201,106,.5);}
-.hcard.hastrig::after{content:'鼓動';position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:7px;color:var(--orange);font-weight:700;font-family:var(--mono);}
-.ccost{
+.hcard.hastrig::after{
+  content:'鼓動';position:absolute;bottom:2px;left:0;right:0;
+  text-align:center;font-size:7px;color:var(--orange);font-weight:700;
+  font-family:var(--mono);background:rgba(0,0,0,.5);
+}
+/* 手札カードの各パーツ — 場のモンスターと同構造 */
+.hcart{
+  flex:1;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;font-size:22px;
+  border-radius:7px 7px 0 0;
+}
+.hcart.fire{background:linear-gradient(160deg,rgba(255,101,53,.3),rgba(180,50,20,.2),var(--p3));}
+.hcart.water{background:linear-gradient(160deg,rgba(45,212,240,.2),rgba(20,80,180,.2),var(--p3));}
+.hcart.wind{background:linear-gradient(160deg,rgba(82,224,138,.2),rgba(20,120,60,.2),var(--p3));}
+.hcart.dark{background:linear-gradient(160deg,rgba(166,126,255,.25),rgba(80,40,160,.2),var(--p3));}
+.hcart.earth{background:linear-gradient(160deg,rgba(160,133,74,.2),rgba(80,60,20,.2),var(--p3));}
+.hcart.spell-civ{background:linear-gradient(160deg,rgba(232,152,10,.2),rgba(180,100,0,.15),var(--p3));}
+.hcart.none{background:linear-gradient(160deg,var(--l2),var(--l1));}
+.hcart::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:24px;
+  background:linear-gradient(transparent,rgba(0,0,0,.6));pointer-events:none;
+}
+/* EN右上バッジ（手札） */
+.hcost{
   position:absolute;top:3px;right:3px;
   width:22px;height:22px;border-radius:50%;
   background:linear-gradient(135deg,#7a5500,var(--gold2));
   color:var(--white);font-size:13px;font-weight:900;
   display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(232,184,75,.5);font-family:var(--mono);z-index:10;
+  border:2px solid rgba(232,184,75,.6);font-family:var(--mono);
   text-shadow:0 1px 3px rgba(0,0,0,.9);
+  z-index:20;flex-shrink:0;
 }
-.ccost.cant{background:rgba(30,30,50,.9);color:var(--tx3);border-color:var(--l2);text-shadow:none;}
-.cart-h{
-  width:100%;flex:1;min-height:0;border-radius:5px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;overflow:hidden;
+.hcost.cant{background:rgba(30,30,50,.95);color:var(--tx3);border-color:var(--l2);text-shadow:none;}
+/* 手札カードの下部ステータス帯 */
+.hsa{
+  width:100%;padding:3px 4px 3px;
+  display:flex;flex-direction:column;gap:1px;
+  flex-shrink:0;background:rgba(0,0,0,.35);
 }
-.cart-h.fire{background:linear-gradient(160deg,rgba(255,101,53,.25),var(--p3));}
-.cart-h.water{background:linear-gradient(160deg,rgba(45,212,240,.18),var(--p3));}
-.cart-h.spell-art{background:linear-gradient(160deg,rgba(232,152,10,.18),var(--p3));}
-.cart-h.default-art{background:linear-gradient(160deg,var(--l2),var(--l1));}
-.ctype{font-size:7px;color:var(--tx3);font-family:var(--mono);}
-.cnm{font-size:8px;font-weight:700;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--white);}
-.csub{font-size:7px;color:var(--tx3);font-family:var(--mono);}
+.hnm{font-size:7px;color:var(--tx);text-align:center;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hst{display:flex;gap:2px;justify-content:center;
+  font-size:11px;font-weight:900;font-family:var(--mono);}
+.hkwrow{display:flex;gap:2px;justify-content:center;}
+.hkwi{height:12px;padding:0 3px;border-radius:6px;font-size:6px;font-weight:700;
+  display:flex;align-items:center;font-family:var(--mono);}
+.hkwi.突撃{background:rgba(255,101,53,.3);border:1px solid rgba(255,101,53,.5);color:#ff8055;}
+.hkwi.前衛{background:rgba(39,201,106,.25);border:1px solid rgba(39,201,106,.4);color:var(--green);}
+.htype-badge{
+  position:absolute;top:3px;left:3px;
+  font-size:6px;font-weight:700;font-family:var(--mono);
+  padding:1px 3px;border-radius:3px;
+}
+.htype-badge.monster{background:rgba(91,164,245,.2);color:var(--blue);border:1px solid rgba(91,164,245,.3);}
+.htype-badge.spell{background:rgba(232,152,10,.2);color:var(--orange);border:1px solid rgba(232,152,10,.3);}
 
 /* ── ABAR ── */
 #abar{
@@ -1283,12 +1318,21 @@ function rHand(){
     const hc=document.createElement('div');
     hc.className='hcard'+(sp?' spell':'')+(ok?' playable':' no-en')+(sel?' selected':'')+(c.trigger?' hastrig':'');
     hc.id='hc-'+i;
-    const artBg=civ==='fire'?'fire':civ==='water'?'water':sp?'spell-art':'default-art';
-    hc.innerHTML=`<div class="ccost ${ok?'':'cant'}">${c.cost}</div>`
-      +`<div class="cart-h ${artBg}">${icon}</div>`
-      +`<div class="ctype">${sp?'SPELL':'MONSTER'}</div>`
-      +`<div class="cnm">${c.name}</div>`
-      +`<div class="csub">${c.type==='monster'?`${c.atk}/${c.hp}`:''}</div>`;
+    const artCls=sp?'spell-civ':(civ||'none');
+    const kw=(c.kw||[]).map(k=>`<div class="hkwi ${k}">${k==='突撃'?'突':'前'}</div>`).join('');
+    hc.innerHTML=
+      `<div class="hcart ${artCls}">`+
+        `<div class="htype-badge ${sp?'spell':'monster'}">${sp?'SPELL':'MON'}</div>`+
+        `<div class="hcost ${ok?'':'cant'}">${c.cost}</div>`+
+        `${icon}`+
+      `</div>`+
+      `<div class="hsa">`+
+        `<div class="hnm">${c.name}</div>`+
+        (c.type==='monster'
+          ? `<div class="hst"><span style="color:#ff8055">${c.atk}</span><span style="color:var(--tx3);font-size:9px">/</span><span style="color:#50d880">${c.hp}</span></div>`
+          : `<div style="font-size:7px;color:var(--orange);text-align:center;font-family:var(--mono);">SPELL</div>`)+
+        (kw?`<div class="hkwrow">${kw}</div>`:'')+
+      `</div>`;
     hc.addEventListener('mouseenter',()=>pvShow(c));
     hc.addEventListener('mouseleave',pvClear);
     if(ok)hc.onclick=()=>selCard(i);
@@ -1447,7 +1491,7 @@ function selAtk(si){
   if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
-  if(G.selAtk===si){clrAtkUI();G.selAtk=null;nc('攻撃キャンセル');return;}
+  if(G.selAtk===si){clrAtkUI();G.selAtk=null;rMon('m');nc('攻撃するモンスターを選んでください');return;}
   if(G.selAtk!==null){clrAtkUI();G.selAtk=null;}
   G.selAtk=si;
   const selEl=$('mm-'+si);if(selEl)selEl.classList.add('asel');
