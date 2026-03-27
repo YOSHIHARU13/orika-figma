@@ -439,7 +439,7 @@ body::after{
 }
 /* EN右上バッジ（手札） */
 .hcost{
-  position:absolute;top:3px;right:3px;
+  position:absolute;top:3px;left:3px;
   width:22px;height:22px;border-radius:50%;
   background:linear-gradient(135deg,#7a5500,var(--gold2));
   color:var(--white);font-size:13px;font-weight:900;
@@ -449,6 +449,17 @@ body::after{
   z-index:20;flex-shrink:0;
 }
 .hcost.cant{background:rgba(30,30,50,.95);color:var(--tx3);border-color:var(--l2);text-shadow:none;}
+/* KWバッジ（右上） */
+.hkw-top{
+  position:absolute;top:3px;right:3px;
+  display:flex;flex-direction:column;gap:2px;z-index:20;
+}
+.hkwbadge{
+  font-size:6px;font-weight:900;font-family:var(--mono);
+  padding:1px 3px;border-radius:3px;white-space:nowrap;
+}
+.hkwbadge.突撃{background:rgba(255,101,53,.35);border:1px solid rgba(255,101,53,.6);color:#ff9070;}
+.hkwbadge.前衛{background:rgba(39,201,106,.25);border:1px solid rgba(39,201,106,.5);color:var(--green);}
 /* 手札カードの下部ステータス帯 */
 .hsa{
   width:100%;padding:3px 4px 3px;
@@ -1322,6 +1333,7 @@ function rHand(){
     const kw=(c.kw||[]).map(k=>`<div class="hkwi ${k}">${k==='突撃'?'突':'前'}</div>`).join('');
     hc.innerHTML=
       `<div class="hcost ${ok?'':'cant'}">${c.cost}</div>`+
+      `<div class="hkw-top">${(c.kw||[]).map(k=>`<div class="hkwbadge ${k}">${k}</div>`).join('')}</div>`+
       `<div class="hcart ${artCls}">`+
         `<div class="htype-badge ${sp?'spell':'monster'}">${sp?'SPELL':'MON'}</div>`+
         `${icon}`+
@@ -1331,7 +1343,6 @@ function rHand(){
         (c.type==='monster'
           ? `<div class="hst"><span style="color:#ff8055">${c.atk}</span><span style="color:var(--tx3);font-size:9px">/</span><span style="color:#50d880">${c.hp}</span></div>`
           : `<div style="font-size:7px;color:var(--orange);text-align:center;font-family:var(--mono);">SPELL</div>`)+
-        (kw?`<div class="hkwrow">${kw}</div>`:'')+
       `</div>`;
     hc.addEventListener('mouseenter',()=>pvShow(c));
     hc.addEventListener('mouseleave',pvClear);
