@@ -1958,7 +1958,7 @@ const Stack={
     }
     const item=this.items.pop();this.render();
     // 解決時：オーバーレイなし、発動元グロー→fn実行
-    if(item.slotId) glowSlot(item.slotId, civGlowColor(item.card), 600);
+    if(item.slotId) glowSlot(item.slotId, civGlowColor(item.card), 900);
     const cb=$('cbar-txt');
     if(cb){
       const oc=item.owner==='m'?'var(--green)':'var(--red)';
@@ -1967,7 +1967,7 @@ const Stack={
       cb.innerHTML=`<span style="color:var(--tx3);font-size:10px;">▶解決</span> <span style="color:${oc}">${on}</span> <span style="color:var(--gold);font-weight:900;">${nm}</span> <span style="color:var(--tx2);font-size:10px;">${item.label}</span>`;
       clearTimeout(cb._t);cb._t=setTimeout(()=>{cb.innerHTML='';},1800);
     }
-    setTimeout(()=>{item.fn();setTimeout(()=>this._next(),400);},300);
+    setTimeout(()=>{item.fn();setTimeout(()=>this._next(),600);},700);
   },
   render(){
     const panel=$('stack-panel');const list=$('stack-list');if(!panel||!list)return;
@@ -2042,24 +2042,24 @@ function _queueOneByOne(effects, done){
   // 1件かつスタック空 → 直接発動（グローのみ、オーバーレイなし）
   if(effects.length===1 && Stack.items.length===0){
     const e=effects[0];
-    if(e.slotId) glowSlot(e.slotId, civGlowColor(e.card), 700);
+    if(e.slotId) glowSlot(e.slotId, civGlowColor(e.card), 900);
     cbarEffect(e);
     setTimeout(()=>{
       e.fn();
       rMon('m');rMon('e');rHand();rEN('m');rEN('e');rGrave('m');rGrave('e');rStatus();updBtn();
       if(done)done();
-    },300);
+    },600);
     return;
   }
 
   // 複数件 → グロー→スタックへ積む（オーバーレイなし）
   const e=effects.shift();
-  if(e.slotId) glowSlot(e.slotId, civGlowColor(e.card), 600);
+  if(e.slotId) glowSlot(e.slotId, civGlowColor(e.card), 900);
   cbarEffect(e);
   setTimeout(()=>{
     Stack.push(e.label, e.card, e.owner, e.fn, e.slotId);
     _queueOneByOne(effects, done);
-  },200);
+  },600);
 }
 
 // cbarに発動情報を短時間表示
