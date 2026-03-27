@@ -400,12 +400,13 @@ body::after{
   background:linear-gradient(160deg,var(--p2),var(--p1));
   cursor:pointer;
   display:flex;flex-direction:column;align-items:stretch;
-  position:relative;overflow:hidden;
+  position:relative;overflow:visible;
   transform-origin:bottom center;margin:0 -10px;
   transition:transform .2s,box-shadow .2s,border-color .2s;
   box-shadow:0 4px 14px rgba(0,0,0,.5);
+  clip-path:none;
 }
-/* hcardの角丸クリップ用インナー（不要になったため削除） */
+
 .hcard.playable{border-color:rgba(39,201,106,.5);box-shadow:0 0 10px rgba(39,201,106,.2),0 4px 14px rgba(0,0,0,.5);}
 .hcard.selected{
   border-color:var(--gold)!important;
@@ -422,76 +423,6 @@ body::after{
   text-align:center;font-size:7px;color:var(--orange);font-weight:700;
   font-family:var(--mono);z-index:30;
 }
-/* コストバー — カード最上部の帯、絶対配置なし */
-.hcost-bar{
-  width:100%;height:22px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 5px;
-  background:rgba(0,0,0,.45);
-  border-radius:7px 7px 0 0;
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.hcost{
-  width:18px;height:18px;border-radius:50%;
-  background:linear-gradient(135deg,#7a5500,#c99a2e);
-  color:var(--white);font-size:12px;font-weight:900;
-  display:flex;align-items:center;justify-content:center;
-  border:1.5px solid rgba(232,184,75,.7);font-family:var(--mono);
-  text-shadow:0 1px 3px rgba(0,0,0,.9);
-  flex-shrink:0;
-}
-.hcost.cant{background:rgba(30,30,50,.95);color:var(--tx3);border-color:var(--l2);text-shadow:none;}
-.hcart{
-  flex:1;min-height:0;
-  display:flex;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;font-size:22px;
-  border-radius:7px 7px 0 0;
-}
-.hcart.fire{background:linear-gradient(160deg,rgba(255,101,53,.3),rgba(180,50,20,.2),var(--p3));}
-.hcart.water{background:linear-gradient(160deg,rgba(45,212,240,.2),rgba(20,80,180,.2),var(--p3));}
-.hcart.wind{background:linear-gradient(160deg,rgba(82,224,138,.2),rgba(20,120,60,.2),var(--p3));}
-.hcart.dark{background:linear-gradient(160deg,rgba(166,126,255,.25),rgba(80,40,160,.2),var(--p3));}
-.hcart.earth{background:linear-gradient(160deg,rgba(160,133,74,.2),rgba(80,60,20,.2),var(--p3));}
-.hcart.spell-civ{background:linear-gradient(160deg,rgba(232,152,10,.2),rgba(180,100,0,.15),var(--p3));}
-.hcart.none{background:linear-gradient(160deg,var(--l2),var(--l1));}
-.hcart::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:24px;
-  background:linear-gradient(transparent,rgba(0,0,0,.6));pointer-events:none;
-}
-
-/* KWバッジ（右上） */
-.hkw-top{
-  position:absolute;top:3px;right:3px;
-  display:flex;flex-direction:column;gap:2px;z-index:20;
-}
-.hkwbadge{
-  font-size:6px;font-weight:900;font-family:var(--mono);
-  padding:1px 3px;border-radius:3px;white-space:nowrap;
-}
-.hkwbadge.突撃{background:rgba(255,101,53,.35);border:1px solid rgba(255,101,53,.6);color:#ff9070;}
-.hkwbadge.前衛{background:rgba(39,201,106,.25);border:1px solid rgba(39,201,106,.5);color:var(--green);}
-/* 手札カードの下部ステータス帯 */
-.hsa{
-  width:100%;padding:3px 4px 3px;
-  display:flex;flex-direction:column;gap:1px;
-  flex-shrink:0;background:rgba(0,0,0,.35);
-}
-.hnm{font-size:7px;color:var(--tx);text-align:center;font-weight:700;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.hst{display:flex;gap:2px;justify-content:center;
-  font-size:11px;font-weight:900;font-family:var(--mono);}
-.hkwrow{display:flex;gap:2px;justify-content:center;}
-.hkwi{height:12px;padding:0 3px;border-radius:6px;font-size:6px;font-weight:700;
-  display:flex;align-items:center;font-family:var(--mono);}
-.hkwi.突撃{background:rgba(255,101,53,.3);border:1px solid rgba(255,101,53,.5);color:#ff8055;}
-.hkwi.前衛{background:rgba(39,201,106,.25);border:1px solid rgba(39,201,106,.4);color:var(--green);}
-.htype-badge{
-  position:absolute;top:3px;left:3px;
-  font-size:6px;font-weight:700;font-family:var(--mono);
-  padding:1px 3px;border-radius:3px;
-}
-.htype-badge.monster{background:rgba(91,164,245,.2);color:var(--blue);border:1px solid rgba(91,164,245,.3);}
-.htype-badge.spell{background:rgba(232,152,10,.2);color:var(--orange);border:1px solid rgba(232,152,10,.3);}
 
 /* ── ABAR ── */
 #abar{
@@ -1339,22 +1270,20 @@ function rHand(){
     const hc=document.createElement('div');
     hc.className='hcard'+(sp?' spell':'')+(ok?' playable':' no-en')+(sel?' selected':'')+(c.trigger?' hastrig':'');
     hc.id='hc-'+i;
-    const artCls=sp?'spell-civ':(civ||'none');
-    const kw=(c.kw||[]).map(k=>`<div class="hkwi ${k}">${k==='突撃'?'突':'前'}</div>`).join('');
+    // フィールドモンスターと同じ構造を流用
+    const civCls2 = sp ? 'mart-civ-none' : ('mart-civ-'+(civ||'none'));
+    const kw2=(c.kw||[]).map(k=>`<div class="kwi ${k}">${k==='突撃'?'突':'前'}</div>`).join('');
+    const hp2=c.type==='monster'?c.hp/c.hp*100:100, hpc2='full';
     hc.innerHTML=
-      `<div class="hcost-bar">`+
-        `<div class="hcost ${ok?'':'cant'}">${c.cost}</div>`+
-        `<div style="font-size:7px;color:var(--tx3);font-family:var(--mono);">${sp?'SPELL':'MON'}</div>`+
-        `<div style="display:flex;gap:2px;">${(c.kw||[]).map(k=>`<div class="hkwbadge ${k}">${k==='突撃'?'突':'前'}</div>`).join('')}</div>`+
-      `</div>`+
-      `<div class="hcart ${artCls}">`+
-        `${icon}`+
-      `</div>`+
-      `<div class="hsa">`+
-        `<div class="hnm">${c.name}</div>`+
-        (c.type==='monster'
-          ? `<div class="hst"><span style="color:#ff8055">${c.atk}</span><span style="color:var(--tx3);font-size:9px">/</span><span style="color:#50d880">${c.hp}</span></div>`
-          : `<div style="font-size:7px;color:var(--orange);text-align:center;font-family:var(--mono);">SPELL</div>`)+
+      `<div class="men-badge">${c.cost}</div>`+
+      (c.kw&&c.kw.includes('前衛') ? `<div class="fg-tag">前衛</div>` : '')+
+      `<div class="mart ${civCls2}">${icon}</div>`+
+      `<div class="msa">`+
+        `<div class="mnm">${c.name}</div>`+
+        (sp
+          ? `<div style="font-size:8px;color:var(--orange);text-align:center;font-family:var(--mono);font-weight:700;">SPELL</div>`
+          : `<div class="mst"><span class="ma">${c.atk}</span><span class="msl">/</span><span class="mh">${c.hp}</span></div>`)+
+        (kw2?`<div class="kwrow">${kw2}</div>`:'')+
       `</div>`;
     hc.addEventListener('mouseenter',()=>pvShow(c));
     hc.addEventListener('mouseleave',pvClear);
@@ -2156,7 +2085,6 @@ function eosConfirm(){
   const cb = _eosCb; _eosCb = null;
   if(cb) cb(ordered);
 }
-
 
 /* ============================================================
    LOG
