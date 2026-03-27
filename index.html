@@ -137,9 +137,11 @@ body::after{
 .sbtn{width:100%;padding:6px 0;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;letter-spacing:.03em;}
 .sbtn-b{background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 2px 8px rgba(231,76,60,.3);}
 .sbtn-b:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 3px 14px rgba(231,76,60,.5);}
-.sbtn-e{background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--bg);box-shadow:0 2px 8px rgba(232,184,75,.3);font-weight:900;}
+.sbtn-e{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a0e00;box-shadow:0 2px 8px rgba(232,184,75,.3);font-weight:900;}
 .sbtn-e:hover:not(:disabled){filter:brightness(1.05);box-shadow:0 3px 14px rgba(232,184,75,.5);}
-.sbtn:disabled{opacity:.35;cursor:not-allowed;filter:none!important;box-shadow:none!important;color:rgba(180,180,180,.5)!important;}
+.sbtn:disabled{opacity:.35;cursor:not-allowed;filter:none!important;box-shadow:none!important;}
+.sbtn-e:disabled{color:rgba(80,50,0,.4)!important;}
+.sbtn-b:disabled{color:rgba(255,255,255,.3)!important;}
 
 /* ── PARTNER CARD ── */
 .ptc{
@@ -1445,8 +1447,9 @@ function selAtk(si){
   if(G.stackLocked){nc('スタック処理中','var(--red)');return;}
   if(G.phase!=='battle'||!G.myTurn)return;
   const m=G.my.monsters[si];if(!m||!m.canAttack||m.used)return;
-  if(G.selAtk===si){clrAtkUI();G.selAtk=null;return;}
-  G.selAtk=si;clrAtkUI();
+  if(G.selAtk===si){clrAtkUI();G.selAtk=null;nc('攻撃キャンセル');return;}
+  if(G.selAtk!==null){clrAtkUI();G.selAtk=null;}
+  G.selAtk=si;
   const selEl=$('mm-'+si);if(selEl)selEl.classList.add('asel');
   const hasFront=G.enemy.monsters.some(em=>em&&em.kw&&em.kw.includes('前衛'));
   const hasEMon=G.enemy.monsters.some(em=>em);
@@ -1456,10 +1459,9 @@ function selAtk(si){
     if(canTarget){s.classList.add('atgt');s.onclick=()=>doAtk(si,i);}
     else s.classList.add('atgt-dim');
   });
+  const aliveShields=G.enemy.shields.filter(s=>s).length;
   if(!hasEMon){
-    const aliveShields=G.enemy.shields.filter(s=>s).length;
     if(aliveShields===0){
-      // シールドもモンスターも0 → ダイレクトアタック
       showDirectTarget(si);
     }else{
       G.enemy.shields.forEach((alive,i)=>{if(!alive)return;const sh=$('esh-'+i);if(!sh)return;sh.classList.add('atk-tgt');sh.onclick=e=>{e.stopPropagation();doDirect(si,i);};});
@@ -1473,12 +1475,10 @@ function selAtk(si){
   if(hint){
     const fr=$('field').getBoundingClientRect();
     hint.style.left=(fr.left+8)+'px';hint.style.top=(fr.top+fr.height/2-40)+'px';
-    const aliveShields=G.enemy.shields.filter(s=>s).length;
     hint.innerHTML=hasFront?'⚠️ 前衛を先に倒す必要があります':hasEMon?'相手MON または シールドを選択':aliveShields===0?'⚔ ダイレクトアタック！':'シールドを攻撃';
     hint.style.display='block';
   }
-  const aliveShields2=G.enemy.shields.filter(s=>s).length;
-  $('cbar-txt').innerHTML=`<span style="color:var(--gold);font-weight:900;">${m.name}</span> <span style="color:var(--tx2);">攻撃宣言${hasFront?' — 前衛優先':aliveShields2===0&&!hasEMon?' — ⚔ ダイレクトアタック可能':''}</span>`;
+  $('cbar-txt').innerHTML=`<span style="color:var(--gold);font-weight:900;">${m.name}</span> <span style="color:var(--tx2);">攻撃宣言${hasFront?' — 前衛優先':''} <span style="color:rgba(255,255,255,.3);font-size:10px;">再クリックでキャンセル</span></span>`;
 }
 function clrAtkUI(){
   document.querySelectorAll('.asel,.atgt,.atgt-dim,.atk-tgt,.atk-dim').forEach(s=>{
